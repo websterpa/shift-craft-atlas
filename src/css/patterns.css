@@ -1,0 +1,12 @@
+/* ============================================
+   Pattern Library Specific Styles
+   ============================================ */
+
+.pattern-card {
+    transition: all 0.3s ease;
+}
+
+.pattern-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+}

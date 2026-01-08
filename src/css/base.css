@@ -1,0 +1,94 @@
+/* ============================================
+   CSS Variables & Theme System
+   ============================================ */
+
+:root {
+    /* Base Dark Theme (Default) */
+    --bg-dark: #0f172a;
+    --card-bg: #1e293b;
+    --sidebar-bg: #0f172a;
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --glass-bg: rgba(30, 41, 59, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-light: rgba(30, 41, 59, 0.5);
+    --table-header: #1e293b;
+
+    --accent-emerald: #10b981;
+    --accent-amber: #f59e0b;
+    --accent-rose: #f43f5e;
+    --accent-blue: #3b82f6;
+
+    /* Shift Type Colors */
+    --shift-early: #fbbf24;
+    --shift-late: #f97316;
+    --shift-night: #8b5cf6;
+    --shift-day: #10b981;
+
+    /* Type Text Colors (Auto-Contrast) */
+    --text-on-shift-early: #000000;
+    --text-on-shift-late: #ffffff;
+    --text-on-shift-night: #ffffff;
+    --text-on-shift-day: #ffffff;
+
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="light"] {
+    --bg-dark: #f1f5f9;
+    --card-bg: #ffffff;
+    --sidebar-bg: #f8fafc;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.1);
+    --table-header: #f8fafc;
+}
+
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.5);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.7);
+}
+
+kbd {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    border: 1px solid var(--glass-border);
+    border-radius: 4px;
+    padding: 0.1rem 0.4rem;
+    font-family: monospace;
+    font-size: 0.8rem;
+    box-shadow: 0 2px 0 var(--glass-border);
+}

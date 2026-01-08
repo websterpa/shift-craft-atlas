@@ -1,0 +1,127 @@
+{
+    "patternId": "continental-24-7",
+    "name": "Continental Shift Pattern (UK)",
+    "description": "Classic 2-2-2-4 pattern for 24/7 operations. Each team works 2 earlies, 2 lates, 2 nights, then has 4 days off. Provides balanced workload with good work-life balance.",
+    "industry": [
+        "healthcare",
+        "manufacturing",
+        "emergency-services"
+    ],
+    "region": "global",
+    "tags": [
+        "24/7",
+        "rotating",
+        "balanced",
+        "4-team",
+        "uk-naming"
+    ],
+    "teams": 4,
+    "cycleDays": 8,
+    "averageHoursPerWeek": 42,
+    "shifts": [
+        {
+            "code": "E",
+            "name": "Early",
+            "start": "06:00",
+            "end": "14:00",
+            "duration": 8,
+            "breakMinutes": 30,
+            "nightShift": false,
+            "color": "#fbbf24"
+        },
+        {
+            "code": "L",
+            "name": "Late",
+            "start": "14:00",
+            "end": "22:00",
+            "duration": 8,
+            "breakMinutes": 30,
+            "nightShift": false,
+            "color": "#f97316"
+        },
+        {
+            "code": "N",
+            "name": "Night",
+            "start": "22:00",
+            "end": "06:00",
+            "duration": 8,
+            "breakMinutes": 30,
+            "nightShift": true,
+            "color": "#3b82f6"
+        },
+        {
+            "code": "R",
+            "name": "Off",
+            "start": null,
+            "end": null,
+            "duration": 0,
+            "breakMinutes": 0,
+            "nightShift": false,
+            "color": "#94a3b8"
+        }
+    ],
+    "rotationPattern": [
+        [
+            "E",
+            "E",
+            "L",
+            "L",
+            "N",
+            "N",
+            "R",
+            "R"
+        ],
+        [
+            "L",
+            "L",
+            "N",
+            "N",
+            "R",
+            "R",
+            "E",
+            "E"
+        ],
+        [
+            "N",
+            "N",
+            "R",
+            "R",
+            "E",
+            "E",
+            "L",
+            "L"
+        ],
+        [
+            "R",
+            "R",
+            "E",
+            "E",
+            "L",
+            "L",
+            "N",
+            "N"
+        ]
+    ],
+    "compliance": {
+        "maxConsecutiveDays": 6,
+        "minRestHours": 11,
+        "nightShiftLimit": 8,
+        "weeklyHoursMax": 48
+    },
+    "advantages": [
+        "Balanced workload across all teams",
+        "Predictable 8-day cycle easy to remember",
+        "Good work-life balance with 4-day breaks every 8 days",
+        "24/7 coverage guaranteed with 4 teams",
+        "Fair distribution of night shifts",
+        "Suitable for industries requiring continuous operation",
+        "Uses standard UK shift naming (E-L-N)"
+    ],
+    "disadvantages": [
+        "Requires minimum of 4 teams (16+ staff for adequate coverage)",
+        "Night shifts can be challenging for some workers",
+        "Handover complexity between shifts",
+        "May require adjustment period for new staff",
+        "Fixed 8-day cycle doesn't align with weekly calendar"
+    ]
+}

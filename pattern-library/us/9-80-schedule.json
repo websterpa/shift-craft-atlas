@@ -1,0 +1,103 @@
+{
+    "patternId": "9-80-schedule",
+    "name": "9/80 Work Schedule",
+    "description": "9 hours Mon-Thu Week 1 \u2192 8 hours Friday \u2192 9 hours Mon-Thu Week 2 \u2192 Friday OFF. 80 hours over 9 working days in 2 weeks.",
+    "industry": [
+        "tech",
+        "government",
+        "professional-services",
+        "engineering"
+    ],
+    "region": "us",
+    "tags": [
+        "compressed",
+        "office",
+        "professional",
+        "us"
+    ],
+    "teams": 1,
+    "cycleDays": 14,
+    "averageHoursPerWeek": 40,
+    "shifts": [
+        {
+            "code": "D9",
+            "name": "Day (9h)",
+            "start": "08:00",
+            "end": "17:00",
+            "duration": 9,
+            "breakMinutes": 60,
+            "nightShift": false,
+            "color": "#fbbf24"
+        },
+        {
+            "code": "D8",
+            "name": "Day (8h)",
+            "start": "08:00",
+            "end": "16:00",
+            "duration": 8,
+            "breakMinutes": 60,
+            "nightShift": false,
+            "color": "#fde047"
+        },
+        {
+            "code": "D4",
+            "name": "Half Day (4h)",
+            "start": "08:00",
+            "end": "12:00",
+            "duration": 4,
+            "breakMinutes": 0,
+            "nightShift": false,
+            "color": "#fef08a"
+        },
+        {
+            "code": "R",
+            "name": "Off",
+            "start": null,
+            "end": null,
+            "duration": 0,
+            "breakMinutes": 0,
+            "nightShift": false,
+            "color": "#94a3b8"
+        }
+    ],
+    "rotationPattern": [
+        [
+            "D9",
+            "D9",
+            "D9",
+            "D9",
+            "D4",
+            "R",
+            "R",
+            "D9",
+            "D9",
+            "D9",
+            "D9",
+            "D8",
+            "R",
+            "R"
+        ]
+    ],
+    "compliance": {
+        "maxConsecutiveDays": 9,
+        "minRestHours": 11,
+        "nightShiftLimit": 0,
+        "weeklyHoursMax": 44
+    },
+    "advantages": [
+        "Every other Friday off (3-day weekend)",
+        "Standard 40-hour workweek compressed into 9 days",
+        "Better work-life balance",
+        "Reduced commuting costs (one less day per fortnight)",
+        "Popular in tech and government sectors",
+        "Maintains full-time status and benefits",
+        "No overtime required"
+    ],
+    "disadvantages": [
+        "9-hour days can be tiring",
+        "Not suitable for customer-facing roles requiring 5-day coverage",
+        "Coordination needed if team members on different cycles",
+        "May conflict with childcare schedules",
+        "Not applicable to shift work or 24/7 operations"
+    ]
+}

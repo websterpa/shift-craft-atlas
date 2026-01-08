@@ -1,0 +1,22 @@
+/* ============================================
+   Shift Craft (Atlas) - Main Stylesheet
+   Modular CSS Architecture
+   ============================================ */
+
+/* Base: Variables, Reset, Theme */
+@import './base.css';
+
+/* Layout: Structure, Grid, Sidebar, Main */
+@import './layout.css';
+
+/* Components: Buttons, Cards, Badges, Pills */
+@import './components.css';
+
+/* Modals: Modal Overlays, Toasts, Dialogs */
+@import './modals.css';
+
+/* Patterns: Pattern Library Specific Styles */
+@import './patterns.css';
+
+/* Responsive: Mobile, Tablet, Print Styles */
+@import './responsive.css';

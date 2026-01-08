@@ -1,0 +1,197 @@
+{
+    "version": "1.0.0",
+    "lastUpdated": "2025-12-20",
+    "description": "Shift Craft (Atlas) Pattern Library - Industry-standard shift patterns",
+    "patterns": [
+        {
+            "id": "continental-24-7",
+            "name": "Continental Shift Pattern",
+            "path": "/pattern-library/global/continental.json",
+            "region": "global",
+            "industry": [
+                "healthcare",
+                "manufacturing",
+                "emergency-services"
+            ],
+            "teams": 4,
+            "cycleDays": 8,
+            "featured": true,
+            "description": "2-2-2-4 pattern for 24/7 operations"
+        },
+        {
+            "id": "dupont-12h",
+            "name": "DuPont 12-Hour Schedule",
+            "path": "/pattern-library/global/dupont.json",
+            "region": "global",
+            "industry": [
+                "chemical",
+                "manufacturing",
+                "refining",
+                "utilities"
+            ],
+            "teams": 4,
+            "cycleDays": 28,
+            "featured": true,
+            "description": "4 ON-3 OFF-3 N-1 OFF-3 ON-3 OFF-4 N-7 OFF pattern"
+        },
+        {
+            "id": "pitman-2-2-3",
+            "name": "Pitman Schedule (2-2-3)",
+            "path": "/pattern-library/global/pitman.json",
+            "region": "global",
+            "industry": [
+                "police",
+                "corrections",
+                "call-center",
+                "security"
+            ],
+            "teams": 4,
+            "cycleDays": 14,
+            "featured": true,
+            "description": "2 ON-2 OFF-3 ON-2 OFF-2 ON-3 OFF pattern"
+        },
+        {
+            "id": "4-on-4-off",
+            "name": "4-On-4-Off (LULU)",
+            "path": "/pattern-library/global/4-on-4-off.json",
+            "region": "global",
+            "industry": [
+                "fire",
+                "police",
+                "security",
+                "call-center"
+            ],
+            "teams": 2,
+            "cycleDays": 8,
+            "featured": false,
+            "description": "Simple 4 days ON, 4 days OFF rotation"
+        },
+        {
+            "id": "nhs-banding-1a",
+            "name": "NHS Banding 1A Pattern",
+            "path": "/pattern-library/uk/nhs-banding-1a.json",
+            "region": "uk",
+            "industry": [
+                "healthcare-uk"
+            ],
+            "teams": 1,
+            "cycleDays": 14,
+            "featured": true,
+            "description": "NHS junior doctor rota (40-48h/week, \u22644h OOH)"
+        },
+        {
+            "id": "nhs-banding-2a",
+            "name": "NHS Banding 2A Pattern",
+            "path": "/pattern-library/uk/nhs-banding-2a.json",
+            "region": "uk",
+            "industry": [
+                "healthcare-uk"
+            ],
+            "teams": 1,
+            "cycleDays": 14,
+            "featured": true,
+            "description": "NHS doctor rota (48-56h/week, >4h OOH)"
+        },
+        {
+            "id": "uk-retail-standard",
+            "name": "UK Retail Standard Pattern",
+            "path": "/pattern-library/uk/retail-standard.json",
+            "region": "uk",
+            "industry": [
+                "retail-uk",
+                "hospitality-uk"
+            ],
+            "teams": 3,
+            "cycleDays": 21,
+            "featured": false,
+            "description": "Standard UK retail with early/mid/late shifts"
+        },
+        {
+            "id": "uk-care-home-24-7",
+            "name": "UK Care Home 24/7 Pattern",
+            "path": "/pattern-library/uk/care-home-24-7.json",
+            "region": "uk",
+            "industry": [
+                "care-homes-uk",
+                "social-care-uk"
+            ],
+            "teams": 4,
+            "cycleDays": 28,
+            "featured": true,
+            "description": "CQC-compliant care home pattern with waking nights"
+        },
+        {
+            "id": "9-80-schedule",
+            "name": "9/80 Work Schedule",
+            "path": "/pattern-library/us/9-80-schedule.json",
+            "region": "us",
+            "industry": [
+                "tech",
+                "government",
+                "professional-services"
+            ],
+            "teams": 1,
+            "cycleDays": 14,
+            "featured": false,
+            "description": "80 hours over 9 working days (every other Friday off)"
+        }
+    ],
+    "categories": {
+        "24/7": [
+            "continental-24-7",
+            "dupont-12h",
+            "pitman-2-2-3",
+            "uk-care-home-24-7"
+        ],
+        "healthcare": [
+            "continental-24-7",
+            "nhs-banding-1a",
+            "nhs-banding-2a",
+            "uk-care-home-24-7"
+        ],
+        "manufacturing": [
+            "continental-24-7",
+            "dupont-12h"
+        ],
+        "emergency-services": [
+            "continental-24-7",
+            "pitman-2-2-3",
+            "4-on-4-off"
+        ],
+        "police": [
+            "pitman-2-2-3",
+            "4-on-4-off"
+        ],
+        "professional": [
+            "9-80-schedule"
+        ],
+        "retail": [
+            "uk-retail-standard"
+        ],
+        "care-homes": [
+            "uk-care-home-24-7"
+        ],
+        "12-hour-shifts": [
+            "dupont-12h",
+            "pitman-2-2-3",
+            "4-on-4-off"
+        ]
+    },
+    "regions": {
+        "global": [
+            "continental-24-7",
+            "dupont-12h",
+            "pitman-2-2-3",
+            "4-on-4-off"
+        ],
+        "uk": [
+            "nhs-banding-1a",
+            "nhs-banding-2a",
+            "uk-retail-standard",
+            "uk-care-home-24-7"
+        ],
+        "us": [
+            "9-80-schedule"
+        ]
+    }
+}

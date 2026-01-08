@@ -1,0 +1,745 @@
+/* ============================================
+   Reusable Components (Buttons, Cards, Badges)
+   ============================================ */
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--glass-border);
+    color: var(--text-main);
+}
+
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-icon {
+    padding: 0.65rem;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+}
+
+/* View Toggle Buttons */
+/* View Toggle Buttons */
+.btn-toggle {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: var(--card-bg);
+    /* Use card background for consistency */
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
+    border-radius: 0;
+}
+
+.btn-toggle:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    border-right: none;
+}
+
+.btn-toggle:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.btn-toggle:hover {
+    color: var(--text-main);
+    background: var(--glass-light);
+}
+
+.btn-toggle.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+/* Stats Cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 100%;
+}
+
+.stat-card.blue::after {
+    background: var(--accent-blue);
+}
+
+.stat-card.emerald::after {
+    background: var(--accent-emerald);
+}
+
+.stat-card.amber::after {
+    background: var(--accent-amber);
+}
+
+.stat-card.rose::after {
+    background: var(--accent-rose);
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+/* Shift Pills */
+.shift-pill {
+    background: rgba(99, 102, 241, 0.1);
+    border-left: 4px solid var(--primary);
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.shift-pill:hover {
+    background: rgba(99, 102, 241, 0.2);
+    transform: scale(1.02);
+}
+
+.shift-pill.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+    cursor: grabbing;
+}
+
+/* Shift Type Badge in Weekly View */
+.shift-pill .shift-type-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    background: var(--primary);
+    color: #fff;
+}
+
+/* Night Shift (N) - Purple */
+.shift-pill.night {
+    background: color-mix(in srgb, var(--shift-night), transparent 85%);
+    border-left-color: var(--shift-night);
+}
+
+.shift-pill.night .shift-type-badge {
+    background: var(--shift-night);
+    color: var(--text-on-shift-night);
+}
+
+/* Early Shift (E) - Amber/Yellow */
+.shift-pill.early {
+    background: color-mix(in srgb, var(--shift-early), transparent 88%);
+    border-left-color: var(--shift-early);
+}
+
+.shift-pill.early .shift-type-badge {
+    background: var(--shift-early);
+    color: var(--text-on-shift-early);
+}
+
+/* Late Shift (L) - Orange */
+.shift-pill.late {
+    background: color-mix(in srgb, var(--shift-late), transparent 88%);
+    border-left-color: var(--shift-late);
+}
+
+.shift-pill.late .shift-type-badge {
+    background: var(--shift-late);
+    color: var(--text-on-shift-late);
+}
+
+/* Day 12-hour Shift (D) - Emerald/Green */
+.shift-pill.day12 {
+    background: color-mix(in srgb, var(--shift-day), transparent 88%);
+    border-left-color: var(--shift-day);
+}
+
+.shift-pill.day12 .shift-type-badge {
+    background: var(--shift-day);
+    color: var(--text-on-shift-day);
+}
+
+.shift-time {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.shift-loc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+
+/* Rest Day Indicator */
+.rest-day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: rgba(100, 116, 139, 0.05);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+    opacity: 0.6;
+}
+
+.rest-day:hover {
+    opacity: 0.8;
+    background: rgba(100, 116, 139, 0.1);
+}
+
+/* Badges */
+.compliance-warning {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+    padding: 0.2rem 0.5rem;
+    background: rgba(244, 63, 94, 0.1);
+    color: var(--accent-rose);
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 600;
+}
+
+.ph-badge {
+    background: var(--accent-amber);
+    color: #000;
+    font-size: 0.6rem;
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+    font-weight: 800;
+    margin-top: 0.2rem;
+    text-transform: uppercase;
+}
+
+.pattern-badge {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.confidence-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.confidence-high {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.confidence-medium {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+
+.confidence-low {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+/* Dashboard Metrics */
+.dashboard-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.metric-card {
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    padding: 1.5rem;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.metric-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+.metric-trend {
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.trend-up {
+    color: var(--accent-emerald);
+}
+
+.trend-down {
+    color: var(--accent-rose);
+}
+
+/* Charts */
+.chart-card {
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.chart-legend {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+.svg-chart-container {
+    width: 100%;
+    height: 300px;
+    position: relative;
+}
+
+.svg-chart {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.chart-axis-line {
+    stroke: var(--glass-border);
+    stroke-width: 1;
+}
+
+.chart-grid-line {
+    stroke: var(--glass-border);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+}
+
+.chart-bar-scheduled {
+    fill: url(#blueGradient);
+    rx: 6;
+    transition: all 0.3s ease;
+}
+
+.chart-bar-demand {
+    fill: rgba(255, 255, 255, 0.1);
+    rx: 6;
+    stroke: var(--glass-border);
+}
+
+.chart-line-cost {
+    fill: none;
+    stroke: var(--accent-emerald);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 4px 6px rgba(16, 185, 129, 0.3));
+}
+
+.chart-point-cost {
+    fill: var(--accent-emerald);
+    stroke: var(--card-bg);
+    stroke-width: 2;
+}
+
+.chart-tooltip {
+    position: absolute;
+    background: rgba(15, 23, 42, 0.95);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    pointer-events: none;
+    z-index: 100;
+    font-size: 0.85rem;
+    display: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    min-width: 150px;
+}
+
+.tooltip-title {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 0.25rem;
+}
+
+.tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.chart-label-x {
+    fill: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.chart-label-y {
+    fill: var(--text-muted);
+    font-size: 10px;
+}
+
+/* Drag & Drop */
+.drop-zone.drag-over {
+    background: rgba(99, 102, 241, 0.1) !important;
+    box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+[data-theme="light"] .drop-zone.drag-over {
+    background: rgba(99, 102, 241, 0.05) !important;
+}
+
+/* Visualization Cells */
+.viz-row {
+    display: flex;
+    gap: 4px;
+    margin-top: 0.5rem;
+}
+
+.viz-cell {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.viz-cell.E {
+    background: var(--shift-early);
+    color: var(--text-on-shift-early);
+}
+
+.viz-cell.L {
+    background: var(--shift-late);
+    color: var(--text-on-shift-late);
+}
+
+.viz-cell.N {
+    background: var(--shift-night);
+    color: var(--text-on-shift-night);
+}
+
+.viz-cell.X {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+}
+
+/* ============================================
+   Monthly Calendar Grid
+   ============================================ */
+
+.monthly-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-top: 1rem;
+}
+
+.monthly-calendar-header {
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--glass-light);
+    border-radius: 8px;
+}
+
+.monthly-calendar-header.weekend {
+    color: var(--primary);
+    background: color-mix(in srgb, var(--primary), transparent 92%);
+}
+
+.monthly-calendar-day {
+    min-height: 100px;
+    padding: 0.6rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    transition: all 0.2s ease;
+}
+
+.monthly-calendar-day:hover {
+    background: rgba(99, 102, 241, 0.06);
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateY(-1px);
+}
+
+.monthly-calendar-day.other-month {
+    opacity: 0.3;
+    background: transparent;
+    border-color: transparent;
+}
+
+.monthly-calendar-day.today {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.12);
+    box-shadow: 0 0 16px rgba(99, 102, 241, 0.25);
+}
+
+.monthly-calendar-day.weekend {
+    background: color-mix(in srgb, var(--glass-bg), var(--primary) 5%);
+}
+
+.monthly-calendar-day.has-shift {
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+.monthly-calendar-day.rest-day-cell {
+    background: rgba(100, 116, 139, 0.03);
+}
+
+.monthly-day-number {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+    color: var(--text-main);
+}
+
+.monthly-calendar-day.other-month .monthly-day-number {
+    color: var(--text-muted);
+}
+
+.monthly-calendar-day.today .monthly-day-number {
+    color: var(--primary);
+}
+
+.monthly-calendar-day.weekend .monthly-day-number {
+    color: var(--primary);
+    opacity: 0.8;
+}
+
+.monthly-rest-indicator {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 0.25rem 0.4rem;
+    background: rgba(100, 116, 139, 0.08);
+    border-radius: 4px;
+    text-align: center;
+    margin-top: auto;
+}
+
+
+.monthly-shift-pill {
+    background: rgba(99, 102, 241, 0.15);
+    border-left: 4px solid var(--primary);
+    padding: 0.35rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* Shift Type Badge (E, L, N, D code) */
+.shift-type-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+/* Night Shift (N) */
+.monthly-shift-pill.night {
+    background: color-mix(in srgb, var(--shift-night), transparent 85%);
+    border-left-color: var(--shift-night);
+}
+
+.monthly-shift-pill.night .shift-type-badge {
+    background: var(--shift-night);
+    color: var(--text-on-shift-night);
+}
+
+/* Early Shift (E) */
+.monthly-shift-pill.early {
+    background: color-mix(in srgb, var(--shift-early), transparent 85%);
+    border-left-color: var(--shift-early);
+}
+
+.monthly-shift-pill.early .shift-type-badge {
+    background: var(--shift-early);
+    color: var(--text-on-shift-early);
+}
+
+/* Late Shift (L) */
+.monthly-shift-pill.late {
+    background: color-mix(in srgb, var(--shift-late), transparent 85%);
+    border-left-color: var(--shift-late);
+}
+
+.monthly-shift-pill.late .shift-type-badge {
+    background: var(--shift-late);
+    color: var(--text-on-shift-late);
+}
+
+/* Day 12-hour Shift (D) */
+.monthly-shift-pill.day12 {
+    background: color-mix(in srgb, var(--shift-day), transparent 85%);
+    border-left-color: var(--shift-day);
+}
+
+.monthly-shift-pill.day12 .shift-type-badge {
+    background: var(--shift-day);
+    color: var(--text-on-shift-day);
+}
+
+.monthly-rest-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    padding: 0.25rem;
+    opacity: 0.6;
+}
+
+
+/* Responsive Calendar */
+@media (max-width: 768px) {
+    .monthly-calendar-day {
+        min-height: 60px;
+        padding: 0.35rem;
+    }
+
+    .monthly-day-number {
+        font-size: 0.75rem;
+    }
+
+    .monthly-shift-pill {
+        font-size: 0.6rem;
+        padding: 0.25rem 0.35rem;
+    }
+
+    .monthly-calendar-header {
+        font-size: 0.65rem;
+        padding: 0.5rem;
+    }
+}

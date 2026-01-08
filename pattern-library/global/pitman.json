@@ -1,0 +1,139 @@
+{
+    "patternId": "pitman-2-2-3",
+    "name": "Pitman Schedule (2-2-3)",
+    "description": "2 days ON \u2192 2 days OFF \u2192 3 days ON \u2192 2 days OFF \u2192 2 days ON \u2192 3 days OFF. 14-day rotation providing every other weekend off.",
+    "industry": [
+        "police",
+        "corrections",
+        "call-center",
+        "security"
+    ],
+    "region": "global",
+    "tags": [
+        "12-hour",
+        "2-week-cycle",
+        "weekend-rotation"
+    ],
+    "teams": 4,
+    "cycleDays": 14,
+    "averageHoursPerWeek": 42,
+    "shifts": [
+        {
+            "code": "D",
+            "name": "Day (12h)",
+            "start": "07:00",
+            "end": "19:00",
+            "duration": 12,
+            "breakMinutes": 60,
+            "nightShift": false,
+            "color": "#fbbf24"
+        },
+        {
+            "code": "N",
+            "name": "Night (12h)",
+            "start": "19:00",
+            "end": "07:00",
+            "duration": 12,
+            "breakMinutes": 60,
+            "nightShift": true,
+            "color": "#3b82f6"
+        },
+        {
+            "code": "R",
+            "name": "Off",
+            "start": null,
+            "end": null,
+            "duration": 0,
+            "breakMinutes": 0,
+            "nightShift": false,
+            "color": "#94a3b8"
+        }
+    ],
+    "rotationPattern": [
+        [
+            "D",
+            "D",
+            "R",
+            "R",
+            "D",
+            "D",
+            "D",
+            "R",
+            "R",
+            "R",
+            "N",
+            "N",
+            "R",
+            "R"
+        ],
+        [
+            "R",
+            "R",
+            "D",
+            "D",
+            "R",
+            "R",
+            "R",
+            "D",
+            "D",
+            "D",
+            "R",
+            "R",
+            "N",
+            "N"
+        ],
+        [
+            "N",
+            "N",
+            "R",
+            "R",
+            "N",
+            "N",
+            "N",
+            "R",
+            "R",
+            "R",
+            "D",
+            "D",
+            "R",
+            "R"
+        ],
+        [
+            "R",
+            "R",
+            "N",
+            "N",
+            "R",
+            "R",
+            "R",
+            "N",
+            "N",
+            "N",
+            "R",
+            "R",
+            "D",
+            "D"
+        ]
+    ],
+    "compliance": {
+        "maxConsecutiveDays": 3,
+        "minRestHours": 11,
+        "nightShiftLimit": 3,
+        "weeklyHoursMax": 48
+    },
+    "advantages": [
+        "Every other weekend off (Sat-Sun or Sun-Mon)",
+        "Simple 2-2-3 pattern easy to remember",
+        "Good work-life balance",
+        "14-day cycle aligns with biweekly pay periods",
+        "Shorter consecutive work stretches (max 3 days)",
+        "Popular in law enforcement and public safety"
+    ],
+    "disadvantages": [
+        "Requires 4 teams for coverage",
+        "12-hour shifts can be tiring",
+        "Rotating days/nights can affect sleep",
+        "Not ideal for those who prefer fixed shifts",
+        "Weekend rotation may not suit all staff"
+    ]
+}

@@ -1,0 +1,62 @@
+#!/bin/bash
+# Pre-commit hook to enforce DOM naming conventions for modals/wizards
+# Install: cp .agent/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+
+echo "🔍 Running DOM Naming Convention Check..."
+
+VIOLATIONS=""
+WARNINGS=""
+
+# Only check specific modal/wizard files (not vendor, not all files)
+MODAL_WIZARD_FILES=(
+    "src/js/roster/RosterWizard.js"
+    "src/js/patterns/PatternLibraryUI.js"
+    "src/js/ai/AIPatternUI.js"
+    "src/js/templates/ShiftTemplates.js"
+)
+
+for file in "${MODAL_WIZARD_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        # Check for "Select All" checkboxes without IDs (high-risk for collision)
+        if grep -E 'Select All' "$file" | grep -q '<input'; then
+            if grep -E 'Select All' "$file" | grep '<input' | grep -v 'id="' > /dev/null; then
+                VIOLATIONS="$VIOLATIONS\n⚠️  $file: 'Select All' checkbox without id= (HIGH RISK)"
+            fi
+        fi
+        
+        # Check for modal submit buttons without IDs - warning only
+        if grep -E 'type="submit"' "$file" | grep -v 'id="' > /dev/null 2>&1; then
+            WARNINGS="$WARNINGS\n💡 $file: submit button without id= (consider adding for testability)"
+        fi
+    fi
+done
+
+# index.html check - warning only (many legitimate cases)
+if [ -f "index.html" ]; then
+    if grep 'Select All' "index.html" | grep '<input' | grep -v 'id="' > /dev/null 2>&1; then
+        VIOLATIONS="$VIOLATIONS\n⚠️  index.html: 'Select All' checkbox without id="
+    fi
+fi
+
+# Show warnings but don't block
+if [ -n "$WARNINGS" ]; then
+    echo -e "\n💡 RECOMMENDATIONS (non-blocking):"
+    echo -e "$WARNINGS"
+fi
+
+# Block on violations
+if [ -n "$VIOLATIONS" ]; then
+    echo -e "\n❌ DOM NAMING CONVENTION VIOLATIONS FOUND:"
+    echo -e "$VIOLATIONS"
+    echo ""
+    echo "📋 'Select All' checkboxes MUST have unique IDs to prevent selector collisions."
+    echo "   Example: id=\"wizard-select-all\" or id=\"modal-select-all\""
+    echo ""
+    echo "   See: .agent/DOM_NAMING_CONVENTIONS.md"
+    echo ""
+    echo "To bypass (NOT RECOMMENDED): git commit --no-verify"
+    exit 1
+fi
+
+echo "✅ DOM naming conventions check passed"
+exit 0

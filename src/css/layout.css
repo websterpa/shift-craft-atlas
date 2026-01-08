@@ -1,0 +1,229 @@
+/* ============================================
+   Layout & Structure
+   ============================================ */
+
+.app-container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Sidebar */
+aside {
+    width: 260px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #818cf8, #6366f1);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 2.5rem;
+}
+
+.nav-links {
+    list-style: none;
+}
+
+.nav-item {
+    margin-bottom: 0.5rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.nav-link i {
+    width: 20px;
+    height: 20px;
+}
+
+.nav-link:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+}
+
+.nav-link.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+/* Main Content */
+main {
+    flex-grow: 1;
+    padding: 2.5rem;
+    overflow-y: auto;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2.5rem;
+}
+
+.header-title h1 {
+    font-size: 1.85rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.header-title p {
+    color: var(--text-muted);
+    font-size: 1.15rem;
+}
+
+/* Branding & Global Header */
+.global-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 2.5rem;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--glass-border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    margin: -2.5rem -2.5rem var(--header-spacing, 2rem) -2.5rem;
+    /* Offset main padding */
+    height: 70px;
+}
+
+.top-bar-branding {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.global-logo {
+    max-height: 40px;
+    width: auto;
+    object-fit: contain;
+}
+
+.global-strapline {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--primary);
+    letter-spacing: 0.5px;
+    opacity: 0.9;
+}
+
+/* Admin Branding Preview */
+#branding-preview-container {
+    background-image:
+        linear-gradient(45deg, var(--glass-border) 25%, transparent 25%),
+        linear-gradient(-45deg, var(--glass-border) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, var(--glass-border) 75%),
+        linear-gradient(-45deg, transparent 75%, var(--glass-border) 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    min-height: 200px;
+}
+
+#branding-logo-preview-large img {
+    max-width: 100%;
+    max-height: 150px;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+}
+
+/* St Staff Info */
+.staff-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.staff-name {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.staff-role {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Rota Table */
+.roster-builder {
+    background: var(--card-bg);
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    overflow: hidden;
+}
+
+.roster-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.roster-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rota-table th {
+    text-align: left;
+    padding: 1rem 1.5rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.rota-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--glass-border);
+    vertical-align: top;
+}
+
+.roster-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    position: relative;
+}
+
+/* Weekend Highlighting */
+.rota-table th.weekend {
+    background: color-mix(in srgb, var(--glass-bg), var(--primary) 5%);
+    border-bottom-color: var(--primary);
+}
+
+.rota-table td.weekend {
+    background: color-mix(in srgb, var(--glass-bg), var(--primary) 3%);
+}

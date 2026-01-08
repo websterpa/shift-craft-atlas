@@ -1,0 +1,87 @@
+{
+    "patternId": "4-on-4-off",
+    "name": "4-On-4-Off (LULU)",
+    "description": "4 days ON \u2192 4 days OFF. Simple 8-day rotation with 2 teams. Also known as LULU (Long-Long-Until-Until).",
+    "industry": [
+        "fire",
+        "police",
+        "security",
+        "call-center"
+    ],
+    "region": "global",
+    "tags": [
+        "12-hour",
+        "8-day-cycle",
+        "simple",
+        "2-team"
+    ],
+    "teams": 2,
+    "cycleDays": 8,
+    "averageHoursPerWeek": 42,
+    "shifts": [
+        {
+            "code": "D",
+            "name": "Day (12h)",
+            "start": "07:00",
+            "end": "19:00",
+            "duration": 12,
+            "breakMinutes": 60,
+            "nightShift": false,
+            "color": "#fbbf24"
+        },
+        {
+            "code": "R",
+            "name": "Off",
+            "start": null,
+            "end": null,
+            "duration": 0,
+            "breakMinutes": 0,
+            "nightShift": false,
+            "color": "#94a3b8"
+        }
+    ],
+    "rotationPattern": [
+        [
+            "D",
+            "D",
+            "D",
+            "D",
+            "R",
+            "R",
+            "R",
+            "R"
+        ],
+        [
+            "R",
+            "R",
+            "R",
+            "R",
+            "D",
+            "D",
+            "D",
+            "D"
+        ]
+    ],
+    "compliance": {
+        "maxConsecutiveDays": 4,
+        "minRestHours": 11,
+        "nightShiftLimit": 0,
+        "weeklyHoursMax": 48
+    },
+    "advantages": [
+        "Very simple pattern - easy to understand",
+        "Only requires 2 teams",
+        "4 consecutive days off every 8 days",
+        "No night shifts (day-only variant)",
+        "Good work-life balance",
+        "Predictable schedule",
+        "Popular with emergency services"
+    ],
+    "disadvantages": [
+        "4 consecutive 12-hour shifts can be exhausting",
+        "Not suitable for 24/7 operations without night variant",
+        "Limited flexibility",
+        "Doesn't align with weekly calendar",
+        "May require overtime for 24/7 coverage"
+    ]
+}

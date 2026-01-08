@@ -1,0 +1,153 @@
+{
+    "patternId": "uk-retail-standard",
+    "name": "UK Retail Standard Pattern",
+    "description": "Standard UK retail shift pattern with early and late shifts, compliant with Employment Rights Act 1996 and WTR 1998. Includes weekend rotation and Bank Holiday coverage.",
+    "industry": [
+        "retail-uk",
+        "hospitality-uk"
+    ],
+    "region": "uk",
+    "tags": [
+        "retail",
+        "hospitality",
+        "uk",
+        "weekend-rotation"
+    ],
+    "teams": 3,
+    "cycleDays": 21,
+    "averageHoursPerWeek": 37.5,
+    "shifts": [
+        {
+            "code": "E",
+            "name": "Early (Opening)",
+            "start": "08:00",
+            "end": "16:00",
+            "duration": 8,
+            "breakMinutes": 60,
+            "nightShift": false,
+            "color": "#fbbf24"
+        },
+        {
+            "code": "M",
+            "name": "Mid Shift",
+            "start": "11:00",
+            "end": "19:00",
+            "duration": 8,
+            "breakMinutes": 60,
+            "nightShift": false,
+            "color": "#f59e0b"
+        },
+        {
+            "code": "L",
+            "name": "Late (Closing)",
+            "start": "14:00",
+            "end": "22:00",
+            "duration": 8,
+            "breakMinutes": 60,
+            "nightShift": false,
+            "color": "#f97316"
+        },
+        {
+            "code": "R",
+            "name": "Off",
+            "start": null,
+            "end": null,
+            "duration": 0,
+            "breakMinutes": 0,
+            "nightShift": false,
+            "color": "#94a3b8"
+        }
+    ],
+    "rotationPattern": [
+        [
+            "E",
+            "E",
+            "M",
+            "M",
+            "L",
+            "R",
+            "R",
+            "E",
+            "M",
+            "L",
+            "L",
+            "R",
+            "R",
+            "E",
+            "E",
+            "M",
+            "L",
+            "R",
+            "R",
+            "R",
+            "R"
+        ],
+        [
+            "M",
+            "L",
+            "L",
+            "R",
+            "R",
+            "E",
+            "E",
+            "M",
+            "M",
+            "L",
+            "R",
+            "R",
+            "E",
+            "M",
+            "L",
+            "L",
+            "R",
+            "R",
+            "E",
+            "E",
+            "M"
+        ],
+        [
+            "L",
+            "R",
+            "R",
+            "E",
+            "E",
+            "M",
+            "M",
+            "L",
+            "L",
+            "R",
+            "R",
+            "E",
+            "M",
+            "L",
+            "L",
+            "R",
+            "R",
+            "E",
+            "E",
+            "M",
+            "M"
+        ]
+    ],
+    "compliance": {
+        "maxConsecutiveDays": 6,
+        "minRestHours": 11,
+        "nightShiftLimit": 0,
+        "weeklyHoursMax": 48
+    },
+    "advantages": [
+        "Compliant with UK Employment Rights Act 1996",
+        "WTR 1998 compliant (rest periods & breaks)",
+        "Fair weekend distribution across teams",
+        "Suitable for variable customer footfall",
+        "Supports extended trading hours",
+        "3-weekly rotation provides variety"
+    ],
+    "disadvantages": [
+        "Requires 3 teams minimum",
+        "Complex rotation may need training",
+        "Bank Holiday cover requires planning",
+        "Weekend work may affect retention",
+        "Not suitable for 24-hour operations"
+    ]
+}
