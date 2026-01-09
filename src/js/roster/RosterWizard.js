@@ -59,6 +59,7 @@ class RosterWizard {
         const modal = document.getElementById('roster-wizard-modal');
         if (modal) {
             modal.classList.add('active');
+            this.updateHeaderBadge();
             this.showStep(1);
         } else {
             console.error('Roster Wizard Modal not found in DOM');
@@ -87,7 +88,9 @@ class RosterWizard {
             weeks: 4,
             clearExisting: true,
             saveToLibrary: false,
-            patternName: ''
+            saveToLibrary: false,
+            patternName: '',
+            sourcePatternName: 'Custom Pattern' // Track selected template
         };
         // Reset inputs
         const cycleInput = document.getElementById('wizard-cycle-input');
@@ -286,6 +289,36 @@ class RosterWizard {
         this.updateDesignerUI();
     }
 
+    updateHeaderBadge() {
+        const header = document.querySelector('#roster-wizard-modal .modal-header h2');
+        if (!header) return;
+
+        let badge = document.getElementById('wizard-pattern-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.id = 'wizard-pattern-badge';
+            badge.style.cssText = 'font-size: 0.8rem; background: var(--glass-light); padding: 0.25rem 0.5rem; border-radius: 4px; margin-left: 1rem; color: var(--text-muted); font-weight: normal; vertical-align: middle; display: inline-flex; align-items: center; gap: 0.5rem;';
+            header.appendChild(badge);
+        }
+
+        const name = this.config.sourcePatternName || 'Custom Pattern';
+
+        // Visual indicator
+        if (name === 'Custom Pattern') {
+            badge.innerHTML = '<i data-lucide="edit-3" style="width:12px;height:12px;"></i> Custom';
+            badge.style.color = 'var(--text-muted)';
+            badge.style.border = '1px solid transparent';
+            badge.style.background = 'transparent';
+        } else {
+            badge.innerHTML = `<i data-lucide="layout-template" style="width:12px;height:12px;"></i> ${name}`;
+            badge.style.color = 'var(--accent-blue)';
+            badge.style.border = '1px solid var(--accent-blue)';
+            badge.style.background = 'rgba(99, 102, 241, 0.1)';
+        }
+
+        if (window.lucide) window.lucide.createIcons();
+    }
+
     updateDesignerUI() {
         const container = document.getElementById('wizard-pattern-grid');
         if (!container) return;
@@ -379,6 +412,8 @@ class RosterWizard {
         }
 
         this.config.patternSequence[idx] = nextCode;
+        this.config.sourcePatternName = 'Custom Pattern'; // Reset to custom on manual edit
+        this.updateHeaderBadge();
         this.updateDesignerUI();
     }
 
@@ -456,6 +491,8 @@ class RosterWizard {
         this.config.mode = 'cyclic'; // Library patterns are cyclic
 
         this.syncRequirements();
+        this.config.sourcePatternName = pattern.name;
+        this.updateHeaderBadge();
         this.updateDesignerUI();
         this.app.showToast(`Applied pattern: ${pattern.name}`, 'check-circle');
     }
