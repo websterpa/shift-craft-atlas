@@ -123,6 +123,12 @@ class ShiftCraftApp {
     }
 
     init() {
+        // TEMPORARY: Seed Test Data (Requested by User)
+        if (!localStorage.getItem('seed_v2_staff_8')) {
+            this.addTestStaff(8);
+            localStorage.setItem('seed_v2_staff_8', 'true');
+        }
+
         this.ensureStaffNumbers();
         if (window.lucide) window.lucide.createIcons();
         this.renderTableHead();
@@ -1490,6 +1496,35 @@ class ShiftCraftApp {
             if (!isNaN(n) && n > max) max = n;
         });
         return String(max + 1).padStart(3, '0');
+    }
+
+    addTestStaff(count = 8) {
+        const roles = ['CCTV Operator', 'Door Supervisor', 'Security Guard', 'Team Leader'];
+        const types = ['FULLTIME', 'PARTTIME', 'ZERO_HOURS'];
+        const names = [
+            'James Bond', 'Sarah Connor', 'Ellen Ripley', 'Marty McFly',
+            'Luke Skywalker', 'Leia Organa', 'Han Solo', 'Tony Stark',
+            'Bruce Wayne', 'Clark Kent'
+        ];
+
+        for (let i = 0; i < count; i++) {
+            const role = roles[i % roles.length];
+            const type = types[i % types.length];
+            const name = names[i] || `Staff Member ${this.staff.length + i + 1}`;
+
+            this.staff.push({
+                id: crypto.randomUUID(),
+                name: name,
+                role: role,
+                contractType: type,
+                contractHours: type === 'FULLTIME' ? 42 : (type === 'PARTTIME' ? 24 : 0),
+                hourlyRate: 12.50,
+                email: `${name.replace(' ', '.').toLowerCase()}@example.com`
+            });
+        }
+        this.saveToStorage();
+        console.log(`[ShiftCraft] ${count} test staff members added.`);
+        this.showToast(`${count} Test Staff Added`, 'success');
     }
 
     ensureStaffNumbers() {
