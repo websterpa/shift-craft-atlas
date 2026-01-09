@@ -1009,7 +1009,7 @@ class RosterWizard {
                 const newWeekStart = new Date(genStart.setDate(diff));
 
                 if (!isNaN(newWeekStart.getTime())) {
-                    this.app.weekStart = newWeekStart.toISOString().split('T')[0];
+                    this.app.weekStart = newWeekStart;
                     this.app.currentMonth = new Date(startDate);
                 }
             }
