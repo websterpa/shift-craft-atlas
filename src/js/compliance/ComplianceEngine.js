@@ -73,12 +73,13 @@ class ComplianceEngine {
         const contracted = staff.contractedHours || 40;
 
         const diff = avg - contracted;
-        if (Math.abs(diff) > 2) { // 2h tolerance
+
+        // Correction: Only flag positive variance (Over Contracted / Burnout Risk)
+        // Ignoring negative variance prevents false positives on fresh rosters with limited history.
+        if (diff > 2) {
             return {
                 type: 'CONTRACT_VARIANCE',
-                message: diff > 0
-                    ? `Over contracted: avg ${avg.toFixed(1)}h vs ${contracted}h`
-                    : `Under contracted: avg ${avg.toFixed(1)}h vs ${contracted}h`,
+                message: `Over contracted (+${diff.toFixed(1)}h): avg ${avg.toFixed(1)}h vs ${contracted}h`,
                 variance: diff
             };
         }

@@ -22,3 +22,11 @@ This file tracks features that have been verified as "Production Quality" and mu
 - **Status**: Stable
 - **Files**: `src/css/components.css`, `src/js/app.js` (applyCustomTheme)
 - **Critical Path**: Theme Selection -> CSS Variable Update -> UI reflecting correct palette.
+
+## 4. Global Header & Branding (Verified: 2026-01-08)
+- **Status**: Protected
+- **Files**: `src/js/app.js` (`applyBranding`), `index.html` (#global-top-bar as sibling to main)
+- **Critical Requirements**:
+  - `#global-top-bar` must ALWAYS be `display: flex` (never hidden), regardless of missing branding content.
+  - Theme Toggle button must remain accessible at all times.
+  - Logo images must use `onload`/`onerror` handlers attached BEFORE `src` assignment to ensure robust rendering and graceful failure.

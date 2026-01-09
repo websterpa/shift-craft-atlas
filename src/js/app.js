@@ -1308,7 +1308,7 @@ class ShiftCraftApp {
         const totalGross = cost + hol;
 
         const costEl = document.getElementById('stat-cost');
-        if (costEl) costEl.textContent = `£${totalGross.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+        if (costEl) costEl.textContent = `£${totalGross.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
         const hoursEl = document.getElementById('stat-hours');
         if (hoursEl) hoursEl.textContent = `${hours.toFixed(1)}h`;
@@ -2699,6 +2699,8 @@ class ShiftCraftApp {
                 this.branding.hideDefaultLogo = hideLogoToggle ? hideLogoToggle.checked : false;
 
                 localStorage.setItem(CONFIG.STORAGE_KEYS.BRANDING, JSON.stringify(this.branding));
+                console.log('[ShiftCraft] Branding saved:', this.branding);
+
                 this.applyBranding();
                 this.showToast('Global branding updated', 'check-circle');
             };
@@ -2737,36 +2739,53 @@ class ShiftCraftApp {
         const topBar = document.getElementById('global-top-bar');
         const img = document.getElementById('global-header-logo');
         const span = document.getElementById('global-header-strapline');
-        const sidebarLogo = document.querySelector('.logo');
+        const sidebarLogo = document.querySelector('aside .logo');
 
         if (!topBar) return;
 
+        console.log('[ShiftCraft] Applying branding. Logo present:', !!this.branding.logo);
+
         // Apply spacing variable
-        document.documentElement.style.setProperty('--header-spacing', `${this.branding.headerSpacing || 2.0}rem`);
+        const spacing = this.branding.headerSpacing || 2.0;
+        document.documentElement.style.setProperty('--header-spacing', `${spacing}rem`);
 
-        let hasContent = false;
+        // Ensure spacing is physically applied
+        topBar.style.marginBottom = `${spacing}rem`;
 
-        if (this.branding.logo && img) {
+        // 1. Logo Handling (Robust)
+        if (this.branding.logo && typeof this.branding.logo === 'string' && this.branding.logo.length > 50 && img) {
+            // Attach handlers BEFORE setting src to catch immediate failures (especially Data URIs)
+            img.onload = () => {
+                img.style.display = 'block';
+                console.log('[ShiftCraft] Logo rendered successfully');
+            };
+            img.onerror = (e) => {
+                console.warn('[ShiftCraft] Logo load failed. Hiding element.');
+                img.style.display = 'none';
+            };
+
+            // Set src and display
+            img.style.display = 'block'; // Optimistic display
             img.src = this.branding.logo;
-            img.style.display = 'block';
-            hasContent = true;
         } else if (img) {
             img.style.display = 'none';
         }
 
+        // 2. Strapline Handling
         if (this.branding.strapline && span) {
             span.textContent = this.branding.strapline;
             span.style.color = this.branding.straplineColor || '#6366f1';
             span.style.display = 'block';
-            hasContent = true;
         } else if (span) {
             span.style.display = 'none';
         }
 
-        topBar.style.display = hasContent ? 'flex' : 'none';
+        // 3. Force Visibility (Critical for Theme Toggle and Layout)
+        topBar.style.display = 'flex';
 
+        // 4. Sidebar Logo Toggle
         if (sidebarLogo) {
-            sidebarLogo.style.display = this.branding.hideDefaultLogo ? 'none' : 'block';
+            sidebarLogo.style.opacity = this.branding.hideDefaultLogo ? '0' : '1';
         }
     }
 

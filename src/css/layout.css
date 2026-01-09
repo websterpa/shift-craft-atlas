@@ -98,12 +98,9 @@ header {
     background: var(--glass-bg);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--glass-border);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    margin: -2.5rem -2.5rem var(--header-spacing, 2rem) -2.5rem;
-    /* Offset main padding */
-    height: 70px;
+    /* Removed sticky/negative margins for cleaner flex layout */
+    margin-bottom: var(--header-spacing, 2rem);
+    min-height: 70px;
 }
 
 .top-bar-branding {

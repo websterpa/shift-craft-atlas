@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shift Craft (Atlas Build) | UK Staff Rostering SaaS</title>
+    <title>Shift Craft (Atlas) | UK Staff Rostering SaaS</title>
     <meta name="description"
         content="Premium UK staff shift rostering system with built-in WTR compliance and real-time labor costing.">
     <link rel="stylesheet" href="src/css/index.css">
@@ -81,8 +81,8 @@
             </nav>
         </aside>
 
-        <!-- Main Content -->
-        <main>
+        <!-- Main Content Wrapper -->
+        <div class="content-wrapper" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
             <!-- Global Top Bar (Consumer Branding) -->
             <div id="global-top-bar" class="global-header" style="display: none;">
                 <div class="top-bar-branding">
@@ -98,772 +98,787 @@
                 </div>
             </div>
 
-            <!-- Roster View -->
-            <section id="view-roster" class="app-view">
-                <header>
-                    <div class="header-title">
-                        <h1>Weekly Roster</h1>
-                        <p id="view-subtitle"
-                            style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-                            <span id="header-week-label">Jan 5 - Jan 11, 2026</span>
-                            <span style="opacity: 0.3;">|</span>
-                            <span id="roster-name-display" style="color: var(--accent-blue); font-weight: 600;">Main
-                                Roster</span>
-                            <span style="opacity: 0.3;">|</span>
-                            <span style="color:var(--accent-emerald)">Holiday Accrual (12.07%): £0.00</span>
-                        </p>
-                    </div>
-                    <div class="header-actions" style="display: flex; gap: 1rem; align-items: center;">
-                        <!-- View Toggle -->
-                        <div class="view-toggle"
-                            style="display: flex; background: var(--glass-bg); border-radius: 8px; border: 1px solid var(--glass-border); overflow: hidden;">
-                            <button class="btn btn-toggle active" id="toggle-weekly-view" title="Weekly View">
-                                <i data-lucide="calendar" style="width:16px;height:16px;"></i> Weekly
+            <!-- Main Content Area -->
+            <main style="flex: 1; overflow-y: auto; padding: 2.5rem;">
+                <!-- Roster View -->
+                <section id="view-roster" class="app-view">
+                    <header>
+                        <div class="header-title">
+                            <h1>Weekly Roster</h1>
+                            <p id="view-subtitle"
+                                style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                                <span id="header-week-label">Jan 5 - Jan 11, 2026</span>
+                                <span style="opacity: 0.3;">|</span>
+                                <span id="roster-name-display" style="color: var(--accent-blue); font-weight: 600;">Main
+                                    Roster</span>
+                                <span style="opacity: 0.3;">|</span>
+                                <span style="color:var(--accent-emerald)">Holiday Accrual (12.07%): £0.00</span>
+                            </p>
+                        </div>
+                        <div class="header-actions" style="display: flex; gap: 1rem; align-items: center;">
+                            <!-- View Toggle -->
+                            <div class="view-toggle"
+                                style="display: flex; background: var(--glass-bg); border-radius: 8px; border: 1px solid var(--glass-border); overflow: hidden;">
+                                <button class="btn btn-toggle active" id="toggle-weekly-view" title="Weekly View">
+                                    <i data-lucide="calendar" style="width:16px;height:16px;"></i> Weekly
+                                </button>
+                                <button class="btn btn-toggle" id="toggle-monthly-view" title="Monthly View">
+                                    <i data-lucide="calendar-days" style="width:16px;height:16px;"></i> Monthly
+                                </button>
+                            </div>
+                            <button class="btn btn-outline" id="ai-import-btn">
+                                <i data-lucide="zap"></i> AI Roster Import
                             </button>
-                            <button class="btn btn-toggle" id="toggle-monthly-view" title="Monthly View">
-                                <i data-lucide="calendar-days" style="width:16px;height:16px;"></i> Monthly
+                            <button class="btn btn-outline" id="pattern-library-btn">
+                                <i data-lucide="library"></i> Pattern Library
+                            </button>
+                            <button class="btn btn-outline" id="roster-wizard-btn"
+                                style="border-color: var(--accent-purple); color: var(--accent-purple);">
+                                <i data-lucide="wand-2"></i> Roster Wizard
+                            </button>
+                            <button class="btn btn-outline" id="smart-fill-btn"
+                                style="border-color: var(--accent-blue);">
+                                <i data-lucide="sparkles"></i> Smart Fill
+                            </button>
+                            <button class="btn btn-outline" id="export-roster-pdf-btn"
+                                style="border-color: var(--accent-emerald); color: var(--accent-emerald);">
+                                <i data-lucide="file-image"></i> Export Roster PDF
+                            </button>
+                            <div style="border-right: 1px solid var(--glass-border); height: 24px; margin: 0 0.5rem;">
+                            </div>
+
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-outline" id="clear-roster-btn" title="Clear Roster"
+                                    style="border-color: var(--accent-rose); color: var(--accent-rose);">
+                                    <i data-lucide="trash-2"></i>
+                                </button>
+                                <button class="btn btn-outline" id="save-snapshot-btn" title="Save Snapshot"
+                                    style="border-color: var(--accent-blue); color: var(--accent-blue);">
+                                    <i data-lucide="save"></i>
+                                </button>
+                            </div>
+
+                            <div style="border-right: 1px solid var(--glass-border); height: 24px; margin: 0 0.5rem;">
+                            </div>
+
+                            <button class="btn btn-primary" id="add-shift-btn">
+                                <i data-lucide="plus"></i> New Shift
                             </button>
                         </div>
-                        <button class="btn btn-outline" id="ai-import-btn">
-                            <i data-lucide="zap"></i> AI Roster Import
-                        </button>
-                        <button class="btn btn-outline" id="pattern-library-btn">
-                            <i data-lucide="library"></i> Pattern Library
-                        </button>
-                        <button class="btn btn-outline" id="roster-wizard-btn"
-                            style="border-color: var(--accent-purple); color: var(--accent-purple);">
-                            <i data-lucide="wand-2"></i> Roster Wizard
-                        </button>
-                        <button class="btn btn-outline" id="smart-fill-btn" style="border-color: var(--accent-blue);">
-                            <i data-lucide="sparkles"></i> Smart Fill
-                        </button>
-                        <button class="btn btn-outline" id="export-roster-pdf-btn"
-                            style="border-color: var(--accent-emerald); color: var(--accent-emerald);">
-                            <i data-lucide="file-image"></i> Export Roster PDF
-                        </button>
-                        <div style="border-right: 1px solid var(--glass-border); height: 24px; margin: 0 0.5rem;"></div>
+                    </header>
 
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-outline" id="clear-roster-btn" title="Clear Roster"
-                                style="border-color: var(--accent-rose); color: var(--accent-rose);">
-                                <i data-lucide="trash-2"></i>
-                            </button>
-                            <button class="btn btn-outline" id="save-snapshot-btn" title="Save Snapshot"
-                                style="border-color: var(--accent-blue); color: var(--accent-blue);">
-                                <i data-lucide="save"></i>
+
+                    <section class="stats-grid">
+                        <div class="stat-card blue">
+                            <div class="stat-label">Total Est. Cost</div>
+                            <div class="stat-value" id="stat-cost">£0.00</div>
+                        </div>
+                        <div class="stat-card emerald">
+                            <div class="stat-label">Hours Scheduled</div>
+                            <div class="stat-value" id="stat-hours">0.0h</div>
+                        </div>
+                        <div class="stat-card amber">
+                            <div class="stat-label">Staff Count</div>
+                            <div class="stat-value" id="stat-staff">0</div>
+                        </div>
+                        <div class="stat-card rose">
+                            <div class="stat-label">Compliance Alerts</div>
+                            <div class="stat-value" id="stat-alerts">0</div>
+                        </div>
+                    </section>
+
+                    <section class="roster-builder">
+                        <div class="roster-header">
+                            <div class="roster-controls" style="display: flex; gap: 0.5rem; align-items: center;">
+                                <button class="btn btn-outline btn-icon" id="prev-week"><i data-lucide="chevron-left"
+                                        style="width:16px;height:16px;"></i></button>
+                                <span id="nav-week-label"
+                                    style="font-weight: 600; min-width: 120px; text-align: center;">This Week</span>
+                                <button class="btn btn-outline btn-icon" id="next-week"><i data-lucide="chevron-right"
+                                        style="width:16px;height:16px;"></i></button>
+                            </div>
+                            <div class="roster-filters"
+                                style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                                <select class="form-control" id="role-filter"
+                                    style="width: auto; padding-top: 0.6rem; padding-bottom: 0.6rem;">
+                                    <option value="all">All Roles</option>
+                                </select>
+                                <button class="btn btn-outline" id="autofill-btn"><i data-lucide="wand-2"
+                                        style="width:16px;height:16px;"></i>
+                                    Auto-Fill</button>
+                                <button class="btn btn-outline" id="save-template-btn"
+                                    title="Save current pattern as a template">
+                                    <i data-lucide="save" style="width:16px;height:16px;"></i> Save Template
+                                </button>
+                                <button class="btn btn-outline" id="apply-template-btn"
+                                    title="Apply a saved template to staff">
+                                    <i data-lucide="copy" style="width:16px;height:16px;"></i> Apply Template
+                                </button>
+                            </div>
+                        </div>
+                        <div style="overflow-x: auto;" id="weekly-view-container">
+                            <table class="roster-table">
+                                <thead>
+                                    <tr id="roster-thead-row">
+                                        <th style="width: 200px;">EMPLOYEE</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="roster-tbody"></tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- Inline Monthly Roster View (toggleable) -->
+                    <section id="inline-monthly-view" class="roster-builder" style="display: none; padding: 1.5rem;">
+                        <div class="monthly-view-header"
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <label style="font-weight: 600; color: var(--text-muted);">Staff Member:</label>
+                                <select class="form-control" id="inline-monthly-staff-select"
+                                    style="width: auto; min-width: 200px;">
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <button class="btn btn-outline btn-icon" id="inline-monthly-prev">
+                                    <i data-lucide="chevron-left" style="width:16px;height:16px;"></i>
+                                </button>
+                                <span id="inline-monthly-label"
+                                    style="font-weight: 600; min-width: 150px; text-align: center;">December 2025</span>
+                                <button class="btn btn-outline btn-icon" id="inline-monthly-next">
+                                    <i data-lucide="chevron-right" style="width:16px;height:16px;"></i>
+                                </button>
+                            </div>
+                            <button class="btn btn-outline" id="inline-monthly-export-pdf">
+                                <i data-lucide="download" style="width:16px;height:16px;"></i> Export PDF
                             </button>
                         </div>
 
-                        <div style="border-right: 1px solid var(--glass-border); height: 24px; margin: 0 0.5rem;"></div>
+                        <!-- Monthly Stats Summary -->
+                        <div class="stats-grid" style="margin-bottom: 1.5rem;">
+                            <div class="stat-card blue" style="padding: 1rem;">
+                                <div class="stat-label">Total Shifts</div>
+                                <div class="stat-value" id="inline-monthly-shifts">0</div>
+                            </div>
+                            <div class="stat-card emerald" style="padding: 1rem;">
+                                <div class="stat-label">Total Hours</div>
+                                <div class="stat-value" id="inline-monthly-hours">0h</div>
+                            </div>
+                            <div class="stat-card amber" style="padding: 1rem;">
+                                <div class="stat-label">Rest Days</div>
+                                <div class="stat-value" id="inline-monthly-rest">0</div>
+                            </div>
+                            <div class="stat-card rose" style="padding: 1rem;">
+                                <div class="stat-label">Night Shifts</div>
+                                <div class="stat-value" id="inline-monthly-nights">0</div>
+                            </div>
+                        </div>
 
-                        <button class="btn btn-primary" id="add-shift-btn">
-                            <i data-lucide="plus"></i> New Shift
-                        </button>
-                    </div>
-                </header>
+                        <!-- Calendar Grid Container -->
+                        <div id="inline-monthly-calendar" class="monthly-calendar-grid">
+                            <!-- Calendar populated dynamically -->
+                        </div>
+                    </section>
+                </section>
 
 
-                <section class="stats-grid">
-                    <div class="stat-card blue">
-                        <div class="stat-label">Total Est. Cost</div>
-                        <div class="stat-value" id="stat-cost">£0.00</div>
+                <!-- Dashboard View -->
+                <section id="view-dashboard" class="app-view" style="display: none;">
+                    <header>
+                        <div class="header-title">
+                            <h1>Business Intelligence</h1>
+                            <p>Real-time labor costing & compliance health</p>
+                        </div>
+                    </header>
+
+                    <div class="dashboard-metrics">
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <span>MTD Labor Cost</span>
+                                <i data-lucide="pound-sterling"></i>
+                            </div>
+                            <div class="metric-value" id="dash-mtd-cost">£0.00</div>
+                            <div class="metric-trend trend-up">
+                                <i data-lucide="trending-up" style="width:14px;height:14px;"></i>
+                                <span>4.2% vs last month</span>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <span>Compliance Health</span>
+                                <i data-lucide="shield-check"></i>
+                            </div>
+                            <div class="metric-value" id="dash-compliance-health">100%</div>
+                            <div class="metric-trend trend-up">
+                                <i data-lucide="check-circle" style="width:14px;height:14px;"></i>
+                                <span>No major breaches</span>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <span>Scheduled Hours</span>
+                                <i data-lucide="clock"></i>
+                            </div>
+                            <div class="metric-value" id="dash-scheduled-hours">0h</div>
+                            <div class="metric-trend" id="dash-hours-variance">
+                                <span>--</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat-card emerald">
-                        <div class="stat-label">Hours Scheduled</div>
-                        <div class="stat-value" id="stat-hours">0.0h</div>
-                    </div>
-                    <div class="stat-card amber">
-                        <div class="stat-label">Staff Count</div>
-                        <div class="stat-value" id="stat-staff">0</div>
-                    </div>
-                    <div class="stat-card rose">
-                        <div class="stat-label">Compliance Alerts</div>
-                        <div class="stat-value" id="stat-alerts">0</div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Weekly Labor Analysis</h3>
+                            <div class="chart-legend">
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: var(--primary);"></div>
+                                    <span>Scheduled</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color"
+                                        style="background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border);">
+                                    </div>
+                                    <span>Demand (Prev Week)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: var(--accent-emerald);"></div>
+                                    <span>Labor Cost (£)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="svg-chart-container" id="dashboard-chart-container">
+                            <!-- SVG injected here -->
+                        </div>
+
+                        <div id="chart-tooltip" class="chart-tooltip"></div>
                     </div>
                 </section>
 
-                <section class="roster-builder">
-                    <div class="roster-header">
-                        <div class="roster-controls" style="display: flex; gap: 0.5rem; align-items: center;">
-                            <button class="btn btn-outline btn-icon" id="prev-week"><i data-lucide="chevron-left"
-                                    style="width:16px;height:16px;"></i></button>
-                            <span id="nav-week-label"
-                                style="font-weight: 600; min-width: 120px; text-align: center;">This Week</span>
-                            <button class="btn btn-outline btn-icon" id="next-week"><i data-lucide="chevron-right"
-                                    style="width:16px;height:16px;"></i></button>
+                <!-- Staff View -->
+                <section id="view-staff" class="app-view" style="display: none;">
+                    <header>
+                        <div class="header-title">
+                            <h1>Staff Directory</h1>
+                            <p>Manage employee rates and WTR status</p>
                         </div>
-                        <div class="roster-filters"
-                            style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-                            <select class="form-control" id="role-filter"
-                                style="width: auto; padding-top: 0.6rem; padding-bottom: 0.6rem;">
-                                <option value="all">All Roles</option>
-                            </select>
-                            <button class="btn btn-outline" id="autofill-btn"><i data-lucide="wand-2"
-                                    style="width:16px;height:16px;"></i>
-                                Auto-Fill</button>
-                            <button class="btn btn-outline" id="save-template-btn"
-                                title="Save current pattern as a template">
-                                <i data-lucide="save" style="width:16px;height:16px;"></i> Save Template
+                        <div style="display: flex; gap: 0.75rem;">
+                            <button class="btn btn-outline" id="deduplicate-staff-btn"
+                                style="border-color: var(--accent-amber); color: var(--accent-amber);">
+                                <i data-lucide="user-minus"></i> Deduplicate Staff
                             </button>
-                            <button class="btn btn-outline" id="apply-template-btn"
-                                title="Apply a saved template to staff">
-                                <i data-lucide="copy" style="width:16px;height:16px;"></i> Apply Template
+                            <button class="btn btn-outline" id="open-monthly-roster-btn">
+                                <i data-lucide="calendar-days"></i> Monthly View
                             </button>
+                            <button class="btn btn-primary" id="add-staff-modal-btn">
+                                <i data-lucide="user-plus"></i> Add Employee
+                            </button>
+                        </div>
+                    </header>
+                    <div class="bulk-actions-bar"
+                        style="display: flex; gap: 1rem; align-items: center; background: var(--glass-bg); padding: 1rem; border-radius: 12px; border: 1px solid var(--glass-border); margin-bottom: 1.5rem;">
+                        <div style="font-size: 0.9rem; color: var(--text-muted);"><span id="selected-count">0</span>
+                            Selected</div>
+                        <button class="btn btn-outline btn-sm" id="bulk-toggle-optout"><i data-lucide="shield"></i>
+                            Toggle
+                            WTD Opt-Out</button>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="number" step="0.5" id="bulk-hours-input" class="form-control"
+                                style="width: 80px;" placeholder="Hrs">
+                            <button class="btn btn-outline btn-sm" id="bulk-set-hours">Set Contracted Hrs</button>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="number" step="0.01" id="bulk-rate-input" class="form-control"
+                                style="width: 80px;" placeholder="£ Rate">
+                            <button class="btn btn-outline btn-sm" id="bulk-set-rate">Set Rate</button>
                         </div>
                     </div>
-                    <div style="overflow-x: auto;" id="weekly-view-container">
+
+                    <div class="roster-builder" style="padding: 1.5rem;">
                         <table class="roster-table">
                             <thead>
-                                <tr id="roster-thead-row">
-                                    <th style="width: 200px;">EMPLOYEE</th>
+                                <tr>
+                                    <th style="width: 40px;"><input type="checkbox" id="select-all-staff"></th>
+                                    <th>Staff #</th>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>Rate (£)</th>
+                                    <th>Contr. Hours</th>
+                                    <th>48h Opt-Out</th>
+                                    <th style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="roster-tbody"></tbody>
+                            <tbody id="staff-list-tbody"></tbody>
                         </table>
                     </div>
                 </section>
 
-                <!-- Inline Monthly Roster View (toggleable) -->
-                <section id="inline-monthly-view" class="roster-builder" style="display: none; padding: 1.5rem;">
-                    <div class="monthly-view-header"
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <label style="font-weight: 600; color: var(--text-muted);">Staff Member:</label>
-                            <select class="form-control" id="inline-monthly-staff-select"
-                                style="width: auto; min-width: 200px;">
-                                <!-- Populated dynamically -->
-                            </select>
+
+
+                <!-- Payroll Export View -->
+                <section id="view-payroll" class="app-view" style="display: none;">
+                    <header>
+                        <div class="header-title">
+                            <h1>Payroll Export</h1>
+                            <p>Generate statutory export files</p>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <button class="btn btn-outline btn-icon" id="inline-monthly-prev">
-                                <i data-lucide="chevron-left" style="width:16px;height:16px;"></i>
-                            </button>
-                            <span id="inline-monthly-label"
-                                style="font-weight: 600; min-width: 150px; text-align: center;">December 2025</span>
-                            <button class="btn btn-outline btn-icon" id="inline-monthly-next">
-                                <i data-lucide="chevron-right" style="width:16px;height:16px;"></i>
-                            </button>
-                        </div>
-                        <button class="btn btn-outline" id="inline-monthly-export-pdf">
-                            <i data-lucide="download" style="width:16px;height:16px;"></i> Export PDF
+                        <button class="btn btn-primary" id="final-export-btn">
+                            <i data-lucide="download"></i> Download CSV
                         </button>
-                    </div>
-
-                    <!-- Monthly Stats Summary -->
-                    <div class="stats-grid" style="margin-bottom: 1.5rem;">
-                        <div class="stat-card blue" style="padding: 1rem;">
-                            <div class="stat-label">Total Shifts</div>
-                            <div class="stat-value" id="inline-monthly-shifts">0</div>
-                        </div>
-                        <div class="stat-card emerald" style="padding: 1rem;">
-                            <div class="stat-label">Total Hours</div>
-                            <div class="stat-value" id="inline-monthly-hours">0h</div>
-                        </div>
-                        <div class="stat-card amber" style="padding: 1rem;">
-                            <div class="stat-label">Rest Days</div>
-                            <div class="stat-value" id="inline-monthly-rest">0</div>
-                        </div>
-                        <div class="stat-card rose" style="padding: 1rem;">
-                            <div class="stat-label">Night Shifts</div>
-                            <div class="stat-value" id="inline-monthly-nights">0</div>
-                        </div>
-                    </div>
-
-                    <!-- Calendar Grid Container -->
-                    <div id="inline-monthly-calendar" class="monthly-calendar-grid">
-                        <!-- Calendar populated dynamically -->
+                    </header>
+                    <div class="roster-builder" style="padding: 1.5rem;">
+                        <table class="roster-table">
+                            <thead>
+                                <tr>
+                                    <th>Staff Member</th>
+                                    <th>Gross Pay</th>
+                                    <th>Hol Accrual</th>
+                                    <th>Total Due</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payroll-preview-tbody"></tbody>
+                        </table>
                     </div>
                 </section>
-            </section>
 
-
-            <!-- Dashboard View -->
-            <section id="view-dashboard" class="app-view" style="display: none;">
-                <header>
-                    <div class="header-title">
-                        <h1>Business Intelligence</h1>
-                        <p>Real-time labor costing & compliance health</p>
-                    </div>
-                </header>
-
-                <div class="dashboard-metrics">
-                    <div class="metric-card">
-                        <div class="metric-header">
-                            <span>MTD Labor Cost</span>
-                            <i data-lucide="pound-sterling"></i>
+                <!-- Compliance View -->
+                <section id="view-compliance" class="app-view" style="display: none;">
+                    <header>
+                        <div class="branding-area" id="header-branding-compliance" style="display: none;">
+                            <img src="" alt="Logo" class="brand-logo" style="display: none;">
+                            <span class="brand-strapline"></span>
                         </div>
-                        <div class="metric-value" id="dash-mtd-cost">£0.00</div>
-                        <div class="metric-trend trend-up">
-                            <i data-lucide="trending-up" style="width:14px;height:14px;"></i>
-                            <span>4.2% vs last month</span>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-header">
-                            <span>Compliance Health</span>
-                            <i data-lucide="shield-check"></i>
-                        </div>
-                        <div class="metric-value" id="dash-compliance-health">100%</div>
-                        <div class="metric-trend trend-up">
-                            <i data-lucide="check-circle" style="width:14px;height:14px;"></i>
-                            <span>No major breaches</span>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-header">
-                            <span>Scheduled Hours</span>
-                            <i data-lucide="clock"></i>
-                        </div>
-                        <div class="metric-value" id="dash-scheduled-hours">0h</div>
-                        <div class="metric-trend" id="dash-hours-variance">
-                            <span>--</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3>Weekly Labor Analysis</h3>
-                        <div class="chart-legend">
-                            <div class="legend-item">
-                                <div class="legend-color" style="background: var(--primary);"></div>
-                                <span>Scheduled</span>
+                        <div class="header-title"
+                            style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                            <div>
+                                <h1>Compliance Center</h1>
+                                <p>Monitoring UK Working Time Regulations</p>
                             </div>
-                            <div class="legend-item">
-                                <div class="legend-color"
-                                    style="background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border);">
-                                </div>
-                                <span>Demand (Prev Week)</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color" style="background: var(--accent-emerald);"></div>
-                                <span>Labor Cost (£)</span>
-                            </div>
+                            <button class="btn btn-primary" id="generate-compliance-report">
+                                <i data-lucide="file-text"></i> Generate Audit Report (PDF)
+                            </button>
+                        </div>
+                    </header>
+                    <div class="stats-grid">
+                        <div class="stat-card rose">
+                            <div class="stat-label">Reg 4 Risks</div>
+                            <div class="stat-value" id="comp-48h-count">0</div>
+                        </div>
+                        <div class="stat-card amber">
+                            <div class="stat-label">Reg 10 Breaches</div>
+                            <div class="stat-value" id="comp-rest-count">0</div>
                         </div>
                     </div>
-
-                    <div class="svg-chart-container" id="dashboard-chart-container">
-                        <!-- SVG injected here -->
+                    <div class="roster-builder" style="padding: 2rem; margin-top: 2rem;">
+                        <h3>Risk Log</h3>
+                        <ul id="compliance-log-list" style="list-style: none; margin-top: 1rem;">
+                            <li style="color: var(--text-muted);">No compliance risks detected.</li>
+                        </ul>
                     </div>
+                </section>
 
-                    <div id="chart-tooltip" class="chart-tooltip"></div>
-                </div>
-            </section>
-
-            <!-- Staff View -->
-            <section id="view-staff" class="app-view" style="display: none;">
-                <header>
-                    <div class="header-title">
-                        <h1>Staff Directory</h1>
-                        <p>Manage employee rates and WTR status</p>
-                    </div>
-                    <div style="display: flex; gap: 0.75rem;">
-                        <button class="btn btn-outline" id="deduplicate-staff-btn"
-                            style="border-color: var(--accent-amber); color: var(--accent-amber);">
-                            <i data-lucide="user-minus"></i> Deduplicate Staff
-                        </button>
-                        <button class="btn btn-outline" id="open-monthly-roster-btn">
-                            <i data-lucide="calendar-days"></i> Monthly View
-                        </button>
-                        <button class="btn btn-primary" id="add-staff-modal-btn">
-                            <i data-lucide="user-plus"></i> Add Employee
-                        </button>
-                    </div>
-                </header>
-                <div class="bulk-actions-bar"
-                    style="display: flex; gap: 1rem; align-items: center; background: var(--glass-bg); padding: 1rem; border-radius: 12px; border: 1px solid var(--glass-border); margin-bottom: 1.5rem;">
-                    <div style="font-size: 0.9rem; color: var(--text-muted);"><span id="selected-count">0</span>
-                        Selected</div>
-                    <button class="btn btn-outline btn-sm" id="bulk-toggle-optout"><i data-lucide="shield"></i> Toggle
-                        WTD Opt-Out</button>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <input type="number" step="0.5" id="bulk-hours-input" class="form-control" style="width: 80px;"
-                            placeholder="Hrs">
-                        <button class="btn btn-outline btn-sm" id="bulk-set-hours">Set Contracted Hrs</button>
-                    </div>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <input type="number" step="0.01" id="bulk-rate-input" class="form-control" style="width: 80px;"
-                            placeholder="£ Rate">
-                        <button class="btn btn-outline btn-sm" id="bulk-set-rate">Set Rate</button>
-                    </div>
-                </div>
-
-                <div class="roster-builder" style="padding: 1.5rem;">
-                    <table class="roster-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 40px;"><input type="checkbox" id="select-all-staff"></th>
-                                <th>Staff #</th>
-                                <th>Name</th>
-                                <th>Role</th>
-                                <th>Rate (£)</th>
-                                <th>Contr. Hours</th>
-                                <th>48h Opt-Out</th>
-                                <th style="text-align: right;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="staff-list-tbody"></tbody>
-                    </table>
-                </div>
-            </section>
-
-
-
-            <!-- Payroll Export View -->
-            <section id="view-payroll" class="app-view" style="display: none;">
-                <header>
-                    <div class="header-title">
-                        <h1>Payroll Export</h1>
-                        <p>Generate statutory export files</p>
-                    </div>
-                    <button class="btn btn-primary" id="final-export-btn">
-                        <i data-lucide="download"></i> Download CSV
-                    </button>
-                </header>
-                <div class="roster-builder" style="padding: 1.5rem;">
-                    <table class="roster-table">
-                        <thead>
-                            <tr>
-                                <th>Staff Member</th>
-                                <th>Gross Pay</th>
-                                <th>Hol Accrual</th>
-                                <th>Total Due</th>
-                            </tr>
-                        </thead>
-                        <tbody id="payroll-preview-tbody"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Compliance View -->
-            <section id="view-compliance" class="app-view" style="display: none;">
-                <header>
-                    <div class="branding-area" id="header-branding-compliance" style="display: none;">
-                        <img src="" alt="Logo" class="brand-logo" style="display: none;">
-                        <span class="brand-strapline"></span>
-                    </div>
-                    <div class="header-title"
-                        style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
-                        <div>
-                            <h1>Compliance Center</h1>
-                            <p>Monitoring UK Working Time Regulations</p>
+                <!-- My Rosters View -->
+                <section id="view-my-rosters" class="app-view" style="display: none;">
+                    <header>
+                        <div class="branding-area" id="header-branding-my-rosters" style="display: none;">
+                            <img src="" alt="Logo" class="brand-logo" style="display: none;">
+                            <span class="brand-strapline"></span>
                         </div>
-                        <button class="btn btn-primary" id="generate-compliance-report">
-                            <i data-lucide="file-text"></i> Generate Audit Report (PDF)
-                        </button>
-                    </div>
-                </header>
-                <div class="stats-grid">
-                    <div class="stat-card rose">
-                        <div class="stat-label">Reg 4 Risks</div>
-                        <div class="stat-value" id="comp-48h-count">0</div>
-                    </div>
-                    <div class="stat-card amber">
-                        <div class="stat-label">Reg 10 Breaches</div>
-                        <div class="stat-value" id="comp-rest-count">0</div>
-                    </div>
-                </div>
-                <div class="roster-builder" style="padding: 2rem; margin-top: 2rem;">
-                    <h3>Risk Log</h3>
-                    <ul id="compliance-log-list" style="list-style: none; margin-top: 1rem;">
-                        <li style="color: var(--text-muted);">No compliance risks detected.</li>
-                    </ul>
-                </div>
-            </section>
+                        <div class="header-title">
+                            <h1>My Rosters</h1>
+                            <p id="my-rosters-subtitle" class="text-muted">Manage your saved snapshots and archived
+                                rosters.
+                            </p>
+                        </div>
+                        <div class="header-actions">
+                            <span id="saved-rosters-count" class="badge">0 Saved</span>
+                        </div>
+                    </header>
 
-            <!-- My Rosters View -->
-            <section id="view-my-rosters" class="app-view" style="display: none;">
-                <header>
-                    <div class="branding-area" id="header-branding-my-rosters" style="display: none;">
-                        <img src="" alt="Logo" class="brand-logo" style="display: none;">
-                        <span class="brand-strapline"></span>
-                    </div>
-                    <div class="header-title">
-                        <h1>My Rosters</h1>
-                        <p id="my-rosters-subtitle" class="text-muted">Manage your saved snapshots and archived rosters.
-                        </p>
-                    </div>
-                    <div class="header-actions">
-                        <span id="saved-rosters-count" class="badge">0 Saved</span>
-                    </div>
-                </header>
-
-                <div id="my-rosters-grid" class="roster-grid-container" style="
+                    <div id="my-rosters-grid" class="roster-grid-container" style="
                     display: grid;
                     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
                     gap: 1.5rem;
                     margin-top: 2rem;
                 ">
-                    <!-- Roster cards will be injected here -->
-                    <div class="empty-state"
-                        style="grid-column: 1 / -1; text-align: center; padding: 4rem; background: var(--glass-bg); border-radius: 16px; border: 1px dashed var(--glass-border);">
-                        <i data-lucide="archive"
-                            style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.2;"></i>
-                        <h3>No Saved Rosters</h3>
-                        <p class="text-muted">Your saved snapshots will appear here.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Settings View -->
-            <section id="view-settings" class="app-view" style="display: none;">
-                <header>
-                    <div class="branding-area" id="header-branding-settings" style="display: none;">
-                        <img src="" alt="Logo" class="brand-logo" style="display: none;">
-                        <span class="brand-strapline"></span>
-                    </div>
-                    <div class="header-title">
-                        <h1>System Settings</h1>
-                        <p>Global configuration and data management</p>
-                    </div>
-                </header>
-                <div class="roster-builder" style="padding: 2rem;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                        <div class="form-group">
-                            <label>WTR Rest Period (Hours)</label>
-                            <input type="number" class="form-control" id="setting-rest" value="11"
-                                style="max-width: 200px;">
-                            <small style="color: var(--text-muted);">Statutory minimum is 11 hours (Reg 10 WTR
-                                1998).</small>
-                        </div>
-                        <div class="form-group">
-                            <label>Operating Patterns</label>
-                            <label
-                                style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;font-size:0.9rem;cursor:pointer;">
-                                <input type="checkbox" id="setting-enable-nights" checked> Enable Night Shift working
-                            </label>
-                            <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;cursor:pointer;">
-                                <input type="checkbox" id="setting-enable-weekends" checked> Enable Weekend working
-                            </label>
-                            <div style="margin-top: 1rem;">
-                                <label style="font-size: 0.8rem; color: var(--text-muted);">Region for Bank
-                                    Holidays</label>
-                                <select class="form-control" id="setting-holiday-region" style="margin-top: 0.25rem;">
-                                    <option value="england-and-wales">England & Wales</option>
-                                    <option value="scotland">Scotland</option>
-                                    <option value="northern-ireland">Northern Ireland</option>
-                                </select>
-                            </div>
+                        <!-- Roster cards will be injected here -->
+                        <div class="empty-state"
+                            style="grid-column: 1 / -1; text-align: center; padding: 4rem; background: var(--glass-bg); border-radius: 16px; border: 1px dashed var(--glass-border);">
+                            <i data-lucide="archive"
+                                style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.2;"></i>
+                            <h3>No Saved Rosters</h3>
+                            <p class="text-muted">Your saved snapshots will appear here.</p>
                         </div>
                     </div>
+                </section>
 
-                    <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 2rem 0;">
-
-                    <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <i data-lucide="users" style="width: 20px; color: var(--accent-emerald);"></i>
-                        Staffing Requirements
-                    </h3>
-                    <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
-                        Define the minimum number of staff required for each shift type per day. Coverage indicators
-                        will appear in the roster header.
-                    </p>
-
-                    <div
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
-                        <div class="form-group">
-                            <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <span
-                                    style="width: 24px; height: 24px; background: var(--shift-early); border-radius: 4px;"></span>
-                                Early (E)
-                            </label>
-                            <input type="number" class="form-control" id="req-early" min="0" max="20" value="2"
-                                style="max-width: 80px;">
+                <!-- Settings View -->
+                <section id="view-settings" class="app-view" style="display: none;">
+                    <header>
+                        <div class="branding-area" id="header-branding-settings" style="display: none;">
+                            <img src="" alt="Logo" class="brand-logo" style="display: none;">
+                            <span class="brand-strapline"></span>
                         </div>
-                        <div class="form-group">
-                            <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <span
-                                    style="width: 24px; height: 24px; background: var(--shift-late); border-radius: 4px;"></span>
-                                Late (L)
-                            </label>
-                            <input type="number" class="form-control" id="req-late" min="0" max="20" value="2"
-                                style="max-width: 80px;">
+                        <div class="header-title">
+                            <h1>System Settings</h1>
+                            <p>Global configuration and data management</p>
                         </div>
-                        <div class="form-group">
-                            <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <span
-                                    style="width: 24px; height: 24px; background: var(--shift-night); border-radius: 4px;"></span>
-                                Night (N)
-                            </label>
-                            <input type="number" class="form-control" id="req-night" min="0" max="20" value="1"
-                                style="max-width: 80px;">
-                        </div>
-                        <div class="form-group">
-                            <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <span
-                                    style="width: 24px; height: 24px; background: var(--shift-day); border-radius: 4px;"></span>
-                                Day 12h (D)
-                            </label>
-                            <input type="number" class="form-control" id="req-day12" min="0" max="20" value="1"
-                                style="max-width: 80px;">
-                        </div>
-                    </div>
-
-                    <button class="btn btn-primary" id="save-requirements-btn">
-                        <i data-lucide="save"></i> Save Requirements
-                    </button>
-
-                    <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 2rem 0;">
-
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
-                        <div>
-                            <h4 style="margin-bottom: 1rem; color: var(--accent-blue);">8-Hour Shift Starts</h4>
+                    </header>
+                    <div class="roster-builder" style="padding: 2rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                             <div class="form-group">
-                                <label>Early Start</label>
-                                <input type="time" class="form-control" id="standard-8-early" value="06:00">
+                                <label>WTR Rest Period (Hours)</label>
+                                <input type="number" class="form-control" id="setting-rest" value="11"
+                                    style="max-width: 200px;">
+                                <small style="color: var(--text-muted);">Statutory minimum is 11 hours (Reg 10 WTR
+                                    1998).</small>
                             </div>
                             <div class="form-group">
-                                <label>Late Start</label>
-                                <input type="time" class="form-control" id="standard-8-late" value="14:00">
-                            </div>
-                            <div class="form-group">
-                                <label>Night Start</label>
-                                <input type="time" class="form-control" id="standard-8-night" value="22:00">
+                                <label>Operating Patterns</label>
+                                <label
+                                    style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;font-size:0.9rem;cursor:pointer;">
+                                    <input type="checkbox" id="setting-enable-nights" checked> Enable Night Shift
+                                    working
+                                </label>
+                                <label
+                                    style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;cursor:pointer;">
+                                    <input type="checkbox" id="setting-enable-weekends" checked> Enable Weekend working
+                                </label>
+                                <div style="margin-top: 1rem;">
+                                    <label style="font-size: 0.8rem; color: var(--text-muted);">Region for Bank
+                                        Holidays</label>
+                                    <select class="form-control" id="setting-holiday-region"
+                                        style="margin-top: 0.25rem;">
+                                        <option value="england-and-wales">England & Wales</option>
+                                        <option value="scotland">Scotland</option>
+                                        <option value="northern-ireland">Northern Ireland</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
-                        <div>
-                            <h4 style="margin-bottom: 1rem; color: var(--accent-purple);">12-Hour Shift Starts</h4>
+                        <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 2rem 0;">
+
+                        <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="users" style="width: 20px; color: var(--accent-emerald);"></i>
+                            Staffing Requirements
+                        </h3>
+                        <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                            Define the minimum number of staff required for each shift type per day. Coverage indicators
+                            will appear in the roster header.
+                        </p>
+
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
                             <div class="form-group">
-                                <label>Day Start</label>
-                                <input type="time" class="form-control" id="standard-12-day" value="07:00">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span
+                                        style="width: 24px; height: 24px; background: var(--shift-early); border-radius: 4px;"></span>
+                                    Early (E)
+                                </label>
+                                <input type="number" class="form-control" id="req-early" min="0" max="20" value="2"
+                                    style="max-width: 80px;">
                             </div>
                             <div class="form-group">
-                                <label>Night Start</label>
-                                <input type="time" class="form-control" id="standard-12-night" value="19:00">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span
+                                        style="width: 24px; height: 24px; background: var(--shift-late); border-radius: 4px;"></span>
+                                    Late (L)
+                                </label>
+                                <input type="number" class="form-control" id="req-late" min="0" max="20" value="2"
+                                    style="max-width: 80px;">
+                            </div>
+                            <div class="form-group">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span
+                                        style="width: 24px; height: 24px; background: var(--shift-night); border-radius: 4px;"></span>
+                                    Night (N)
+                                </label>
+                                <input type="number" class="form-control" id="req-night" min="0" max="20" value="1"
+                                    style="max-width: 80px;">
+                            </div>
+                            <div class="form-group">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span
+                                        style="width: 24px; height: 24px; background: var(--shift-day); border-radius: 4px;"></span>
+                                    Day 12h (D)
+                                </label>
+                                <input type="number" class="form-control" id="req-day12" min="0" max="20" value="1"
+                                    style="max-width: 80px;">
                             </div>
                         </div>
-                    </div>
 
-                    <div style="margin-top: 1rem;">
-                        <button class="btn btn-primary" id="save-standards-btn">
-                            <i data-lucide="save"></i> Save Standards
+                        <button class="btn btn-primary" id="save-requirements-btn">
+                            <i data-lucide="save"></i> Save Requirements
                         </button>
-                    </div>
-                    <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 2rem 0;">
-                    <div class="form-group">
-                        <label>Danger Zone</label>
-                        <button class="btn btn-outline" id="clear-data-btn"
-                            style="color: var(--accent-rose); border-color: var(--accent-rose);">
-                            <i data-lucide="trash-2"></i> Factory Reset (Clear All Data)
-                        </button>
-                    </div>
-                </div>
-            </section>
 
-            <!-- Admin Dashboard View -->
-            <section id="view-admin" class="app-view" style="display: none;">
-                <header>
-                    <div class="header-title">
-                        <h1>Admin Dashboard</h1>
-                        <p>System Configuration & Theme Customization</p>
-                    </div>
-                </header>
+                        <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 2rem 0;">
 
-                <div class="stats-grid" style="margin-top: 1.5rem;">
-                    <!-- Brand & Identity Card -->
-                    <div class="stat-card" style="grid-column: span 2;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem;">
-                            <!-- Identity Setup -->
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
                             <div>
-                                <h3 style="margin-bottom: 1.5rem; display:flex; align-items:center; gap:0.5rem;">
-                                    <i data-lucide="award" style="width:20px; color:var(--accent-blue)"></i>
-                                    Brand & Identity
-                                </h3>
+                                <h4 style="margin-bottom: 1rem; color: var(--accent-blue);">8-Hour Shift Starts</h4>
                                 <div class="form-group">
-                                    <label>Company Logo</label>
-                                    <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
-                                        <input type="file" id="branding-logo-input" accept="image/*"
-                                            style="display: none;">
-                                        <button class="btn btn-primary"
-                                            onclick="document.getElementById('branding-logo-input').click()">
-                                            <i data-lucide="upload"></i> Upload Logo
-                                        </button>
-                                        <button class="btn btn-outline" id="branding-logo-clear"
-                                            style="color: var(--accent-rose); border-color: var(--accent-rose);">
-                                            <i data-lucide="trash-2"></i> Clear
-                                        </button>
-                                    </div>
-                                    <p
-                                        style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1rem; line-height: 1.4;">
-                                        Your logo will appear in the global top bar across all views. We recommend a
-                                        transparent PNG with high contrast.
-                                    </p>
+                                    <label>Early Start</label>
+                                    <input type="time" class="form-control" id="standard-8-early" value="06:00">
                                 </div>
-                                <div class="form-group" style="margin-top: 1.5rem;">
-                                    <label>Header Strapline</label>
-                                    <input type="text" id="branding-strapline" class="form-control"
-                                        placeholder="e.g. Precision Staff Management" style="margin-top:0.5rem;">
+                                <div class="form-group">
+                                    <label>Late Start</label>
+                                    <input type="time" class="form-control" id="standard-8-late" value="14:00">
                                 </div>
-                                <div class="form-group"
-                                    style="margin-top: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
-                                    <label style="margin:0;">Brand & Strapline Color</label>
-                                    <div style="display:flex; align-items:center; gap:0.5rem;">
-                                        <input type="color" id="branding-color" value="#6366f1"
-                                            style="border:none; background:none; width:40px; height:40px; cursor:pointer;">
-                                        <code style="font-size:0.8rem; color:var(--text-muted);"
-                                            id="val-branding-color">#6366f1</code>
-                                    </div>
-                                </div>
-                                <div class="form-group" style="margin-top: 1.5rem;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <label style="margin:0;">Header Spacing (Vertical)</label>
-                                        <span id="val-branding-spacing"
-                                            style="font-size: 0.8rem; color: var(--text-muted);">2.0rem</span>
-                                    </div>
-                                    <input type="range" id="branding-spacing" min="0" max="6" step="0.5" value="2"
-                                        style="width: 100%; margin-top: 0.5rem; cursor: pointer;">
-                                </div>
-                                <div class="form-group" style="margin-top: 1rem;">
-                                    <label
-                                        style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: normal;">
-                                        <input type="checkbox" id="branding-hide-default-logo"
-                                            style="width: 16px; height: 16px;">
-                                        Hide default 'Shift Craft' logo in sidebar
-                                    </label>
-                                </div>
-                                <div style="margin-top: 2rem;">
-                                    <button class="btn btn-primary" id="save-branding-btn"
-                                        style="width: 100%; justify-content: center; height: 3rem;">
-                                        <i data-lucide="save"></i> Save Global Branding
-                                    </button>
+                                <div class="form-group">
+                                    <label>Night Start</label>
+                                    <input type="time" class="form-control" id="standard-8-night" value="22:00">
                                 </div>
                             </div>
 
-                            <!-- Live Preview Area -->
-                            <div
-                                style="background: var(--bg-dark); border-radius: 12px; border: 1px solid var(--glass-border); padding: 1.5rem; display: flex; flex-direction: column;">
-                                <h4
-                                    style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.5rem; letter-spacing: 1px;">
-                                    Live Header Preview</h4>
-                                <div id="branding-preview-container"
-                                    style="flex-grow: 1; border: 1px dashed var(--glass-border); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; position: relative;">
-                                    <!-- Preview content injected by JS -->
-                                    <div id="branding-logo-preview-large" style="max-width: 80%; max-height: 120px;">
-                                        <i data-lucide="image" style="width: 48px; height: 48px; opacity: 0.2;"></i>
+                            <div>
+                                <h4 style="margin-bottom: 1rem; color: var(--accent-purple);">12-Hour Shift Starts</h4>
+                                <div class="form-group">
+                                    <label>Day Start</label>
+                                    <input type="time" class="form-control" id="standard-12-day" value="07:00">
+                                </div>
+                                <div class="form-group">
+                                    <label>Night Start</label>
+                                    <input type="time" class="form-control" id="standard-12-night" value="19:00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 1rem;">
+                            <button class="btn btn-primary" id="save-standards-btn">
+                                <i data-lucide="save"></i> Save Standards
+                            </button>
+                        </div>
+                        <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 2rem 0;">
+                        <div class="form-group">
+                            <label>Danger Zone</label>
+                            <button class="btn btn-outline" id="clear-data-btn"
+                                style="color: var(--accent-rose); border-color: var(--accent-rose);">
+                                <i data-lucide="trash-2"></i> Factory Reset (Clear All Data)
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Admin Dashboard View -->
+                <section id="view-admin" class="app-view" style="display: none;">
+                    <header>
+                        <div class="header-title">
+                            <h1>Admin Dashboard</h1>
+                            <p>System Configuration & Theme Customization</p>
+                        </div>
+                    </header>
+
+                    <div class="stats-grid" style="margin-top: 1.5rem;">
+                        <!-- Brand & Identity Card -->
+                        <div class="stat-card" style="grid-column: span 2;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem;">
+                                <!-- Identity Setup -->
+                                <div>
+                                    <h3 style="margin-bottom: 1.5rem; display:flex; align-items:center; gap:0.5rem;">
+                                        <i data-lucide="award" style="width:20px; color:var(--accent-blue)"></i>
+                                        Brand & Identity
+                                    </h3>
+                                    <div class="form-group">
+                                        <label>Company Logo</label>
+                                        <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                                            <input type="file" id="branding-logo-input" accept="image/*"
+                                                style="display: none;">
+                                            <button class="btn btn-primary"
+                                                onclick="document.getElementById('branding-logo-input').click()">
+                                                <i data-lucide="upload"></i> Upload Logo
+                                            </button>
+                                            <button class="btn btn-outline" id="branding-logo-clear"
+                                                style="color: var(--accent-rose); border-color: var(--accent-rose);">
+                                                <i data-lucide="trash-2"></i> Clear
+                                            </button>
+                                        </div>
+                                        <p
+                                            style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1rem; line-height: 1.4;">
+                                            Your logo will appear in the global top bar across all views. We recommend a
+                                            transparent PNG with high contrast.
+                                        </p>
                                     </div>
-                                    <div id="branding-strapline-preview-large"
-                                        style="margin-top: 1.5rem; font-weight: 500; font-size: 1.1rem; color: var(--primary);">
+                                    <div class="form-group" style="margin-top: 1.5rem;">
+                                        <label>Header Strapline</label>
+                                        <input type="text" id="branding-strapline" class="form-control"
+                                            placeholder="e.g. Precision Staff Management" style="margin-top:0.5rem;">
+                                    </div>
+                                    <div class="form-group"
+                                        style="margin-top: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+                                        <label style="margin:0;">Brand & Strapline Color</label>
+                                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                                            <input type="color" id="branding-color" value="#6366f1"
+                                                style="border:none; background:none; width:40px; height:40px; cursor:pointer;">
+                                            <code style="font-size:0.8rem; color:var(--text-muted);"
+                                                id="val-branding-color">#6366f1</code>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-top: 1.5rem;">
+                                        <div
+                                            style="display: flex; justify-content: space-between; align-items: center;">
+                                            <label style="margin:0;">Header Spacing (Vertical)</label>
+                                            <span id="val-branding-spacing"
+                                                style="font-size: 0.8rem; color: var(--text-muted);">2.0rem</span>
+                                        </div>
+                                        <input type="range" id="branding-spacing" min="0" max="6" step="0.5" value="2"
+                                            style="width: 100%; margin-top: 0.5rem; cursor: pointer;">
+                                    </div>
+                                    <div class="form-group" style="margin-top: 1rem;">
+                                        <label
+                                            style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: normal;">
+                                            <input type="checkbox" id="branding-hide-default-logo"
+                                                style="width: 16px; height: 16px;">
+                                            Hide default 'Shift Craft' logo in sidebar
+                                        </label>
+                                    </div>
+                                    <div style="margin-top: 2rem;">
+                                        <button class="btn btn-primary" id="save-branding-btn"
+                                            style="width: 100%; justify-content: center; height: 3rem;">
+                                            <i data-lucide="save"></i> Save Global Branding
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Live Preview Area -->
+                                <div
+                                    style="background: var(--bg-dark); border-radius: 12px; border: 1px solid var(--glass-border); padding: 1.5rem; display: flex; flex-direction: column;">
+                                    <h4
+                                        style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.5rem; letter-spacing: 1px;">
+                                        Live Header Preview</h4>
+                                    <div id="branding-preview-container"
+                                        style="flex-grow: 1; border: 1px dashed var(--glass-border); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+                                        <!-- Preview content injected by JS -->
+                                        <div id="branding-logo-preview-large"
+                                            style="max-width: 80%; max-height: 120px;">
+                                            <i data-lucide="image" style="width: 48px; height: 48px; opacity: 0.2;"></i>
+                                        </div>
+                                        <div id="branding-strapline-preview-large"
+                                            style="margin-top: 1.5rem; font-weight: 500; font-size: 1.1rem; color: var(--primary);">
+                                        </div>
+                                        <div
+                                            style="position: absolute; bottom: 0.5rem; right: 0.5rem; font-size: 0.65rem; color: var(--text-muted); opacity: 0.5;">
+                                            Preview (Scale 1:1)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Theme Customization Section -->
+                        <div class="stat-card" style="grid-column: span 2;">
+                            <h3 style="margin-bottom: 2rem; display:flex; align-items:center; gap:0.5rem;">
+                                <i data-lucide="palette" style="width:20px; color:var(--accent-blue)"></i>
+                                Theme Customization
+                            </h3>
+                            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 2rem;">
+                                <!-- Theme Presets -->
+                                <div>
+                                    <h4
+                                        style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.25rem; letter-spacing: 1px;">
+                                        Theme Presets</h4>
+                                    <div id="theme-presets-grid"
+                                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem;">
+                                        <!-- Presets will be injected by JS -->
+                                    </div>
+                                </div>
+
+                                <!-- Environment Settings -->
+                                <div>
+                                    <h4
+                                        style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.25rem; letter-spacing: 1px;">
+                                        Environment</h4>
+                                    <div class="form-group"
+                                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                                        <label style="margin:0; font-size: 0.9rem;">Backdrop</label>
+                                        <input type="color" id="theme-bg-dark" value="#0f172a"
+                                            style="border:none; background:none; width:34px; height:34px; cursor:pointer;">
+                                    </div>
+                                    <div class="form-group"
+                                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                                        <label style="margin:0; font-size: 0.9rem;">Cards</label>
+                                        <input type="color" id="theme-card-bg" value="#1e293b"
+                                            style="border:none; background:none; width:34px; height:34px; cursor:pointer;">
                                     </div>
                                     <div
-                                        style="position: absolute; bottom: 0.5rem; right: 0.5rem; font-size: 0.65rem; color: var(--text-muted); opacity: 0.5;">
-                                        Preview (Scale 1:1)</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Theme Customization Section -->
-                    <div class="stat-card" style="grid-column: span 2;">
-                        <h3 style="margin-bottom: 2rem; display:flex; align-items:center; gap:0.5rem;">
-                            <i data-lucide="palette" style="width:20px; color:var(--accent-blue)"></i>
-                            Theme Customization
-                        </h3>
-                        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 2rem;">
-                            <!-- Theme Presets -->
-                            <div>
-                                <h4
-                                    style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.25rem; letter-spacing: 1px;">
-                                    Theme Presets</h4>
-                                <div id="theme-presets-grid"
-                                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem;">
-                                    <!-- Presets will be injected by JS -->
-                                </div>
-                            </div>
-
-                            <!-- Environment Settings -->
-                            <div>
-                                <h4
-                                    style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.25rem; letter-spacing: 1px;">
-                                    Environment</h4>
-                                <div class="form-group"
-                                    style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                                    <label style="margin:0; font-size: 0.9rem;">Backdrop</label>
-                                    <input type="color" id="theme-bg-dark" value="#0f172a"
-                                        style="border:none; background:none; width:34px; height:34px; cursor:pointer;">
-                                </div>
-                                <div class="form-group"
-                                    style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                                    <label style="margin:0; font-size: 0.9rem;">Cards</label>
-                                    <input type="color" id="theme-card-bg" value="#1e293b"
-                                        style="border:none; background:none; width:34px; height:34px; cursor:pointer;">
-                                </div>
-                                <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                                    <button class="btn btn-sm btn-primary" id="save-theme-btn">Save Theme</button>
-                                    <button class="btn btn-sm btn-outline" id="reset-theme-btn">Reset</button>
-                                </div>
-                            </div>
-
-                            <!-- Operational Colors -->
-                            <div>
-                                <h4
-                                    style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.25rem; letter-spacing: 1px;">
-                                    Shift Types</h4>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-                                    <div class="color-mini-chip"
-                                        style="background: var(--shift-early); border-radius: 6px; padding: 0.25rem; display: flex; align-items: center; justify-content: space-between;">
-                                        <span
-                                            style="font-size: 0.7rem; font-weight: 700; padding-left: 0.25rem;">E</span>
-                                        <input type="color" id="theme-shift-early" value="#fbbf24"
-                                            style="border:none; background:none; width:24px; height:24px; cursor:pointer;">
+                                        style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                                        <button class="btn btn-sm btn-primary" id="save-theme-btn">Save Theme</button>
+                                        <button class="btn btn-sm btn-outline" id="reset-theme-btn">Reset</button>
                                     </div>
-                                    <div class="color-mini-chip"
-                                        style="background: var(--shift-late); border-radius: 6px; padding: 0.25rem; display: flex; align-items: center; justify-content: space-between;">
-                                        <span
-                                            style="font-size: 0.7rem; font-weight: 700; padding-left: 0.25rem;">L</span>
-                                        <input type="color" id="theme-shift-late" value="#f97316"
-                                            style="border:none; background:none; width:24px; height:24px; cursor:pointer;">
-                                    </div>
-                                    <div class="color-mini-chip"
-                                        style="background: var(--shift-night); border-radius: 6px; padding: 0.25rem; display: flex; align-items: center; justify-content: space-between;">
-                                        <span
-                                            style="font-size: 0.7rem; font-weight: 700; padding-left: 0.25rem;">N</span>
-                                        <input type="color" id="theme-shift-night" value="#8b5cf6"
-                                            style="border:none; background:none; width:24px; height:24px; cursor:pointer;">
-                                    </div>
-                                    <div class="color-mini-chip"
-                                        style="background: var(--shift-day); border-radius: 6px; padding: 0.25rem; display: flex; align-items: center; justify-content: space-between;">
-                                        <span
-                                            style="font-size: 0.7rem; font-weight: 700; padding-left: 0.25rem;">D</span>
-                                        <input type="color" id="theme-shift-day" value="#10b981"
-                                            style="border:none; background:none; width:24px; height:24px; cursor:pointer;">
+                                </div>
+
+                                <!-- Operational Colors -->
+                                <div>
+                                    <h4
+                                        style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.25rem; letter-spacing: 1px;">
+                                        Shift Types</h4>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                                        <div class="color-mini-chip"
+                                            style="background: var(--shift-early); border-radius: 6px; padding: 0.25rem; display: flex; align-items: center; justify-content: space-between;">
+                                            <span
+                                                style="font-size: 0.7rem; font-weight: 700; padding-left: 0.25rem;">E</span>
+                                            <input type="color" id="theme-shift-early" value="#fbbf24"
+                                                style="border:none; background:none; width:24px; height:24px; cursor:pointer;">
+                                        </div>
+                                        <div class="color-mini-chip"
+                                            style="background: var(--shift-late); border-radius: 6px; padding: 0.25rem; display: flex; align-items: center; justify-content: space-between;">
+                                            <span
+                                                style="font-size: 0.7rem; font-weight: 700; padding-left: 0.25rem;">L</span>
+                                            <input type="color" id="theme-shift-late" value="#f97316"
+                                                style="border:none; background:none; width:24px; height:24px; cursor:pointer;">
+                                        </div>
+                                        <div class="color-mini-chip"
+                                            style="background: var(--shift-night); border-radius: 6px; padding: 0.25rem; display: flex; align-items: center; justify-content: space-between;">
+                                            <span
+                                                style="font-size: 0.7rem; font-weight: 700; padding-left: 0.25rem;">N</span>
+                                            <input type="color" id="theme-shift-night" value="#8b5cf6"
+                                                style="border:none; background:none; width:24px; height:24px; cursor:pointer;">
+                                        </div>
+                                        <div class="color-mini-chip"
+                                            style="background: var(--shift-day); border-radius: 6px; padding: 0.25rem; display: flex; align-items: center; justify-content: space-between;">
+                                            <span
+                                                style="font-size: 0.7rem; font-weight: 700; padding-left: 0.25rem;">D</span>
+                                            <input type="color" id="theme-shift-day" value="#10b981"
+                                                style="border:none; background:none; width:24px; height:24px; cursor:pointer;">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- System Health & Diagnostics -->
-                    <div class="stat-card" style="grid-column: span 2;">
-                        <h3 style="margin-bottom: 1.5rem; display:flex; align-items:center; gap:0.5rem;">
-                            <i data-lucide="activity" style="width:20px; color:var(--accent-emerald)"></i>
-                            System Health & Diagnostics
-                        </h3>
-                        <div style="display: flex; align-items: center; gap: 2rem;">
-                            <div style="flex: 1;">
-                                <p
-                                    style="color:var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.5;">
-                                    Perform a high-level integrity check on all roster data, staff records, and theme
-                                    configurations to ensure system stability.
-                                </p>
-                                <button class="btn btn-outline" id="btn-run-diagnostics">
-                                    <i data-lucide="play-circle"></i> Execute System Audit
-                                </button>
-                            </div>
-                            <div id="diagnostic-results"
-                                style="flex: 1; display:none; background: var(--bg-dark); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--glass-border); min-height: 120px;">
-                                <h4
-                                    style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem; letter-spacing: 1px;">
-                                    Audit Log</h4>
-                                <ul id="diagnostic-list"
-                                    style="list-style: none; padding: 0; font-size: 0.85rem; max-height: 150px; overflow-y: auto;">
-                                </ul>
+                        <!-- System Health & Diagnostics -->
+                        <div class="stat-card" style="grid-column: span 2;">
+                            <h3 style="margin-bottom: 1.5rem; display:flex; align-items:center; gap:0.5rem;">
+                                <i data-lucide="activity" style="width:20px; color:var(--accent-emerald)"></i>
+                                System Health & Diagnostics
+                            </h3>
+                            <div style="display: flex; align-items: center; gap: 2rem;">
+                                <div style="flex: 1;">
+                                    <p
+                                        style="color:var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.5;">
+                                        Perform a high-level integrity check on all roster data, staff records, and
+                                        theme
+                                        configurations to ensure system stability.
+                                    </p>
+                                    <button class="btn btn-outline" id="btn-run-diagnostics">
+                                        <i data-lucide="play-circle"></i> Execute System Audit
+                                    </button>
+                                </div>
+                                <div id="diagnostic-results"
+                                    style="flex: 1; display:none; background: var(--bg-dark); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--glass-border); min-height: 120px;">
+                                    <h4
+                                        style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem; letter-spacing: 1px;">
+                                        Audit Log</h4>
+                                    <ul id="diagnostic-list"
+                                        style="list-style: none; padding: 0; font-size: 0.85rem; max-height: 150px; overflow-y: auto;">
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-    </div>
-    </section>
-    </main>
+        </div>
+        </section>
+        </main>
     </div>
 
     <!-- New Shift Modal -->
@@ -1116,7 +1131,8 @@
                         <i data-lucide="loader" class="spin"
                             style="width: 48px; height: 48px; color: var(--accent-blue);"></i>
                         <h3>Analyzing Roster...</h3>
-                        <p style="color: var(--text-muted);" id="ai-status-text">Detecting shift patterns and mapping
+                        <p style="color: var(--text-muted);" id="ai-status-text">Detecting shift patterns and
+                            mapping
                             staff</p>
                         <div class="progress-bar-container">
                             <div class="progress-bar-fill" id="ai-progress-bar"></div>
@@ -1485,6 +1501,9 @@
         // We set this here or in DocumentParser, but setting it global is safer
         window.pdfjsLib = window['pdfjs-dist/build/pdf'];
     </script>
+
+    </main>
+    </div>
 
     <!-- Mobile Bottom Navigation -->
     <nav class="mobile-bottom-nav">

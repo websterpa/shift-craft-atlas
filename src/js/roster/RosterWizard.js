@@ -12,6 +12,9 @@ class RosterWizard {
         this.app = app;
         this.patternEngine = new window.PatternEngine(); // Re-use logic
 
+        // Fix: Expose globally so HTML onclick="window.wizard.close()" works
+        window.wizard = this;
+
         this.currentStep = 1;
         this.config = {
             mode: 'cyclic', // 'cyclic' | 'calendar'
@@ -45,9 +48,14 @@ class RosterWizard {
 
         const finishBtn = document.getElementById('wizard-finish-btn');
         if (finishBtn) finishBtn.onclick = () => this.finish();
+
+        // Try to bind Close button if reachable (fallback)
+        const closeBtn = document.querySelector('#roster-wizard-modal .modal-header button');
+        if (closeBtn) closeBtn.onclick = () => this.close();
     }
 
     open() {
+        console.log('[RosterWizard] Opening modal...');
         const modal = document.getElementById('roster-wizard-modal');
         if (modal) {
             modal.classList.add('active');
@@ -59,6 +67,7 @@ class RosterWizard {
     }
 
     close() {
+        console.log('[RosterWizard] Closing modal...');
         const modal = document.getElementById('roster-wizard-modal');
         if (modal) modal.classList.remove('active');
         this.reset();
@@ -137,6 +146,7 @@ class RosterWizard {
     }
 
     prev() {
+        console.log('[RosterWizard] Prev clicked. Step:', this.currentStep);
         if (this.currentStep > 1) {
             this.showStep(this.currentStep - 1);
         }
@@ -772,160 +782,142 @@ class RosterWizard {
     }
 
     finish() {
-        // Sync final values from UI
-        this.config.startDate = document.getElementById('wizard-start-date')?.value;
-        this.config.weeks = parseInt(document.getElementById('wizard-weeks')?.value) || 4;
-        this.config.clearExisting = document.getElementById('wizard-clear-existing')?.checked;
-        this.config.rosterName = document.getElementById('wizard-roster-name')?.value || 'New Roster';
-        this.config.saveToLibrary = document.getElementById('wizard-save-pattern')?.checked;
-        this.config.patternName = document.getElementById('wizard-pattern-name')?.value;
+        try {
+            console.log('[RosterWizard] finish() called');
 
-        const startDateStr = this.config.startDate;
-        const weeks = this.config.weeks;
-        const clearExisting = this.config.clearExisting;
-        const rosterName = this.config.rosterName;
+            // Sync final values from UI
+            this.config.startDate = document.getElementById('wizard-start-date')?.value;
+            this.config.weeks = parseInt(document.getElementById('wizard-weeks')?.value) || 4;
+            this.config.clearExisting = document.getElementById('wizard-clear-existing')?.checked;
+            this.config.rosterName = document.getElementById('wizard-roster-name')?.value || 'New Roster';
+            this.config.saveToLibrary = document.getElementById('wizard-save-pattern')?.checked;
+            this.config.patternName = document.getElementById('wizard-pattern-name')?.value;
 
-        if (!startDateStr) {
-            this.app.showToast('Please select a start date', 'alert-circle');
-            return;
-        }
+            const startDateStr = this.config.startDate;
 
-        if (!Array.isArray(this.config.selectedStaff) || this.config.selectedStaff.length === 0) {
-            this.app.showToast('No staff selected', 'alert-circle');
-            console.error('[RosterWizard] ABORT: selectedStaff is empty or invalid:', this.config.selectedStaff);
-            return;
-        }
+            // Robust Date Validation
+            if (!startDateStr) {
+                this.app.showToast('Please select a start date', 'alert-circle');
+                return;
+            }
+            const startDate = new Date(startDateStr);
+            if (isNaN(startDate.getTime())) {
+                this.app.showToast('Invalid start date format', 'alert-circle');
+                return;
+            }
 
-        // AUDIT LOG: Truth Protocol - Verify EXACTLY which staff are being used
-        console.log('[RosterWizard] ===== GENERATION AUDIT =====');
-        console.log('[RosterWizard] Selected Staff Count:', this.config.selectedStaff.length);
-        console.log('[RosterWizard] Selected Staff IDs:', JSON.stringify(this.config.selectedStaff));
-        console.log('[RosterWizard] Total App Staff:', this.app.staff.length);
+            if (!Array.isArray(this.config.selectedStaff) || this.config.selectedStaff.length === 0) {
+                this.app.showToast('No staff selected', 'alert-circle');
+                return;
+            }
 
-        // Cross-reference selected IDs with actual staff names for clarity
-        const selectedNames = this.config.selectedStaff.map(id => {
-            const s = this.app.staff.find(st => st.id === id);
-            return s ? s.name : `UNKNOWN(${id})`;
-        });
-        console.log('[RosterWizard] Selected Staff Names:', selectedNames.join(', '));
-        console.log('[RosterWizard] ===========================');
+            console.log(`[RosterWizard] Generating ${this.config.weeks} weeks from ${startDateStr} for ${this.config.selectedStaff.length} staff`);
 
-        const startDate = new Date(startDateStr);
-        let shiftsGenerated = 0;
-        let overlapsIgnored = 0;
+            // Update App's roster name
+            if (this.app.setRosterName) {
+                this.app.setRosterName(this.config.rosterName);
+            }
 
-        console.log('[RosterWizard] Starting staggered generation:', rosterName);
+            const totalDays = this.config.weeks * 7;
+            const endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + totalDays);
 
-        // Update App's roster name (if method exists)
-        if (this.app.setRosterName) {
-            this.app.setRosterName(rosterName);
-        }
+            // 1. Clear existing shifts
+            if (this.config.clearExisting) {
+                const endStr = endDate.toISOString().split('T')[0];
+                const selectedStaffIds = this.config.selectedStaff;
+                this.app.shifts = this.app.shifts.filter(s => {
+                    if (s.date < startDateStr || s.date >= endStr) return true;
+                    if (!selectedStaffIds.includes(s.staffId)) return true;
+                    return false;
+                });
+            }
 
-        // Generate for N weeks
-        const totalDays = weeks * 7;
-        const endDate = new Date(startDate);
-        endDate.setDate(endDate.getDate() + totalDays);
+            // 2. Generation Loop
+            let shiftsGenerated = 0;
+            const selectedStaffIds = this.config.selectedStaff;
+            const cycleLen = this.config.patternSequence.length;
 
-        // 1. Clear existing shifts if requested
-        if (clearExisting) {
-            const startStr = startDateStr;
-            const endStr = endDate.toISOString().split('T')[0];
-            const initialCount = this.app.shifts.length;
+            for (let dayOffset = 0; dayOffset < totalDays; dayOffset++) {
+                const currentObj = new Date(startDate);
+                currentObj.setDate(currentObj.getDate() + dayOffset);
+                const dateStr = currentObj.toISOString().split('T')[0];
 
-            this.app.shifts = this.app.shifts.filter(s => {
-                if (!this.config.selectedStaff.includes(s.staffId)) return true;
-                if (s.date < startStr || s.date >= endStr) return true;
-                return false;
-            });
-            console.log(`[RosterWizard] Cleared ${initialCount - this.app.shifts.length} existing shifts`);
-        }
+                const dayRequirements = {};
+                this.config.patternSequence.forEach(c => {
+                    if (c !== 'R') {
+                        const rawReq = this.config.requirements[c];
+                        dayRequirements[c] = parseInt(rawReq !== undefined ? rawReq : 1, 10);
+                    }
+                });
 
-        // --- REQUIREMENT-FIRST STAGGERED ALLOCATION ---
-        // For each day, we determine the coverage needed per shift type.
-        // We then assign staff from the selected pool, prioritizing their natural pattern position
-        // until the requirement is met. Surplus staff remain unallocated.
+                const assignedToday = {};
+                Object.keys(dayRequirements).forEach(k => assignedToday[k] = 0);
+                const unassignedStaff = [];
 
-        const selectedStaffIds = [...this.config.selectedStaff];
-        const cycleLen = this.config.cycleLength;
+                // Pass 1: Natural Pattern
+                selectedStaffIds.forEach((staffId, staffIdx) => {
+                    const patternIdx = (dayOffset + staffIdx) % cycleLen;
+                    const code = this.config.patternSequence[patternIdx];
 
-        for (let dayOffset = 0; dayOffset < totalDays; dayOffset++) {
-            const currentDate = new Date(startDate);
-            currentDate.setDate(currentDate.getDate() + dayOffset);
+                    if (code !== 'R') {
+                        const required = dayRequirements[code] || 0;
+                        if (assignedToday[code] < required) {
+                            this._createWizardShift(staffId, dateStr, code, patternIdx);
+                            assignedToday[code]++;
+                            shiftsGenerated++;
+                        } else {
+                            unassignedStaff.push({ staffId, patternIdx });
+                        }
+                    }
+                });
 
-            // Truth Protocol: Use local date parts to avoid UTC timezone 'day-shift' bugs
-            const y = currentDate.getFullYear();
-            const m = String(currentDate.getMonth() + 1).padStart(2, '0');
-            const dStr = String(currentDate.getDate()).padStart(2, '0');
-            const dateStr = `${y}-${m}-${dStr}`;
+                // Pass 2: Gap Filling
+                Object.keys(dayRequirements).forEach(code => {
+                    const required = dayRequirements[code];
+                    while (assignedToday[code] < required && unassignedStaff.length > 0) {
+                        const candidate = unassignedStaff.pop();
+                        this._createWizardShift(candidate.staffId, dateStr, code, candidate.patternIdx);
+                        assignedToday[code]++;
+                        shiftsGenerated++;
+                    }
+                });
+            }
 
-            // 1. Identify what we NEED for this day
-            const dayRequirements = { ...this.config.requirements };
-            const assignedToday = {};
+            // 3. Navigation (Robust)
+            const genStart = new Date(startDate);
+            if (!isNaN(genStart.getTime())) {
+                const day = genStart.getDay();
+                const diff = genStart.getDate() - day + (day === 0 ? -6 : 1);
+                const newWeekStart = new Date(genStart.setDate(diff));
 
-            // Ensure we have keys for all types in sequence even if not in requirements
-            this.config.patternSequence.forEach(c => {
-                if (c !== 'R' && !dayRequirements[c]) dayRequirements[c] = 1;
-            });
-
-            Object.keys(dayRequirements).forEach(k => assignedToday[k] = 0);
-
-            // 2. First Pass: Assign staff to their 'natural' pattern landing if needed
-            const unassignedStaff = [];
-            selectedStaffIds.forEach((staffId, staffIdx) => {
-                const patternIdx = (dayOffset + staffIdx) % cycleLen;
-                const code = this.config.patternSequence[patternIdx];
-
-                if (code === 'R') return; // Natural rest day
-
-                const required = dayRequirements[code] || 0;
-                if (assignedToday[code] < required) {
-                    this._createWizardShift(staffId, dateStr, code, patternIdx);
-                    assignedToday[code]++;
-                    shiftsGenerated++;
-                } else {
-                    // Pattern landing is already filled, save for second pass
-                    unassignedStaff.push({ staffId, patternIdx });
+                if (!isNaN(newWeekStart.getTime())) {
+                    this.app.weekStart = newWeekStart.toISOString().split('T')[0];
+                    this.app.currentMonth = new Date(startDate);
                 }
-            });
+            }
 
-            // 3. Second Pass: Fill remaining gaps using unassigned staff who were supposed to work
-            Object.keys(dayRequirements).forEach(code => {
-                const required = dayRequirements[code] || 0;
-                while (assignedToday[code] < required && unassignedStaff.length > 0) {
-                    const candidate = unassignedStaff.shift();
-                    this._createWizardShift(candidate.staffId, dateStr, code, candidate.patternIdx);
-                    assignedToday[code]++;
-                    shiftsGenerated++;
-                }
-            });
+            this.app.saveToStorage();
+            if (this.app.renderTableBody) this.app.renderTableBody();
+            if (this.app.updateStats) this.app.updateStats();
+
+            // Save Pattern
+            if (this.config.saveToLibrary && this.config.patternName) {
+                this.savePatternToLibrary();
+            }
+
+            if (shiftsGenerated === 0) {
+                this.app.showToast('No shifts generated. Check staff/pattern settings.', 'alert-triangle');
+            } else {
+                this.app.showToast(`Success! Generated ${shiftsGenerated} shifts.`, 'check-circle');
+            }
+
+            this.close();
+
+        } catch (error) {
+            console.error('[RosterWizard] Error in finish():', error);
+            this.app.showToast('Wizard Error: ' + error.message, 'alert-circle');
         }
-
-        console.log(`[RosterWizard] Generation complete. Generated ${shiftsGenerated} shifts.`);
-
-        // Truth Protocol: Jump the view to the start of the new roster (Monday of that week)
-        const jumpDate = new Date(startDate);
-        const day = jumpDate.getDay() || 7;
-        jumpDate.setDate(jumpDate.getDate() - day + 1);
-        jumpDate.setHours(0, 0, 0, 0);
-
-        this.app.weekStart = jumpDate;
-
-        this.app.saveToStorage();
-        this.app.renderTableHead();
-        this.app.renderTableBody();
-        this.app.updateStats();
-
-        // Optional: Save pattern to library
-        if (this.config.saveToLibrary && this.config.patternName) {
-            this.savePatternToLibrary();
-        }
-
-        if (shiftsGenerated === 0) {
-            this.app.showToast('No shifts generated. Check your staff selection and pattern.', 'alert-triangle');
-        } else {
-            this.app.showToast(`Success! Generated ${shiftsGenerated} shifts with precise coverage.`, 'check-circle');
-        }
-        this.close();
     }
 
     savePatternToLibrary() {
@@ -946,7 +938,7 @@ class RosterWizard {
 
     _createWizardShift(staffId, dateStr, code, patternIdx) {
         let start = '09:00', end = '17:00';
-        if (this.config.customShifts[patternIdx]) {
+        if (this.config.customShifts && this.config.customShifts[patternIdx]) {
             [start, end] = this.config.customShifts[patternIdx].split('-');
         } else {
             const s = this.app.settings.standards;
@@ -967,5 +959,4 @@ class RosterWizard {
     }
 }
 
-// Global exposure
 window.RosterWizard = RosterWizard;
