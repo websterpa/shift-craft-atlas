@@ -202,6 +202,7 @@ class RosterWizard {
                         <small style="color: var(--text-muted); display: block;">
                             Select a pre-designed industry pattern or create your own below
                         </small>
+                        <div id="wizard-pattern-insight"></div>
                     </div>
                 `;
 
@@ -217,6 +218,7 @@ class RosterWizard {
                             // Reset to default when "Custom Pattern" is selected
                             this.config.patternSequence = Array(7).fill('R');
                             this.config.cycleLength = 7;
+                            this.renderInsightCard(null);
                             this.updateDesignerUI();
                         }
                     };
@@ -319,6 +321,82 @@ class RosterWizard {
         if (window.lucide) window.lucide.createIcons();
     }
 
+    renderInsightCard(pattern) {
+        const container = document.getElementById('wizard-pattern-insight');
+        if (!container) return;
+
+        if (!pattern) {
+            container.innerHTML = '';
+            return;
+        }
+
+        // Analysis Logic
+        const codes = pattern.rosterPattern[0];
+        const total = codes.length;
+
+        // Count specific types (mapping may vary, checking logic)
+        const days = codes.filter(c => c === 'D' || c === 'M' || c === 'A').length;
+        const nights = codes.filter(c => c === 'N').length;
+        const rest = codes.filter(c => c === 'R' || c === 'X' || c === 'O').length;
+
+        const dayPct = Math.round((days / total) * 100) || 0;
+        const nightPct = Math.round((nights / total) * 100) || 0;
+
+        // HTML Generation
+        let prosHtml = '';
+        if (pattern.advantages) prosHtml = `<ul class="insight-list pros">${pattern.advantages.slice(0, 3).map(a => `<li>${a}</li>`).join('')}</ul>`;
+
+        let consHtml = '';
+        if (pattern.disadvantages) consHtml = `<ul class="insight-list cons">${pattern.disadvantages.slice(0, 3).map(d => `<li>${d}</li>`).join('')}</ul>`;
+
+        const resourceNote = nightPct < 20 && nights > 0
+            ? `<span><i data-lucide="alert-triangle" style="width:14px; margin-right:4px;"></i>Note: Low night frequency (${nightPct}%) means high headcount required for constant 24/7 night coverage.</span>`
+            : `<span><i data-lucide="info" style="width:14px; margin-right:4px;"></i>Designed for ${pattern.teams} teams rotating through cycle.</span>`;
+
+        container.innerHTML = `
+            <div class="insight-card">
+                <div class="insight-header">
+                    <div>
+                        <div class="insight-title">${pattern.name}</div>
+                        <div class="insight-desc">${pattern.description || 'No description available'}</div>
+                    </div>
+                    <div style="background:var(--accent-blue); color:white; padding: 4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">
+                        ${pattern.cycleDays} Day Cycle
+                    </div>
+                </div>
+                
+                <div class="insight-grid">
+                    <div class="insight-metric">
+                        <div class="insight-metric-label">Staff Efficiency</div>
+                        <div class="insight-metric-value">${dayPct}% / ${nightPct}%</div>
+                        <div style="font-size:0.7rem; color:var(--text-muted)">Day vs Night Mix</div>
+                    </div>
+                    <div class="insight-metric">
+                        <div class="insight-metric-label">Teams Required</div>
+                        <div class="insight-metric-value">${pattern.teams}</div>
+                        <div style="font-size:0.7rem; color:var(--text-muted)">Optimal Coverage</div>
+                    </div>
+                </div>
+
+                <div class="insight-lists">
+                    <div>
+                        <h5>Advantages</h5>
+                        ${prosHtml || '<span style="color:var(--text-muted); font-size:0.85rem;">Standard pattern</span>'}
+                    </div>
+                    <div>
+                        <h5>Challenges</h5>
+                        ${consHtml || '<span style="color:var(--text-muted); font-size:0.85rem;">None logged</span>'}
+                    </div>
+                </div>
+
+                <div class="insight-foot">
+                    ${resourceNote}
+                </div>
+            </div>
+        `;
+        if (window.lucide) window.lucide.createIcons();
+    }
+
     updateDesignerUI() {
         const container = document.getElementById('wizard-pattern-grid');
         if (!container) return;
@@ -414,6 +492,7 @@ class RosterWizard {
         this.config.patternSequence[idx] = nextCode;
         this.config.sourcePatternName = 'Custom Pattern'; // Reset to custom on manual edit
         this.updateHeaderBadge();
+        this.renderInsightCard(null); // Clear insight card when pattern is manually edited
         this.updateDesignerUI();
     }
 
@@ -493,6 +572,7 @@ class RosterWizard {
         this.syncRequirements();
         this.config.sourcePatternName = pattern.name;
         this.updateHeaderBadge();
+        this.renderInsightCard(pattern);
         this.updateDesignerUI();
         this.app.showToast(`Applied pattern: ${pattern.name}`, 'check-circle');
     }
