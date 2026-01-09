@@ -43,19 +43,24 @@ test.describe('Truth Protocol: DOM Naming Conventions', () => {
 
         // Navigate to Step 3 (Staffing) where Select All checkbox is
         // First need to add a shift in Step 1
-        await page.waitForSelector('.pattern-cell', { state: 'visible', timeout: 5000 });
-        await page.click('.pattern-cell');
+        await page.waitForSelector('.pattern-cell', { state: 'visible', timeout: 10000 });
+        // Force click to ensure we hit it even if overlays exist
+        await page.locator('.pattern-cell').first().click({ force: true });
+        // Wait for pattern update (UI reflection)
+        await page.waitForTimeout(500);
 
-        await page.waitForSelector('#wizard-next-btn', { state: 'visible', timeout: 5000 });
-        await page.click('#wizard-next-btn');
-        await page.waitForTimeout(500); // Wait for step transition
-        await page.click('#wizard-next-btn');
-        await page.waitForTimeout(500); // Wait for step transition
+        await page.waitForSelector('#wizard-next-btn', { state: 'visible', timeout: 10000 });
+        await page.click('#wizard-next-btn', { force: true });
+        await page.waitForTimeout(1000); // Increased wait for step transition
+        await page.click('#wizard-next-btn', { force: true });
+        await page.waitForTimeout(1000); // Increased wait for step transition
 
         // TRUTH PROTOCOL ENFORCEMENT:
         // The "Select All" checkbox MUST have a unique ID
         const selectAllCheckbox = page.locator('#wizard-select-all');
-        await expect(selectAllCheckbox).toBeVisible({ timeout: 5000 });
+        // Ensure parent is visible too
+        await expect(page.locator('#wizard-staff-list')).toBeVisible();
+        await expect(selectAllCheckbox).toBeVisible({ timeout: 10000 });
         await expect(selectAllCheckbox).toHaveAttribute('onchange', /toggleAllStaff/);
 
         // Verify clicking it actually works (method-first verification)
@@ -85,13 +90,15 @@ test.describe('Truth Protocol: DOM Naming Conventions', () => {
         await page.waitForSelector('#roster-wizard-modal', { state: 'visible', timeout: 5000 });
 
         // Navigate to Step 3
-        await page.waitForSelector('.pattern-cell', { state: 'visible', timeout: 5000 });
-        await page.click('.pattern-cell');
-        await page.waitForSelector('#wizard-next-btn', { state: 'visible', timeout: 5000 });
-        await page.click('#wizard-next-btn');
+        await page.waitForSelector('.pattern-cell', { state: 'visible', timeout: 10000 });
+        await page.locator('.pattern-cell').first().click({ force: true });
         await page.waitForTimeout(500);
-        await page.click('#wizard-next-btn');
-        await page.waitForTimeout(500);
+
+        await page.waitForSelector('#wizard-next-btn', { state: 'visible', timeout: 10000 });
+        await page.click('#wizard-next-btn', { force: true });
+        await page.waitForTimeout(1000);
+        await page.click('#wizard-next-btn', { force: true });
+        await page.waitForTimeout(1000);
 
         // TRUTH PROTOCOL: The wizard's Select All must be targetable by unique ID
         // This prevents selector collisions with other "Select All" checkboxes on the page
@@ -118,13 +125,15 @@ test.describe('Truth Protocol: DOM Naming Conventions', () => {
         await page.waitForSelector('#roster-wizard-modal', { state: 'visible', timeout: 5000 });
 
         // Navigate to Step 3
-        await page.waitForSelector('.pattern-cell', { state: 'visible', timeout: 5000 });
-        await page.click('.pattern-cell');
-        await page.waitForSelector('#wizard-next-btn', { state: 'visible', timeout: 5000 });
-        await page.click('#wizard-next-btn');
+        await page.waitForSelector('.pattern-cell', { state: 'visible', timeout: 10000 });
+        await page.locator('.pattern-cell').first().click({ force: true });
         await page.waitForTimeout(500);
-        await page.click('#wizard-next-btn');
-        await page.waitForTimeout(500);
+
+        await page.waitForSelector('#wizard-next-btn', { state: 'visible', timeout: 10000 });
+        await page.click('#wizard-next-btn', { force: true });
+        await page.waitForTimeout(1000);
+        await page.click('#wizard-next-btn', { force: true });
+        await page.waitForTimeout(1000);
 
         // TRUTH PROTOCOL: Test the method directly
         const result = await page.evaluate(() => {

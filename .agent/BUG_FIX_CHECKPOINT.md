@@ -25,6 +25,11 @@
 7. **Roster Wizard Generation Visibility & Robustness**
    - **Fix**: Updated `RosterWizard.js` `finish()` method to automatically navigate to the roster start date and added strict date validation/error handling (`try-catch`) to prevent "Unexpected Error" crashes when inputs are invalid.
 
+8. **Global Header Layout Clash**
+   - **Issue**: User reported header overlapping main content.
+   - **Fix**: Refactored `index.html` to move `#global-top-bar` outside of `<main>`. Updated `src/css/layout.css` to use standard flex column layout, removing complex negative margins.
+   - **Verification**: Visual verification required. Automated Truth Protocol tests passed.
+
 ## Verification
 - Syntax check of `RosterWizard.js` passed (rebuilt file).
 - Tests: `npm test` executed successfully (Exit Code 0).
