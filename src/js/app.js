@@ -645,34 +645,35 @@ class ShiftCraftApp {
     }
 
     renderTableBody() {
-        const tbody = document.getElementById('roster-tbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
+        try {
+            const tbody = document.getElementById('roster-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
 
-        const roleFilter = document.getElementById('role-filter')?.value || 'all';
-        const filteredStaff = roleFilter === 'all' ? this.staff : this.staff.filter(s => s.role === roleFilter);
+            const roleFilter = document.getElementById('role-filter')?.value || 'all';
+            const filteredStaff = roleFilter === 'all' ? this.staff : this.staff.filter(s => s.role === roleFilter);
 
-        const weekDates = this.getWeekDates();
+            const weekDates = this.getWeekDates();
 
-        // Truth Protocol: Show only staff who are either Selected OR have Shifts this week
-        const activeStaff = filteredStaff.filter(person => {
-            const hasShifts = this.shifts.some(s => s.staffId === person.id && weekDates.includes(s.date));
-            return person.selected || hasShifts;
-        });
+            // Truth Protocol: Show only staff who are either Selected OR have Shifts this week
+            const activeStaff = filteredStaff.filter(person => {
+                const hasShifts = this.shifts.some(s => s.staffId === person.id && weekDates.includes(s.date));
+                return person.selected || hasShifts;
+            });
 
-        if (activeStaff.length === 0 && this.staff.length > 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);"><i data-lucide="filter" style="display:block; margin: 0 auto 1rem; width: 48px; height: 48px; opacity: 0.2;"></i>All staff are currently hidden. Select staff in the sidebar or assign shifts to see them here.</td></tr>';
-            if (window.lucide) window.lucide.createIcons();
-            return;
-        }
+            if (activeStaff.length === 0 && this.staff.length > 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 4rem; color: var(--text-muted);"><i data-lucide="filter" style="display:block; margin: 0 auto 1rem; width: 48px; height: 48px; opacity: 0.2;"></i>All staff are currently hidden. Select staff in the sidebar or assign shifts to see them here.</td></tr>';
+                if (window.lucide) window.lucide.createIcons();
+                return;
+            }
 
-        activeStaff.forEach(person => {
-            const tr = document.createElement('tr');
+            activeStaff.forEach(person => {
+                const tr = document.createElement('tr');
 
-            // Selection state
-            const isSelected = person.selected || false;
+                // Selection state
+                const isSelected = person.selected || false;
 
-            tr.innerHTML = `
+                tr.innerHTML = `
                 <td>
                     <div style="display: flex; align-items: center; gap: 0.75rem;">
                         <input type="checkbox" class="roster-staff-checkbox" value="${person.id}" ${isSelected ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer;">
@@ -687,67 +688,71 @@ class ShiftCraftApp {
                 </td>
             `;
 
-            // Handle checkbox click
-            const checkbox = tr.querySelector('.roster-staff-checkbox');
-            checkbox.onchange = (e) => {
-                person.selected = e.target.checked;
-                this.updateSelectedCount(); // Existing method or new one
-            };
-
-            for (let i = 0; i < 7; i++) {
-                const td = document.createElement('td');
-                const d = new Date(this.weekStart);
-                d.setDate(d.getDate() + i);
-                const dateStr = this.formatDate(d);
-                const dayOfWeek = d.getDay();
-                if (dayOfWeek === 0 || dayOfWeek === 6) td.classList.add('weekend');
-
-                // Drop Zone Setup
-                td.dataset.date = dateStr;
-                td.dataset.staffId = person.id;
-                td.classList.add('drop-zone');
-                td.ondragover = (e) => {
-                    e.preventDefault();
-                    td.classList.add('drag-over');
-                };
-                td.ondragleave = () => td.classList.remove('drag-over');
-                td.ondrop = (e) => {
-                    td.classList.remove('drag-over');
-                    this.handleDrop(e);
+                // Handle checkbox click
+                const checkbox = tr.querySelector('.roster-staff-checkbox');
+                checkbox.onchange = (e) => {
+                    person.selected = e.target.checked;
+                    this.updateSelectedCount(); // Existing method or new one
                 };
 
-                const dayShifts = this.shifts.filter(s => s.staffId === person.id && s.date === dateStr);
+                for (let i = 0; i < 7; i++) {
+                    const td = document.createElement('td');
+                    const d = new Date(this.weekStart);
+                    d.setDate(d.getDate() + i);
+                    const dateStr = this.formatDate(d);
+                    const dayOfWeek = d.getDay();
+                    if (dayOfWeek === 0 || dayOfWeek === 6) td.classList.add('weekend');
 
-                if (dayShifts.length > 0) {
-                    // Staff has shifts - show them
-                    dayShifts.forEach(shift => {
-                        const pill = this.createShiftPill(shift, person);
-                        pill.draggable = true;
-                        pill.ondragstart = (e) => {
-                            e.dataTransfer.setData('shiftId', shift.id);
-                            pill.classList.add('dragging');
-                        };
-                        pill.ondragend = () => pill.classList.remove('dragging');
-                        td.appendChild(pill);
-                    });
-                } else {
-                    // No shifts - show rest day indicator
-                    const restDay = document.createElement('div');
-                    restDay.className = 'rest-day';
-                    restDay.innerHTML = `
+                    // Drop Zone Setup
+                    td.dataset.date = dateStr;
+                    td.dataset.staffId = person.id;
+                    td.classList.add('drop-zone');
+                    td.ondragover = (e) => {
+                        e.preventDefault();
+                        td.classList.add('drag-over');
+                    };
+                    td.ondragleave = () => td.classList.remove('drag-over');
+                    td.ondrop = (e) => {
+                        td.classList.remove('drag-over');
+                        this.handleDrop(e);
+                    };
+
+                    const dayShifts = this.shifts.filter(s => s.staffId === person.id && s.date === dateStr);
+
+                    if (dayShifts.length > 0) {
+                        // Staff has shifts - show them
+                        dayShifts.forEach(shift => {
+                            const pill = this.createShiftPill(shift, person);
+                            pill.draggable = true;
+                            pill.ondragstart = (e) => {
+                                e.dataTransfer.setData('shiftId', shift.id);
+                                pill.classList.add('dragging');
+                            };
+                            pill.ondragend = () => pill.classList.remove('dragging');
+                            td.appendChild(pill);
+                        });
+                    } else {
+                        // No shifts - show rest day indicator
+                        const restDay = document.createElement('div');
+                        restDay.className = 'rest-day';
+                        restDay.innerHTML = `
                         <i data-lucide="moon" style="width: 16px; height: 16px; opacity: 0.4;"></i>
                         <span>Rest</span>
                     `;
-                    td.appendChild(restDay);
+                        td.appendChild(restDay);
+                    }
+
+                    tr.appendChild(td);
                 }
+                tbody.appendChild(tr);
+            });
 
-                tr.appendChild(td);
-            }
-            tbody.appendChild(tr);
-        });
-
-        // Refresh Lucide icons for rest day indicators
-        if (window.lucide) window.lucide.createIcons();
+            // Refresh Lucide icons for rest day indicators
+            if (window.lucide) window.lucide.createIcons();
+        } catch (e) {
+            console.error('[ShiftCraft] Render Error:', e);
+            this.showToast('Render Error: ' + e.message, 'alert-circle');
+        }
     }
 
     handleDrop(e) {
