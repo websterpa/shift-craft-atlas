@@ -1883,6 +1883,7 @@ class ShiftCraftApp {
 
         if (choice === 'all' || choice.confirmed === 'all') {
             this.shifts = [];
+            this.staff.forEach(s => s.selected = false); // Ensure view is empty
             this.showToast('Entire roster cleared', 'trash-2');
         } else {
             const start = new Date(this.weekStart);
