@@ -71,8 +71,14 @@ class MonthlyRosterView {
             if (select) select.value = staffId;
         }
 
-        // Set month to current
-        this.currentMonth = new Date();
+        // Set month based on current Roster context
+        if (this.app.currentMonth) {
+            this.currentMonth = new Date(this.app.currentMonth);
+        } else if (this.app.weekStart) {
+            this.currentMonth = new Date(this.app.weekStart);
+        } else {
+            this.currentMonth = new Date();
+        }
         this.currentMonth.setDate(1);
 
         // Render calendar
