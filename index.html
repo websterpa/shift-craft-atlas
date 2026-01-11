@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shift Craft Atlas - Master Your Shift Scheduling</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗓️ Shift Craft Atlas</h1>
+            <p class="tagline">Master Your Shift Scheduling</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Employees Section -->
+            <section class="section employees-section">
+                <h2>👥 Employees</h2>
+                <div class="form-group">
+                    <input type="text" id="employeeName" placeholder="Employee name" />
+                    <input type="text" id="employeeRole" placeholder="Role (e.g., Manager, Server, Cook)" />
+                    <button onclick="addEmployee()">Add Employee</button>
+                </div>
+                <div id="employeeList" class="list-container"></div>
+            </section>
+
+            <!-- Shift Creation Section -->
+            <section class="section shift-creation-section">
+                <h2>➕ Create Shift</h2>
+                <div class="form-group">
+                    <label for="shiftEmployee">Employee:</label>
+                    <select id="shiftEmployee">
+                        <option value="">Select employee</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="shiftDate">Date:</label>
+                    <input type="date" id="shiftDate" />
+                </div>
+                <div class="form-group">
+                    <label for="shiftStartTime">Start Time:</label>
+                    <input type="time" id="shiftStartTime" value="09:00" />
+                </div>
+                <div class="form-group">
+                    <label for="shiftEndTime">End Time:</label>
+                    <input type="time" id="shiftEndTime" value="17:00" />
+                </div>
+                <div class="form-group">
+                    <label for="shiftRole">Role:</label>
+                    <input type="text" id="shiftRole" placeholder="Shift role/position" />
+                </div>
+                <button onclick="addShift()">Create Shift</button>
+            </section>
+
+            <!-- Schedule View Section -->
+            <section class="section schedule-section">
+                <h2>📅 Schedule</h2>
+                <div class="filter-group">
+                    <label for="filterDate">Filter by date:</label>
+                    <input type="date" id="filterDate" onchange="renderSchedule()" />
+                    <button onclick="clearFilter()">Show All</button>
+                </div>
+                <div id="scheduleContainer" class="schedule-container"></div>
+            </section>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

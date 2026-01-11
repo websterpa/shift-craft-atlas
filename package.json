@@ -1,0 +1,22 @@
+{
+  "name": "shift-craft-atlas",
+  "version": "1.0.0",
+  "description": "Master Your Shift Scheduling",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p 8080 -o",
+    "test": "echo \"No tests configured\" && exit 0"
+  },
+  "keywords": [
+    "shift",
+    "scheduling",
+    "calendar",
+    "employee",
+    "management"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
