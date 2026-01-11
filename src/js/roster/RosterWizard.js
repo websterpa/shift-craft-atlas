@@ -206,6 +206,7 @@ class RosterWizard {
                     <label class="wizard-label">Choose a Pattern Template</label>
                     <select class="form-control" id="pattern-library-selector" style="margin-bottom: 0.5rem;">
                         <option value="">Custom Pattern (Design Your Own)</option>
+                        ${localStorage.getItem('shiftcraft_wizard_last_run') ? '<option value="LAST_RUN">Restore Last Session (Auto-Saved)</option>' : ''}
                         ${this.loadPatternLibraryOptions().map(p =>
                     `<option value="${p.id}">${p.name} - ${p.description}</option>`
                 ).join('')}
@@ -223,7 +224,9 @@ class RosterWizard {
 
                     // Bind event
                     document.getElementById('pattern-library-selector').onchange = (e) => {
-                        if (e.target.value) {
+                        if (e.target.value === 'LAST_RUN') {
+                            this.restoreLastSession();
+                        } else if (e.target.value) {
                             this.applyLibraryPattern(e.target.value);
                         } else {
                             // Reset to default when "Custom Pattern" is selected
@@ -541,6 +544,37 @@ class RosterWizard {
             cycleDays: p.cycleDays,
             rosterPattern: p.rosterPattern
         }));
+    }
+
+    restoreLastSession() {
+        try {
+            const data = localStorage.getItem('shiftcraft_wizard_last_run');
+            if (data) {
+                const session = JSON.parse(data);
+                this.config = { ...this.config, ...session }; // Merge
+                if (session.timestamp) delete this.config.timestamp; // Cleanup
+
+                // Update UI state
+                const cycleInput = document.getElementById('wizard-cycle-input');
+                if (cycleInput) cycleInput.value = this.config.cycleLength;
+
+                const textInput = document.getElementById('wizard-pattern-text');
+                if (textInput) textInput.value = this.config.patternSequence.join(',');
+
+                this.setMode(this.config.mode || 'cyclic');
+                this.updateDesignerUI();
+                this.renderInsightCard({
+                    name: session.sourcePatternName || 'Restored Session',
+                    description: 'Loaded from previous run',
+                    id: 'restored'
+                });
+
+                this.app.showToast('Previous session restored', 'rotate-ccw');
+            }
+        } catch (e) {
+            console.error('Failed to restore session:', e);
+            this.app.showToast('Could not restore session', 'alert-circle');
+        }
     }
 
     /**
@@ -941,6 +975,12 @@ class RosterWizard {
             }
 
             console.log(`[RosterWizard] Generating ${this.config.weeks} weeks from ${startDateStr} for ${this.config.selectedStaff.length} staff`);
+
+            // Save session for restoration
+            localStorage.setItem('shiftcraft_wizard_last_run', JSON.stringify({
+                ...this.config,
+                timestamp: new Date().toISOString()
+            }));
 
             // Update App's roster name
             if (this.app.setRosterName) {
