@@ -1,0 +1,161 @@
+/**
+ * WizardStep2 - Coverage Requirements UI Component
+ * Decoupled from RosterWizard.js
+ * 
+ * Handles the rendering and logic for Step 2 (defining staffing requirements per shift type).
+ * Uses pure DOM API (document.createElement) instead of unsafe innerHTML injections.
+ */
+class WizardStep2 {
+    /**
+     * @param {HTMLElement} container - The element to render into
+     * @param {Object} config - The wizard configuration object (read/write)
+     * @param {Object} delegate - Callbacks for business logic dependencies
+     */
+    constructor(container, config, delegate) {
+        this.container = container;
+        this.config = config;
+        this.delegate = delegate; // Expects: { calculateRequiredStaff, getSelectedStaffCount }
+    }
+
+    render() {
+        this.container.innerHTML = ''; // Clean slate
+
+        // 1. Calculate counts of shift types in pattern
+        const patternCounts = this.config.patternSequence.reduce((acc, code) => {
+            if (code !== 'R') acc[code] = (acc[code] || 0) + 1;
+            return acc;
+        }, {});
+
+        const types = Object.keys(patternCounts);
+
+        if (types.length === 0) {
+            const msg = document.createElement('p');
+            msg.textContent = 'No shifts defined in pattern.';
+            this.container.appendChild(msg);
+            return;
+        }
+
+        const shiftNames = {
+            'E': 'Early',
+            'L': 'Late',
+            'N': 'Night',
+            'D': 'Day (12h)',
+            'C': 'Custom'
+        };
+
+        // Header
+        const helpText = document.createElement('p');
+        helpText.className = 'wizard-help-text';
+        helpText.textContent = 'Define how many staff members should work each shift type for proper coverage.';
+        this.container.appendChild(helpText);
+
+        // Inputs for each shift type
+        types.forEach(type => {
+            const box = document.createElement('div');
+            box.className = 'wizard-box';
+
+            const label = document.createElement('label');
+            label.className = 'wizard-label';
+            label.textContent = `${shiftNames[type] || type} Shift Coverage`;
+
+            const group = document.createElement('div');
+            group.className = 'wizard-input-group';
+
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = '0';
+            input.max = '20';
+            input.className = 'form-control';
+            input.style.width = '80px';
+
+            // Set initial value (default to 1 if undefined, respecting existing config)
+            const currentVal = this.config.requirements[type] !== undefined ? this.config.requirements[type] : 1;
+            input.value = currentVal;
+
+            // Ensure config is synced with the default visual
+            if (this.config.requirements[type] === undefined) {
+                this.config.requirements[type] = 1;
+            }
+
+            // Event Listener: Update config and advice on change
+            const updateHandler = (e) => {
+                const val = parseInt(e.target.value) || 0;
+                this.config.requirements[type] = val;
+                this.updateAdvice();
+            };
+
+            input.addEventListener('change', updateHandler);
+            input.addEventListener('input', updateHandler); // Responsive update
+
+            const span = document.createElement('span');
+            span.className = 'wizard-help-text';
+            span.style.marginBottom = '0';
+            span.textContent = ` staff members per ${shiftNames[type] || type} shift`;
+
+            group.appendChild(input);
+            group.appendChild(span);
+
+            box.appendChild(label);
+            box.appendChild(group);
+
+            if (type === 'C') {
+                const small = document.createElement('small');
+                small.className = 'wizard-help-text';
+                small.style.marginTop = '0.5rem';
+                small.textContent = 'Applies to all custom time shifts';
+                box.appendChild(small);
+            }
+
+            this.container.appendChild(box);
+        });
+
+        // Headcount Advice Section
+        this.adviceBox = document.createElement('div');
+        this.adviceBox.id = 'headcount-advice';
+        this.adviceBox.className = 'wizard-advice-box';
+
+        const h4 = document.createElement('h4');
+        h4.className = 'wizard-advice-h4';
+        h4.textContent = 'Headcount Assessment';
+
+        this.adviceText = document.createElement('p');
+        this.adviceText.id = 'headcount-advice-text';
+        this.adviceText.style.margin = '0';
+        this.adviceText.style.fontSize = '0.9rem';
+        this.adviceText.textContent = 'Calculating requirements...';
+
+        this.adviceBox.appendChild(h4);
+        this.adviceBox.appendChild(this.adviceText);
+        this.container.appendChild(this.adviceBox);
+
+        // Perform initial advice calculation
+        this.updateAdvice();
+    }
+
+    updateAdvice() {
+        if (!this.adviceText || !this.delegate) return;
+
+        // Delegate business logic calculation
+        const needed = this.delegate.calculateRequiredStaff();
+        const selected = this.delegate.getSelectedStaffCount();
+
+        if (needed === 0) {
+            this.adviceText.textContent = "Please define your pattern in Step 1 first.";
+            return;
+        }
+
+        let status = '';
+        if (selected > needed) {
+            status = `<span style="color:var(--accent-amber); font-weight:700;">Surplus Identified:</span> You have ${selected} staff selected, but only <strong>${needed}</strong> are required for this pattern. ${selected - needed} staff will remain unassigned (surplus).`;
+        } else if (selected < needed) {
+            status = `<span style="color:var(--accent-rose); font-weight:700;">Understaffed:</span> You need <strong>${needed}</strong> staff to maintain this roster, but only have ${selected} selected. Gaps will occur.`;
+        } else {
+            status = `<span style="color:var(--accent-emerald); font-weight:700;">Balanced:</span> Your selected staff (${selected}) matches the exactly required headcount for this roster.`;
+        }
+
+        this.adviceText.innerHTML = status;
+    }
+}
+
+// Expose globally for app compatibility
+window.WizardStep2 = WizardStep2;

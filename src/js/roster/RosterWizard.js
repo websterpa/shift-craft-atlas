@@ -623,90 +623,22 @@ class RosterWizard {
     }
 
     // --- Step 2: Coverage Requirements ---
+    // --- Step 2: Coverage Requirements ---
     renderStep2() {
-        // Calculate counts of shift types in pattern
-        const counts = this.config.patternSequence.reduce((acc, code) => {
-            if (code !== 'R') acc[code] = (acc[code] || 0) + 1;
-            return acc;
-        }, {});
-
         const container = document.getElementById('wizard-resource-inputs');
         if (!container) return;
 
-        // Render input for each distinct shift type found
-        const types = Object.keys(counts);
-        if (types.length === 0) {
-            container.innerHTML = '<p>No shifts defined in pattern.</p>';
-            return;
-        }
+        // Use decoupled UI module (Safe First Refactor)
+        // Passes container, config, and business logic delegates
+        this.step2UI = new window.WizardStep2(container, this.config, {
+            calculateRequiredStaff: () => this.calculateRequiredStaff(),
+            getSelectedStaffCount: () => this.config.selectedStaff.length
+        });
 
-        const shiftNames = {
-            'E': 'Early',
-            'L': 'Late',
-            'N': 'Night',
-            'D': 'Day (12h)',
-            'C': 'Custom'
-        };
-
-        container.innerHTML = `
-        <p class="wizard-help-text">
-            Define how many staff members should work each shift type for proper coverage.
-        </p>
-    ` + types.map(type => `
-        <div class="wizard-box">
-            <label class="wizard-label">
-                ${shiftNames[type] || type} Shift Coverage
-            </label>
-            <div class="wizard-input-group">
-                <input type="number" min="0" max="20" value="${this.config.requirements[type] !== undefined ? this.config.requirements[type] : 1}" 
-                    onchange="window.wizard.updateRequirement('${type}', this.value)"
-                    class="form-control" style="width: 80px;">
-                <span class="wizard-help-text" style="margin-bottom:0;">
-                    staff members per ${shiftNames[type] || type} shift
-                </span>
-            </div>
-            ${type === 'C' ? '<small class="wizard-help-text" style="margin-top:0.5rem;">Applies to all custom time shifts</small>' : ''}
-        </div>
-    `).join('') + `
-        <div id="headcount-advice" class="wizard-advice-box">
-            <h4 class="wizard-advice-h4">Headcount Assessment</h4>
-            <p id="headcount-advice-text" style="margin: 0; font-size: 0.9rem;">
-               Calculating requirements...
-            </p>
-        </div>
-    `;
-
-        this.updateHeadcountAdvice();
+        this.step2UI.render();
     }
 
-    updateRequirement(type, val) {
-        this.config.requirements[type] = parseInt(val);
-        this.updateHeadcountAdvice();
-    }
 
-    updateHeadcountAdvice() {
-        const adviceEl = document.getElementById('headcount-advice-text');
-        if (!adviceEl) return;
-
-        const needed = this.calculateRequiredStaff();
-        const selected = this.config.selectedStaff.length;
-
-        if (needed === 0) {
-            adviceEl.textContent = "Please define your pattern in Step 1 first.";
-            return;
-        }
-
-        let status = '';
-        if (selected > needed) {
-            status = `<span style="color:var(--accent-amber); font-weight:700;">Surplus Identified:</span> You have ${selected} staff selected, but only <strong>${needed}</strong> are required for this pattern. ${selected - needed} staff will remain unassigned (surplus).`;
-        } else if (selected < needed) {
-            status = `<span style="color:var(--accent-rose); font-weight:700;">Understaffed:</span> You need <strong>${needed}</strong> staff to maintain this roster, but only have ${selected} selected. Gaps will occur.`;
-        } else {
-            status = `<span style="color:var(--accent-emerald); font-weight:700;">Balanced:</span> Your selected staff (${selected}) matches the exactly required headcount for this roster.`;
-        }
-
-        adviceEl.innerHTML = status;
-    }
 
     // --- Step 3: Staffing ---
     renderStep3() {
