@@ -143,11 +143,6 @@ function addShift() {
         return;
     }
     
-    if (startTime >= endTime) {
-        alert('End time must be after start time');
-        return;
-    }
-    
     const employee = employees.find(emp => emp.id === parseInt(employeeId));
     
     const shift = {
