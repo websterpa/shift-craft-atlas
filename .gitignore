@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+.env
+dist/
+test-results/
+playwright-report/
+blob-report/
+.gemini/
+.agent/
