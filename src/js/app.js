@@ -1899,6 +1899,7 @@ class ShiftCraftApp {
 
         this.saveToStorage();
         this.renderTableBody();
+        this.renderTableHead();
         this.updateStats();
     }
 

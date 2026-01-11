@@ -987,6 +987,7 @@ class RosterWizard {
 
             this.app.saveToStorage();
             if (this.app.renderTableBody) this.app.renderTableBody();
+            if (this.app.renderTableHead) this.app.renderTableHead();
             if (this.app.updateStats) this.app.updateStats();
 
             // Save Pattern
