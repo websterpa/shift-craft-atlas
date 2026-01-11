@@ -796,7 +796,12 @@ class RosterWizard {
                 </div>
                 
                 <div>
-                    <h4 style="margin-bottom:1rem; color:var(--accent-emerald)">Feasibility & Summary</h4>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h4 style="margin:0; color:var(--accent-emerald)">Feasibility & Summary</h4>
+                        <button onclick="window.wizard.showAnalytics()" class="btn-outline" style="font-size:0.8rem; padding:0.25rem 0.5rem;">
+                            <i data-lucide="clipboard-copy" style="width:14px; margin-right:4px;"></i> Copy for Analysis
+                        </button>
+                    </div>
                     <div style="padding: 1rem; background: ${isFeasible ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 63, 94, 0.1)'}; border: 1px solid ${isFeasible ? 'var(--accent-emerald)' : 'var(--accent-rose)'}; border-radius: 8px; margin-bottom: 1.5rem;">
                         <div style="display: flex; align-items: center; gap: 0.75rem; color: ${isFeasible ? 'var(--accent-emerald)' : 'var(--accent-rose)'}; font-weight: 600; font-size: 1.1rem;">
                             <i data-lucide="${isFeasible ? 'check-circle' : 'alert-triangle'}"></i>
@@ -854,6 +859,46 @@ class RosterWizard {
         }
         return 0;
     }
+    showAnalytics() {
+        const staffNeeded = this.calculateRequiredStaff();
+        const staffSelected = this.config.selectedStaff.length;
+        const estimatedShifts = this.estimateShifts();
+
+        const analysisData = {
+            timestamp: new Date().toISOString(),
+            rosterName: this.config.rosterName || 'Unnamed Roster',
+            pattern: {
+                name: this.config.sourcePatternName || 'Custom',
+                sequence: this.config.patternSequence,
+                cycleLength: this.config.patternSequence.length,
+                shiftCounts: this.config.patternSequence.reduce((acc, c) => { if (c !== 'R') acc[c] = (acc[c] || 0) + 1; return acc; }, {})
+            },
+            requirements: this.config.requirements,
+            staffing: {
+                selected: staffSelected,
+                required: staffNeeded,
+                isFeasible: staffSelected >= staffNeeded,
+                surplus: Math.max(0, staffSelected - staffNeeded),
+                deficit: Math.max(0, staffNeeded - staffSelected)
+            },
+            projection: {
+                weeks: parseInt(document.getElementById('wizard-weeks')?.value || 4),
+                estimatedTotalShifts: estimatedShifts
+            }
+        };
+
+        const json = JSON.stringify(analysisData, null, 2);
+
+        // Copy to clipboard
+        navigator.clipboard.writeText(json).then(() => {
+            this.app.showToast('Analytics JSON copied to clipboard!', 'check-circle');
+        }).catch(err => {
+            console.error('Clipboard failed', err);
+            // Fallback: Prompt
+            prompt("Copy this JSON:", json);
+        });
+    }
+
     finish() {
         try {
             console.log('[RosterWizard] finish() called');
