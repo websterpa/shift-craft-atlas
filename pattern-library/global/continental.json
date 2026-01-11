@@ -1,7 +1,7 @@
 {
     "patternId": "continental-24-7",
     "name": "Continental Shift Pattern (UK)",
-    "description": "Classic 2-2-2-4 pattern for 24/7 operations. Each team works 2 earlies, 2 lates, 2 nights, then has 4 days off. Provides balanced workload with good work-life balance.",
+    "description": "Classic 2-2-2-2 pattern for 24/7 operations. Each team works 2 earlies, 2 lates, 2 nights, then has 2 days off. Provides balanced workload with regular breaks.",
     "industry": [
         "healthcare",
         "manufacturing",
@@ -111,7 +111,7 @@
     "advantages": [
         "Balanced workload across all teams",
         "Predictable 8-day cycle easy to remember",
-        "Good work-life balance with 4-day breaks every 8 days",
+        "Regular 2-day breaks after every 6-day block",
         "24/7 coverage guaranteed with 4 teams",
         "Fair distribution of night shifts",
         "Suitable for industries requiring continuous operation",
