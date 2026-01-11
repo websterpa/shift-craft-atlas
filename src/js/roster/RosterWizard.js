@@ -841,53 +841,19 @@ class RosterWizard {
     }
 
     calculateRequiredStaff() {
-        const cycleLen = this.config.patternSequence.length; // Source of Truth
-        const pattern = this.config.patternSequence;
-        const requirements = this.config.requirements;
-
-        let maxRequired = 0;
-
-        // Count occurrences of each shift type in pattern sequence
-        const countsInPattern = {};
-        pattern.forEach(code => {
-            if (code !== 'R') countsInPattern[code] = (countsInPattern[code] || 0) + 1;
-        });
-
-        // Types in pattern
-        const types = Object.keys(countsInPattern);
-        if (types.length === 0) return 0;
-
-        // Calculate needed for each requirement
-        types.forEach(code => {
-            const reqPerDay = requirements[code] !== undefined ? parseInt(requirements[code], 10) : 1;
-            const shiftsInCycle = countsInPattern[code];
-
-            const needed = Math.ceil((reqPerDay * cycleLen) / shiftsInCycle);
-            if (needed > maxRequired) maxRequired = needed;
-        });
-
-        return maxRequired;
+        if (window.RosterLogic) {
+            return RosterLogic.calculateRequiredStaff(this.config);
+        }
+        return 0;
     }
 
     estimateShifts() {
         const weeks = parseInt(document.getElementById('wizard-weeks')?.value) || 4;
-        const totalDays = weeks * 7;
-        const requirements = this.config.requirements;
-
-        // Truth Protocol: Generate EXACTLY enough to fill requirements.
-        let total = 0;
-        Object.keys(requirements).forEach(k => {
-            total += (requirements[k] !== undefined ? parseInt(requirements[k], 10) : 0);
-        });
-
-        // Only fallback if NO requirements are defined at all (Step 1 state)
-        if (Object.keys(requirements).length === 0) {
-            return 0;
+        if (window.RosterLogic) {
+            return RosterLogic.estimateShifts(this.config, weeks);
         }
-
-        return totalDays * total;
+        return 0;
     }
-
     finish() {
         try {
             console.log('[RosterWizard] finish() called');
@@ -940,55 +906,14 @@ class RosterWizard {
                 });
             }
 
-            // 2. Generation Loop
+            // 2. Generation (Delegated to RosterLogic)
             let shiftsGenerated = 0;
-            const selectedStaffIds = this.config.selectedStaff;
-            const cycleLen = this.config.patternSequence.length;
-
-            for (let dayOffset = 0; dayOffset < totalDays; dayOffset++) {
-                const currentObj = new Date(startDate);
-                currentObj.setDate(currentObj.getDate() + dayOffset);
-                const dateStr = currentObj.toISOString().split('T')[0];
-
-                const dayRequirements = {};
-                this.config.patternSequence.forEach(c => {
-                    if (c !== 'R') {
-                        const rawReq = this.config.requirements[c];
-                        dayRequirements[c] = parseInt(rawReq !== undefined ? rawReq : 1, 10);
-                    }
-                });
-
-                const assignedToday = {};
-                Object.keys(dayRequirements).forEach(k => assignedToday[k] = 0);
-                const unassignedStaff = [];
-
-                // Pass 1: Natural Pattern
-                selectedStaffIds.forEach((staffId, staffIdx) => {
-                    const patternIdx = (dayOffset + staffIdx) % cycleLen;
-                    const code = this.config.patternSequence[patternIdx];
-
-                    if (code !== 'R') {
-                        const required = dayRequirements[code] || 0;
-                        if (assignedToday[code] < required) {
-                            this._createWizardShift(staffId, dateStr, code, patternIdx);
-                            assignedToday[code]++;
-                            shiftsGenerated++;
-                        } else {
-                            unassignedStaff.push({ staffId, patternIdx });
-                        }
-                    }
-                });
-
-                // Pass 2: Gap Filling
-                Object.keys(dayRequirements).forEach(code => {
-                    const required = dayRequirements[code];
-                    while (assignedToday[code] < required && unassignedStaff.length > 0) {
-                        const candidate = unassignedStaff.shift(); // FIFO for fairness
-                        this._createWizardShift(candidate.staffId, dateStr, code, candidate.patternIdx);
-                        assignedToday[code]++;
-                        shiftsGenerated++;
-                    }
-                });
+            if (window.RosterLogic) {
+                const newShifts = RosterLogic.generateShifts(this.config, this.app.settings);
+                this.app.shifts.push(...newShifts);
+                shiftsGenerated = newShifts.length;
+            } else {
+                console.error("RosterLogic module missing");
             }
 
             // 3. Navigation (Robust)
@@ -1043,27 +968,7 @@ class RosterWizard {
         console.log('[RosterWizard] Saved pattern to My Patterns:', this.config.patternName);
     }
 
-    _createWizardShift(staffId, dateStr, code, patternIdx) {
-        let start = '09:00', end = '17:00';
-        if (this.config.customShifts && this.config.customShifts[patternIdx]) {
-            [start, end] = this.config.customShifts[patternIdx].split('-');
-        } else {
-            const s = this.app.settings.standards;
-            if (code === 'E') { start = s.early8 || '06:00'; end = s.late8 || '14:00'; }
-            if (code === 'L') { start = s.late8 || '14:00'; end = s.night8 || '22:00'; }
-            if (code === 'N') { start = s.night8 || '22:00'; end = '06:00'; }
-            if (code === 'D') { start = s.day12 || '07:00'; end = s.night12 || '19:00'; }
-        }
 
-        this.app.shifts.push({
-            id: 'sh-wiz-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
-            staffId: staffId,
-            date: dateStr,
-            start: start,
-            end: end,
-            shiftType: code
-        });
-    }
 }
 
 window.RosterWizard = RosterWizard;
