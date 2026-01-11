@@ -165,53 +165,51 @@ class RosterWizard {
             this.showStep(this.currentStep + 1);
         }
     }
-}
+
+    validateStep(step) {
+        if (step === 1) {
+            if (this.config.patternSequence.every(x => x === 'R')) {
+                this.app.showToast('Please add at least one shift to the pattern', 'alert-circle');
+                return false;
+            }
+        }
+        if (step === 3) {
+            if (this.config.selectedStaff.length === 0) {
+                this.app.showToast('Select at least one staff member to apply the pattern to', 'alert-circle');
+                return false;
+            }
+        }
+        return true;
     }
 
-validateStep(step) {
-    if (step === 1) {
-        if (this.config.patternSequence.every(x => x === 'R')) {
-            this.app.showToast('Please add at least one shift to the pattern', 'alert-circle');
-            return false;
+    // --- Step 1: Pattern Designer ---
+    renderStep1(retryCount = 0) {
+        // Wait for pattern library to load to prevent race condition
+        if (this.patternEngine && !this.patternEngine.loaded) {
+            if (retryCount > 10) {
+                console.warn('[RosterWizard] Pattern library load timeout - proceeding without full library');
+                // Force load or just proceed to render basic UI
+            } else {
+                console.log(`[RosterWizard] Waiting for pattern library... (${retryCount}/10)`);
+                setTimeout(() => this.renderStep1(retryCount + 1), 200);
+                return;
+            }
         }
-    }
-    if (step === 3) {
-        if (this.config.selectedStaff.length === 0) {
-            this.app.showToast('Select at least one staff member to apply the pattern to', 'alert-circle');
-            return false;
-        }
-    }
-    return true;
-}
 
-// --- Step 1: Pattern Designer ---
-renderStep1(retryCount = 0) {
-    // Wait for pattern library to load to prevent race condition
-    if (this.patternEngine && !this.patternEngine.loaded) {
-        if (retryCount > 10) {
-            console.warn('[RosterWizard] Pattern library load timeout - proceeding without full library');
-            // Force load or just proceed to render basic UI
-        } else {
-            console.log(`[RosterWizard] Waiting for pattern library... (${retryCount}/10)`);
-            setTimeout(() => this.renderStep1(retryCount + 1), 200);
-            return;
-        }
-    }
-
-    // Add Pattern Library Selector
-    const step1Panel = document.querySelector('.wizard-panel[data-step="1"]');
-    if (step1Panel) {
-        const existingSelector = step1Panel.querySelector('#pattern-library-selector');
-        if (!existingSelector) {
-            const selectorHTML = `
+        // Add Pattern Library Selector
+        const step1Panel = document.querySelector('.wizard-panel[data-step="1"]');
+        if (step1Panel) {
+            const existingSelector = step1Panel.querySelector('#pattern-library-selector');
+            if (!existingSelector) {
+                const selectorHTML = `
                 <div class="wizard-box">
                     <label class="wizard-label">Choose a Pattern Template</label>
                     <select class="form-control" id="pattern-library-selector" style="margin-bottom: 0.5rem;">
                         <option value="">Custom Pattern (Design Your Own)</option>
                         ${localStorage.getItem('shiftcraft_wizard_last_run') ? '<option value="LAST_RUN">Restore Last Session (Auto-Saved)</option>' : ''}
                         ${this.loadPatternLibraryOptions().map(p =>
-                `<option value="${p.id}">${p.name} - ${p.description}</option>`
-            ).join('')}
+                    `<option value="${p.id}">${p.name} - ${p.description}</option>`
+                ).join('')}
                     </select>
                     <small class="wizard-help-text">
                         Select a pre-designed industry pattern or create your own below
@@ -220,156 +218,156 @@ renderStep1(retryCount = 0) {
                 </div>
             `;
 
-            const firstH3 = step1Panel.querySelector('h3');
-            if (firstH3) {
-                firstH3.insertAdjacentHTML('afterend', selectorHTML);
+                const firstH3 = step1Panel.querySelector('h3');
+                if (firstH3) {
+                    firstH3.insertAdjacentHTML('afterend', selectorHTML);
 
-                // Bind event
-                document.getElementById('pattern-library-selector').onchange = (e) => {
-                    if (e.target.value === 'LAST_RUN') {
-                        this.restoreLastSession();
-                    } else if (e.target.value) {
-                        this.applyLibraryPattern(e.target.value);
-                    } else {
-                        // Reset to default when "Custom Pattern" is selected
-                        this.config.patternSequence = Array(7).fill('R');
-                        this.config.cycleLength = 7;
-                        this.renderInsightCard(null);
-                        this.updateDesignerUI();
-                    }
-                };
+                    // Bind event
+                    document.getElementById('pattern-library-selector').onchange = (e) => {
+                        if (e.target.value === 'LAST_RUN') {
+                            this.restoreLastSession();
+                        } else if (e.target.value) {
+                            this.applyLibraryPattern(e.target.value);
+                        } else {
+                            // Reset to default when "Custom Pattern" is selected
+                            this.config.patternSequence = Array(7).fill('R');
+                            this.config.cycleLength = 7;
+                            this.renderInsightCard(null);
+                            this.updateDesignerUI();
+                        }
+                    };
+                }
             }
         }
-    }
 
-    // Mode Toggles
-    const cyclicBtn = document.querySelector('#roster-wizard-modal .btn-primary'); // "Cyclic"
-    const calendarBtn = document.querySelector('#roster-wizard-modal .btn-outline'); // "Calendar"
-    // Note: This robust selector logic relies on static HTML structure, ideally add IDs
+        // Mode Toggles
+        const cyclicBtn = document.querySelector('#roster-wizard-modal .btn-primary'); // "Cyclic"
+        const calendarBtn = document.querySelector('#roster-wizard-modal .btn-outline'); // "Calendar"
+        // Note: This robust selector logic relies on static HTML structure, ideally add IDs
 
-    // Setup Mode Listeners if we can find them and haven't bound them
-    // For MVP, just assuming the structure from index.html
-    if (cyclicBtn && calendarBtn && cyclicBtn.textContent.includes('Cyclic')) {
-        cyclicBtn.onclick = () => this.setMode('cyclic');
-        calendarBtn.onclick = () => this.setMode('calendar');
+        // Setup Mode Listeners if we can find them and haven't bound them
+        // For MVP, just assuming the structure from index.html
+        if (cyclicBtn && calendarBtn && cyclicBtn.textContent.includes('Cyclic')) {
+            cyclicBtn.onclick = () => this.setMode('cyclic');
+            calendarBtn.onclick = () => this.setMode('calendar');
 
-        // Update active state visual
-        if (this.config.mode === 'cyclic') {
-            cyclicBtn.classList.replace('btn-outline', 'btn-primary');
-            calendarBtn.classList.replace('btn-primary', 'btn-outline');
-        } else {
-            cyclicBtn.classList.replace('btn-primary', 'btn-outline');
-            calendarBtn.classList.replace('btn-outline', 'btn-primary');
+            // Update active state visual
+            if (this.config.mode === 'cyclic') {
+                cyclicBtn.classList.replace('btn-outline', 'btn-primary');
+                calendarBtn.classList.replace('btn-primary', 'btn-outline');
+            } else {
+                cyclicBtn.classList.replace('btn-primary', 'btn-outline');
+                calendarBtn.classList.replace('btn-outline', 'btn-primary');
+            }
         }
+
+        // Bind inputs
+        const cycleInput = document.getElementById('wizard-cycle-input');
+        if (cycleInput) {
+            cycleInput.oninput = (e) => this.setCycleLength(parseInt(e.target.value));
+            cycleInput.value = this.config.cycleLength;
+            cycleInput.disabled = (this.config.mode === 'calendar');
+        }
+
+        const textInput = document.getElementById('wizard-pattern-text');
+        if (textInput) {
+            textInput.value = this.config.patternSequence.join(',');
+            textInput.oninput = (e) => this.parseSequenceText(e.target.value);
+        }
+
+        this.updateDesignerUI();
     }
 
-    // Bind inputs
-    const cycleInput = document.getElementById('wizard-cycle-input');
-    if (cycleInput) {
-        cycleInput.oninput = (e) => this.setCycleLength(parseInt(e.target.value));
-        cycleInput.value = this.config.cycleLength;
-        cycleInput.disabled = (this.config.mode === 'calendar');
+    setMode(mode) {
+        this.config.mode = mode;
+        if (mode === 'calendar') {
+            this.setCycleLength(7);
+        }
+        this.renderStep1();
     }
 
-    const textInput = document.getElementById('wizard-pattern-text');
-    if (textInput) {
-        textInput.value = this.config.patternSequence.join(',');
-        textInput.oninput = (e) => this.parseSequenceText(e.target.value);
+    setCycleLength(len) {
+        if (isNaN(len) || len < 1) len = 1;
+        if (len > 28) {
+            this.app.showToast('Max cycle length is 28 days', 'alert-circle');
+            len = 28;
+        }
+        this.config.cycleLength = len;
+
+        // Resize array
+        const current = this.config.patternSequence;
+        if (len > current.length) {
+            this.config.patternSequence = [...current, ...Array(len - current.length).fill('R')];
+        } else {
+            this.config.patternSequence = current.slice(0, len);
+        }
+
+        this.updateDesignerUI();
     }
 
-    this.updateDesignerUI();
-}
+    updateHeaderBadge() {
+        const header = document.querySelector('#roster-wizard-modal .modal-header h2');
+        if (!header) return;
 
-setMode(mode) {
-    this.config.mode = mode;
-    if (mode === 'calendar') {
-        this.setCycleLength(7);
-    }
-    this.renderStep1();
-}
+        let badge = document.getElementById('wizard-pattern-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.id = 'wizard-pattern-badge';
+            badge.style.cssText = 'font-size: 0.8rem; background: var(--glass-light); padding: 0.25rem 0.5rem; border-radius: 4px; margin-left: 1rem; color: var(--text-muted); font-weight: normal; vertical-align: middle; display: inline-flex; align-items: center; gap: 0.5rem;';
+            header.appendChild(badge);
+        }
 
-setCycleLength(len) {
-    if (isNaN(len) || len < 1) len = 1;
-    if (len > 28) {
-        this.app.showToast('Max cycle length is 28 days', 'alert-circle');
-        len = 28;
-    }
-    this.config.cycleLength = len;
+        const name = this.config.sourcePatternName || 'Custom Pattern';
 
-    // Resize array
-    const current = this.config.patternSequence;
-    if (len > current.length) {
-        this.config.patternSequence = [...current, ...Array(len - current.length).fill('R')];
-    } else {
-        this.config.patternSequence = current.slice(0, len);
-    }
+        // Visual indicator
+        if (name === 'Custom Pattern') {
+            badge.innerHTML = '<i data-lucide="edit-3" style="width:12px;height:12px;"></i> Custom';
+            badge.style.color = 'var(--text-muted)';
+            badge.style.border = '1px solid transparent';
+            badge.style.background = 'transparent';
+        } else {
+            badge.innerHTML = `<i data-lucide="layout-template" style="width:12px;height:12px;"></i> ${name}`;
+            badge.style.color = 'var(--accent-blue)';
+            badge.style.border = '1px solid var(--accent-blue)';
+            badge.style.background = 'rgba(99, 102, 241, 0.1)';
+        }
 
-    this.updateDesignerUI();
-}
-
-updateHeaderBadge() {
-    const header = document.querySelector('#roster-wizard-modal .modal-header h2');
-    if (!header) return;
-
-    let badge = document.getElementById('wizard-pattern-badge');
-    if (!badge) {
-        badge = document.createElement('span');
-        badge.id = 'wizard-pattern-badge';
-        badge.style.cssText = 'font-size: 0.8rem; background: var(--glass-light); padding: 0.25rem 0.5rem; border-radius: 4px; margin-left: 1rem; color: var(--text-muted); font-weight: normal; vertical-align: middle; display: inline-flex; align-items: center; gap: 0.5rem;';
-        header.appendChild(badge);
+        if (window.lucide) window.lucide.createIcons();
     }
 
-    const name = this.config.sourcePatternName || 'Custom Pattern';
+    renderInsightCard(pattern) {
+        const container = document.getElementById('wizard-pattern-insight');
+        if (!container) return;
 
-    // Visual indicator
-    if (name === 'Custom Pattern') {
-        badge.innerHTML = '<i data-lucide="edit-3" style="width:12px;height:12px;"></i> Custom';
-        badge.style.color = 'var(--text-muted)';
-        badge.style.border = '1px solid transparent';
-        badge.style.background = 'transparent';
-    } else {
-        badge.innerHTML = `<i data-lucide="layout-template" style="width:12px;height:12px;"></i> ${name}`;
-        badge.style.color = 'var(--accent-blue)';
-        badge.style.border = '1px solid var(--accent-blue)';
-        badge.style.background = 'rgba(99, 102, 241, 0.1)';
-    }
+        if (!pattern) {
+            container.innerHTML = '';
+            return;
+        }
 
-    if (window.lucide) window.lucide.createIcons();
-}
+        // Analysis Logic
+        const codes = pattern.rosterPattern[0];
+        const total = codes.length;
 
-renderInsightCard(pattern) {
-    const container = document.getElementById('wizard-pattern-insight');
-    if (!container) return;
+        // Count specific types (mapping may vary, checking logic)
+        const days = codes.filter(c => c === 'D' || c === 'M' || c === 'A').length;
+        const nights = codes.filter(c => c === 'N').length;
+        const rest = codes.filter(c => c === 'R' || c === 'X' || c === 'O').length;
 
-    if (!pattern) {
-        container.innerHTML = '';
-        return;
-    }
+        const dayPct = Math.round((days / total) * 100) || 0;
+        const nightPct = Math.round((nights / total) * 100) || 0;
 
-    // Analysis Logic
-    const codes = pattern.rosterPattern[0];
-    const total = codes.length;
+        // HTML Generation
+        let prosHtml = '';
+        if (pattern.advantages) prosHtml = `<ul class="insight-list pros">${pattern.advantages.slice(0, 3).map(a => `<li>${a}</li>`).join('')}</ul>`;
 
-    // Count specific types (mapping may vary, checking logic)
-    const days = codes.filter(c => c === 'D' || c === 'M' || c === 'A').length;
-    const nights = codes.filter(c => c === 'N').length;
-    const rest = codes.filter(c => c === 'R' || c === 'X' || c === 'O').length;
+        let consHtml = '';
+        if (pattern.disadvantages) consHtml = `<ul class="insight-list cons">${pattern.disadvantages.slice(0, 3).map(d => `<li>${d}</li>`).join('')}</ul>`;
 
-    const dayPct = Math.round((days / total) * 100) || 0;
-    const nightPct = Math.round((nights / total) * 100) || 0;
+        const resourceNote = nightPct < 20 && nights > 0
+            ? `<span><i data-lucide="alert-triangle" style="width:14px; margin-right:4px;"></i>Note: Low night frequency (${nightPct}%) means high headcount required for constant 24/7 night coverage.</span>`
+            : `<span><i data-lucide="info" style="width:14px; margin-right:4px;"></i>Designed for ${pattern.teams} teams rotating through cycle.</span>`;
 
-    // HTML Generation
-    let prosHtml = '';
-    if (pattern.advantages) prosHtml = `<ul class="insight-list pros">${pattern.advantages.slice(0, 3).map(a => `<li>${a}</li>`).join('')}</ul>`;
-
-    let consHtml = '';
-    if (pattern.disadvantages) consHtml = `<ul class="insight-list cons">${pattern.disadvantages.slice(0, 3).map(d => `<li>${d}</li>`).join('')}</ul>`;
-
-    const resourceNote = nightPct < 20 && nights > 0
-        ? `<span><i data-lucide="alert-triangle" style="width:14px; margin-right:4px;"></i>Note: Low night frequency (${nightPct}%) means high headcount required for constant 24/7 night coverage.</span>`
-        : `<span><i data-lucide="info" style="width:14px; margin-right:4px;"></i>Designed for ${pattern.teams} teams rotating through cycle.</span>`;
-
-    container.innerHTML = `
+        container.innerHTML = `
             <div class="insight-card">
                 <div class="insight-header">
                     <div>
@@ -410,21 +408,21 @@ renderInsightCard(pattern) {
                 </div>
             </div>
         `;
-    if (window.lucide) window.lucide.createIcons();
-}
+        if (window.lucide) window.lucide.createIcons();
+    }
 
-updateDesignerUI() {
-    const container = document.getElementById('wizard-pattern-grid');
-    if (!container) return;
+    updateDesignerUI() {
+        const container = document.getElementById('wizard-pattern-grid');
+        if (!container) return;
 
-    // Update Grid Columns
-    container.style.gridTemplateColumns = `repeat(7, 1fr)`;
+        // Update Grid Columns
+        container.style.gridTemplateColumns = `repeat(7, 1fr)`;
 
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-    container.innerHTML = this.config.patternSequence.map((code, idx) => {
-        const label = this.config.mode === 'calendar' ? days[idx % 7] : `Day ${idx + 1}`;
-        return `
+        container.innerHTML = this.config.patternSequence.map((code, idx) => {
+            const label = this.config.mode === 'calendar' ? days[idx % 7] : `Day ${idx + 1}`;
+            return `
             <div class="pattern-cell" onclick="window.wizard.toggleShift(${idx})" style="
                 border: 1px solid var(--glass-border);
                 padding: 10px;
@@ -445,212 +443,212 @@ updateDesignerUI() {
                 ${this.config.customShifts[idx] ? `<div style="font-size:0.6rem; margin-top:2px;">${this.config.customShifts[idx]}</div>` : ''}
             </div>
             `;
-    }).join('');
+        }).join('');
 
-    // Sync Text Input
-    const textInput = document.getElementById('wizard-pattern-text');
-    if (textInput) textInput.value = this.config.patternSequence.join(',');
+        // Sync Text Input
+        const textInput = document.getElementById('wizard-pattern-text');
+        if (textInput) textInput.value = this.config.patternSequence.join(',');
 
-    // Sync Cycle Length Input (Truth Protocol: UI must reflect selection)
-    const cycleInput = document.getElementById('wizard-cycle-input');
-    if (cycleInput) cycleInput.value = this.config.cycleLength;
-
-    this.syncRequirements();
-}
-
-syncRequirements() {
-    // Ensure every active code in the sequence has a requirement entry
-    this.config.patternSequence.forEach(code => {
-        if (code !== 'R' && this.config.requirements[code] === undefined) {
-            this.config.requirements[code] = 1;
-        }
-    });
-}
-
-parseSequenceText(text) {
-    let seq = text.toUpperCase().split(',').map(s => s.trim()).filter(s => s);
-    // Map X to R for rest days (refactoring consistency)
-    seq = seq.map(s => s === 'X' ? 'R' : s);
-
-    if (seq.length > 0) {
-        this.config.patternSequence = seq;
-        this.config.cycleLength = seq.length; // Update cycle length to match text
-
-        // Update cycle input
+        // Sync Cycle Length Input (Truth Protocol: UI must reflect selection)
         const cycleInput = document.getElementById('wizard-cycle-input');
-        if (cycleInput) cycleInput.value = seq.length;
+        if (cycleInput) cycleInput.value = this.config.cycleLength;
 
-        this.updateDesignerUI();
+        this.syncRequirements();
     }
-}
 
-toggleShift(idx) {
-    const codes = ['R', 'E', 'L', 'N', 'D', 'C']; // Changed X to R for Rest Day
-    const current = this.config.patternSequence[idx];
-    let nextIdx = (codes.indexOf(current) + 1) % codes.length;
-    let nextCode = codes[nextIdx];
+    syncRequirements() {
+        // Ensure every active code in the sequence has a requirement entry
+        this.config.patternSequence.forEach(code => {
+            if (code !== 'R' && this.config.requirements[code] === undefined) {
+                this.config.requirements[code] = 1;
+            }
+        });
+    }
 
-    // Handle Custom Shift
-    if (nextCode === 'C') {
-        const timeInfo = prompt("Enter Custom Time (Start-End)", "10:00-14:00");
-        if (timeInfo && timeInfo.match(/^\d{2}:\d{2}-\d{2}:\d{2}$/)) {
-            this.config.customShifts[idx] = timeInfo;
+    parseSequenceText(text) {
+        let seq = text.toUpperCase().split(',').map(s => s.trim()).filter(s => s);
+        // Map X to R for rest days (refactoring consistency)
+        seq = seq.map(s => s === 'X' ? 'R' : s);
+
+        if (seq.length > 0) {
+            this.config.patternSequence = seq;
+            this.config.cycleLength = seq.length; // Update cycle length to match text
+
+            // Update cycle input
+            const cycleInput = document.getElementById('wizard-cycle-input');
+            if (cycleInput) cycleInput.value = seq.length;
+
+            this.updateDesignerUI();
+        }
+    }
+
+    toggleShift(idx) {
+        const codes = ['R', 'E', 'L', 'N', 'D', 'C']; // Changed X to R for Rest Day
+        const current = this.config.patternSequence[idx];
+        let nextIdx = (codes.indexOf(current) + 1) % codes.length;
+        let nextCode = codes[nextIdx];
+
+        // Handle Custom Shift
+        if (nextCode === 'C') {
+            const timeInfo = prompt("Enter Custom Time (Start-End)", "10:00-14:00");
+            if (timeInfo && timeInfo.match(/^\d{2}:\d{2}-\d{2}:\d{2}$/)) {
+                this.config.customShifts[idx] = timeInfo;
+            } else {
+                if (timeInfo !== null) this.app.showToast('Invalid format. Use HH:MM-HH:MM', 'alert-circle');
+                // Skip 'C' if cancelled or invalid
+                nextCode = 'R';
+                delete this.config.customShifts[idx];
+            }
         } else {
-            if (timeInfo !== null) this.app.showToast('Invalid format. Use HH:MM-HH:MM', 'alert-circle');
-            // Skip 'C' if cancelled or invalid
-            nextCode = 'R';
             delete this.config.customShifts[idx];
         }
-    } else {
-        delete this.config.customShifts[idx];
+
+        this.config.patternSequence[idx] = nextCode;
+        this.config.sourcePatternName = 'Custom Pattern'; // Reset to custom on manual edit
+        this.updateHeaderBadge();
+        this.renderInsightCard(null); // Clear insight card when pattern is manually edited
+        this.updateDesignerUI();
     }
 
-    this.config.patternSequence[idx] = nextCode;
-    this.config.sourcePatternName = 'Custom Pattern'; // Reset to custom on manual edit
-    this.updateHeaderBadge();
-    this.renderInsightCard(null); // Clear insight card when pattern is manually edited
-    this.updateDesignerUI();
-}
-
-getShiftColor(code) {
-    if (code === 'E') return 'var(--shift-early)';
-    if (code === 'L') return 'var(--shift-late)';
-    if (code === 'N') return 'var(--shift-night)';
-    if (code === 'D') return 'var(--shift-day)';
-    if (code === 'C') return 'var(--accent-purple)';
-    return 'var(--glass-bg)';
-}
-
-getContrastColor(code) {
-    if (['E', 'L', 'N', 'D', 'C'].includes(code)) return '#fff';
-    return 'var(--text-main)';
-}
-
-// --- Pattern Library Integration ---
-
-/**
- * Load available patterns from Pattern Library
- * @returns {Array} Array of pattern options
- */
-loadPatternLibraryOptions() {
-    if (!this.patternEngine || !this.patternEngine.loaded) {
-        console.warn('[RosterWizard] Pattern library not loaded');
-        return [];
+    getShiftColor(code) {
+        if (code === 'E') return 'var(--shift-early)';
+        if (code === 'L') return 'var(--shift-late)';
+        if (code === 'N') return 'var(--shift-night)';
+        if (code === 'D') return 'var(--shift-day)';
+        if (code === 'C') return 'var(--accent-purple)';
+        return 'var(--glass-bg)';
     }
 
-    const patterns = this.patternEngine.getAllPatterns();
-    return patterns.map(p => ({
-        id: p.id,
-        name: p.name,
-        description: p.description,
-        cycleDays: p.cycleDays,
-        rosterPattern: p.rosterPattern
-    }));
-}
+    getContrastColor(code) {
+        if (['E', 'L', 'N', 'D', 'C'].includes(code)) return '#fff';
+        return 'var(--text-main)';
+    }
 
-restoreLastSession() {
-    try {
-        const data = localStorage.getItem('shiftcraft_wizard_last_run');
-        if (data) {
-            const session = JSON.parse(data);
-            this.config = { ...this.config, ...session }; // Merge
-            if (session.timestamp) delete this.config.timestamp; // Cleanup
+    // --- Pattern Library Integration ---
 
-            // Update UI state
-            const cycleInput = document.getElementById('wizard-cycle-input');
-            if (cycleInput) cycleInput.value = this.config.cycleLength;
-
-            const textInput = document.getElementById('wizard-pattern-text');
-            if (textInput) textInput.value = this.config.patternSequence.join(',');
-
-            this.setMode(this.config.mode || 'cyclic');
-            this.updateDesignerUI();
-            this.renderInsightCard({
-                name: session.sourcePatternName || 'Restored Session',
-                description: 'Loaded from previous run',
-                id: 'restored'
-            });
-
-            this.app.showToast('Previous session restored', 'rotate-ccw');
+    /**
+     * Load available patterns from Pattern Library
+     * @returns {Array} Array of pattern options
+     */
+    loadPatternLibraryOptions() {
+        if (!this.patternEngine || !this.patternEngine.loaded) {
+            console.warn('[RosterWizard] Pattern library not loaded');
+            return [];
         }
-    } catch (e) {
-        console.error('Failed to restore session:', e);
-        this.app.showToast('Could not restore session', 'alert-circle');
-    }
-}
 
-/**
- * Apply a pattern from the library to the wizard
- * @param {string} patternId - Pattern ID to apply
- */
-applyLibraryPattern(patternId) {
-    const pattern = this.patternEngine.getPattern(patternId);
-    if (!pattern) {
-        this.app.showToast('Pattern not found', 'alert-circle');
-        return;
+        const patterns = this.patternEngine.getAllPatterns();
+        return patterns.map(p => ({
+            id: p.id,
+            name: p.name,
+            description: p.description,
+            cycleDays: p.cycleDays,
+            rosterPattern: p.rosterPattern
+        }));
     }
 
-    // Validate pattern data structure
-    if (!pattern.rosterPattern || !Array.isArray(pattern.rosterPattern) || pattern.rosterPattern.length === 0) {
-        console.warn('[RosterWizard] Invalid pattern roster data', pattern);
-        this.app.showToast('Pattern data is invalid', 'alert-circle');
-        return;
+    restoreLastSession() {
+        try {
+            const data = localStorage.getItem('shiftcraft_wizard_last_run');
+            if (data) {
+                const session = JSON.parse(data);
+                this.config = { ...this.config, ...session }; // Merge
+                if (session.timestamp) delete this.config.timestamp; // Cleanup
+
+                // Update UI state
+                const cycleInput = document.getElementById('wizard-cycle-input');
+                if (cycleInput) cycleInput.value = this.config.cycleLength;
+
+                const textInput = document.getElementById('wizard-pattern-text');
+                if (textInput) textInput.value = this.config.patternSequence.join(',');
+
+                this.setMode(this.config.mode || 'cyclic');
+                this.updateDesignerUI();
+                this.renderInsightCard({
+                    name: session.sourcePatternName || 'Restored Session',
+                    description: 'Loaded from previous run',
+                    id: 'restored'
+                });
+
+                this.app.showToast('Previous session restored', 'rotate-ccw');
+            }
+        } catch (e) {
+            console.error('Failed to restore session:', e);
+            this.app.showToast('Could not restore session', 'alert-circle');
+        }
     }
 
-    // Convert first team's rotation to wizard format
-    // Map pattern library codes to wizard codes
-    const codeMap = {
-        'M': 'E',   // Morning → Early
-        'A': 'L',   // Afternoon → Late
-        'LD': 'D',  // Long Day → Day
-        'N': 'N',   // Night → Night
-        'X': 'R',   // Map X to R
-        'O': 'R',   // Map O to R
-        'R': 'R',   // Map R to R
-        'D': 'D'    // Day → Day
-    };
+    /**
+     * Apply a pattern from the library to the wizard
+     * @param {string} patternId - Pattern ID to apply
+     */
+    applyLibraryPattern(patternId) {
+        const pattern = this.patternEngine.getPattern(patternId);
+        if (!pattern) {
+            this.app.showToast('Pattern not found', 'alert-circle');
+            return;
+        }
 
-    const sequence = pattern.rosterPattern[0].map(code => codeMap[code] || code);
+        // Validate pattern data structure
+        if (!pattern.rosterPattern || !Array.isArray(pattern.rosterPattern) || pattern.rosterPattern.length === 0) {
+            console.warn('[RosterWizard] Invalid pattern roster data', pattern);
+            this.app.showToast('Pattern data is invalid', 'alert-circle');
+            return;
+        }
 
-    this.config.patternSequence = sequence;
-    this.config.cycleLength = sequence.length;
-    this.config.mode = 'cyclic'; // Library patterns are cyclic
+        // Convert first team's rotation to wizard format
+        // Map pattern library codes to wizard codes
+        const codeMap = {
+            'M': 'E',   // Morning → Early
+            'A': 'L',   // Afternoon → Late
+            'LD': 'D',  // Long Day → Day
+            'N': 'N',   // Night → Night
+            'X': 'R',   // Map X to R
+            'O': 'R',   // Map O to R
+            'R': 'R',   // Map R to R
+            'D': 'D'    // Day → Day
+        };
 
-    this.syncRequirements();
-    this.config.sourcePatternName = pattern.name;
-    this.updateHeaderBadge();
-    this.renderInsightCard(pattern);
-    this.updateDesignerUI();
-    this.app.showToast(`Applied pattern: ${pattern.name}`, 'check-circle');
-}
+        const sequence = pattern.rosterPattern[0].map(code => codeMap[code] || code);
 
-// --- Step 2: Coverage Requirements ---
-renderStep2() {
-    // Calculate counts of shift types in pattern
-    const counts = this.config.patternSequence.reduce((acc, code) => {
-        if (code !== 'R') acc[code] = (acc[code] || 0) + 1;
-        return acc;
-    }, {});
+        this.config.patternSequence = sequence;
+        this.config.cycleLength = sequence.length;
+        this.config.mode = 'cyclic'; // Library patterns are cyclic
 
-    const container = document.getElementById('wizard-resource-inputs');
-    if (!container) return;
-
-    // Render input for each distinct shift type found
-    const types = Object.keys(counts);
-    if (types.length === 0) {
-        container.innerHTML = '<p>No shifts defined in pattern.</p>';
-        return;
+        this.syncRequirements();
+        this.config.sourcePatternName = pattern.name;
+        this.updateHeaderBadge();
+        this.renderInsightCard(pattern);
+        this.updateDesignerUI();
+        this.app.showToast(`Applied pattern: ${pattern.name}`, 'check-circle');
     }
 
-    const shiftNames = {
-        'E': 'Early',
-        'L': 'Late',
-        'N': 'Night',
-        'D': 'Day (12h)',
-        'C': 'Custom'
-    };
+    // --- Step 2: Coverage Requirements ---
+    renderStep2() {
+        // Calculate counts of shift types in pattern
+        const counts = this.config.patternSequence.reduce((acc, code) => {
+            if (code !== 'R') acc[code] = (acc[code] || 0) + 1;
+            return acc;
+        }, {});
 
-    container.innerHTML = `
+        const container = document.getElementById('wizard-resource-inputs');
+        if (!container) return;
+
+        // Render input for each distinct shift type found
+        const types = Object.keys(counts);
+        if (types.length === 0) {
+            container.innerHTML = '<p>No shifts defined in pattern.</p>';
+            return;
+        }
+
+        const shiftNames = {
+            'E': 'Early',
+            'L': 'Late',
+            'N': 'Night',
+            'D': 'Day (12h)',
+            'C': 'Custom'
+        };
+
+        container.innerHTML = `
         <p class="wizard-help-text">
             Define how many staff members should work each shift type for proper coverage.
         </p>
@@ -678,50 +676,50 @@ renderStep2() {
         </div>
     `;
 
-    this.updateHeadcountAdvice();
-}
-
-updateRequirement(type, val) {
-    this.config.requirements[type] = parseInt(val);
-    this.updateHeadcountAdvice();
-}
-
-updateHeadcountAdvice() {
-    const adviceEl = document.getElementById('headcount-advice-text');
-    if (!adviceEl) return;
-
-    const needed = this.calculateRequiredStaff();
-    const selected = this.config.selectedStaff.length;
-
-    if (needed === 0) {
-        adviceEl.textContent = "Please define your pattern in Step 1 first.";
-        return;
+        this.updateHeadcountAdvice();
     }
 
-    let status = '';
-    if (selected > needed) {
-        status = `<span style="color:var(--accent-amber); font-weight:700;">Surplus Identified:</span> You have ${selected} staff selected, but only <strong>${needed}</strong> are required for this pattern. ${selected - needed} staff will remain unassigned (surplus).`;
-    } else if (selected < needed) {
-        status = `<span style="color:var(--accent-rose); font-weight:700;">Understaffed:</span> You need <strong>${needed}</strong> staff to maintain this roster, but only have ${selected} selected. Gaps will occur.`;
-    } else {
-        status = `<span style="color:var(--accent-emerald); font-weight:700;">Balanced:</span> Your selected staff (${selected}) matches the exactly required headcount for this roster.`;
+    updateRequirement(type, val) {
+        this.config.requirements[type] = parseInt(val);
+        this.updateHeadcountAdvice();
     }
 
-    adviceEl.innerHTML = status;
-}
+    updateHeadcountAdvice() {
+        const adviceEl = document.getElementById('headcount-advice-text');
+        if (!adviceEl) return;
 
-// --- Step 3: Staffing ---
-renderStep3() {
-    const container = document.getElementById('wizard-staff-list');
-    if (!container) return;
+        const needed = this.calculateRequiredStaff();
+        const selected = this.config.selectedStaff.length;
 
-    // Simple check: Do we have staff?
-    if (this.app.staff.length === 0) {
-        container.innerHTML = '<p class="text-error">No staff found. Please add staff in the Staff Directory first.</p>';
-        return;
+        if (needed === 0) {
+            adviceEl.textContent = "Please define your pattern in Step 1 first.";
+            return;
+        }
+
+        let status = '';
+        if (selected > needed) {
+            status = `<span style="color:var(--accent-amber); font-weight:700;">Surplus Identified:</span> You have ${selected} staff selected, but only <strong>${needed}</strong> are required for this pattern. ${selected - needed} staff will remain unassigned (surplus).`;
+        } else if (selected < needed) {
+            status = `<span style="color:var(--accent-rose); font-weight:700;">Understaffed:</span> You need <strong>${needed}</strong> staff to maintain this roster, but only have ${selected} selected. Gaps will occur.`;
+        } else {
+            status = `<span style="color:var(--accent-emerald); font-weight:700;">Balanced:</span> Your selected staff (${selected}) matches the exactly required headcount for this roster.`;
+        }
+
+        adviceEl.innerHTML = status;
     }
 
-    container.innerHTML = `
+    // --- Step 3: Staffing ---
+    renderStep3() {
+        const container = document.getElementById('wizard-staff-list');
+        if (!container) return;
+
+        // Simple check: Do we have staff?
+        if (this.app.staff.length === 0) {
+            container.innerHTML = '<p class="text-error">No staff found. Please add staff in the Staff Directory first.</p>';
+            return;
+        }
+
+        container.innerHTML = `
             <div style="display:flex; justify-content:space-between; margin-bottom:1.25rem; align-items:center; background: var(--glass-light); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--glass-border);">
                 <label style="cursor:pointer; display:flex; align-items:center; gap:0.5rem; font-weight: 600;">
                     <input type="checkbox" id="wizard-select-all" onchange="window.wizard.toggleAllStaff(this.checked)" ${this.config.selectedStaff.length === this.app.staff.length ? 'checked' : ''}> Select All
@@ -753,56 +751,56 @@ renderStep3() {
                 `).join('')}
             </div>
         `;
-}
-
-toggleStaff(id, checked) {
-    if (checked) {
-        if (!this.config.selectedStaff.includes(id)) this.config.selectedStaff.push(id);
-    } else {
-        this.config.selectedStaff = this.config.selectedStaff.filter(sid => sid !== id);
     }
 
-    // Update UI state without full re-render for performance
-    const countEl = document.getElementById('wizard-selection-count');
-    if (countEl) countEl.textContent = `${this.config.selectedStaff.length} selected`;
+    toggleStaff(id, checked) {
+        if (checked) {
+            if (!this.config.selectedStaff.includes(id)) this.config.selectedStaff.push(id);
+        } else {
+            this.config.selectedStaff = this.config.selectedStaff.filter(sid => sid !== id);
+        }
 
-    const card = document.querySelector(`.staff-card-select[data-staff-id="${id}"]`);
-    if (card) {
-        card.style.border = checked ? '1px solid var(--primary)' : '1px solid var(--glass-border)';
-        card.style.background = checked ? 'rgba(99, 102, 241, 0.1)' : 'var(--glass-bg)';
-        const checkbox = card.querySelector('input[type="checkbox"]');
-        if (checkbox) checkbox.checked = checked;
+        // Update UI state without full re-render for performance
+        const countEl = document.getElementById('wizard-selection-count');
+        if (countEl) countEl.textContent = `${this.config.selectedStaff.length} selected`;
+
+        const card = document.querySelector(`.staff-card-select[data-staff-id="${id}"]`);
+        if (card) {
+            card.style.border = checked ? '1px solid var(--primary)' : '1px solid var(--glass-border)';
+            card.style.background = checked ? 'rgba(99, 102, 241, 0.1)' : 'var(--glass-bg)';
+            const checkbox = card.querySelector('input[type="checkbox"]');
+            if (checkbox) checkbox.checked = checked;
+        }
     }
-}
 
-toggleAllStaff(checked) {
-    if (checked) {
-        this.config.selectedStaff = this.app.staff.map(p => p.id);
-    } else {
-        this.config.selectedStaff = [];
+    toggleAllStaff(checked) {
+        if (checked) {
+            this.config.selectedStaff = this.app.staff.map(p => p.id);
+        } else {
+            this.config.selectedStaff = [];
+        }
+        // Re-render Step 3 to update all visual card states
+        this.renderStep3();
     }
-    // Re-render Step 3 to update all visual card states
-    this.renderStep3();
-}
 
-// --- Step 4: Confirm ---
-renderStep4() {
-    const container = document.getElementById('wizard-summary');
-    if (!container) return;
+    // --- Step 4: Confirm ---
+    renderStep4() {
+        const container = document.getElementById('wizard-summary');
+        if (!container) return;
 
-    const staffNeeded = this.calculateRequiredStaff();
-    const staffSelected = this.config.selectedStaff.length;
-    const isFeasible = staffSelected >= staffNeeded;
+        const staffNeeded = this.calculateRequiredStaff();
+        const staffSelected = this.config.selectedStaff.length;
+        const isFeasible = staffSelected >= staffNeeded;
 
-    // Default start date to next Monday if not set
-    if (!this.config.startDate) {
-        const d = new Date();
-        d.setDate(d.getDate() + ((1 + 7 - d.getDay()) % 7));
-        this.config.startDate = d.toISOString().split('T')[0];
-    }
-    const defaultDate = this.config.startDate;
+        // Default start date to next Monday if not set
+        if (!this.config.startDate) {
+            const d = new Date();
+            d.setDate(d.getDate() + ((1 + 7 - d.getDay()) % 7));
+            this.config.startDate = d.toISOString().split('T')[0];
+        }
+        const defaultDate = this.config.startDate;
 
-    container.innerHTML = `
+        container.innerHTML = `
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                 <div>
                     <h4 style="margin-bottom:1rem; color:var(--accent-blue)">Configuration</h4>
@@ -856,8 +854,8 @@ renderStep4() {
                         </div>
                         <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-main);">
                             ${isFeasible
-            ? `<strong>Optimal Coverage:</strong> You have selected ${staffSelected} members. Minimum required is ${staffNeeded}. The wizard will only use the staff needed to maintain coverage; <strong>${Math.max(0, staffSelected - staffNeeded)} surplus staff will remain unassigned.</strong>`
-            : `<span style="color:var(--accent-rose); font-weight:700;">Understaffed:</span> This pattern requires <strong>${staffNeeded}</strong> staff members for full coverage. You only have ${staffSelected} selected. Gaps will occur.`}
+                ? `<strong>Optimal Coverage:</strong> You have selected ${staffSelected} members. Minimum required is ${staffNeeded}. The wizard will only use the staff needed to maintain coverage; <strong>${Math.max(0, staffSelected - staffNeeded)} surplus staff will remain unassigned.</strong>`
+                : `<span style="color:var(--accent-rose); font-weight:700;">Understaffed:</span> This pattern requires <strong>${staffNeeded}</strong> staff members for full coverage. You only have ${staffSelected} selected. Gaps will occur.`}
                         </p>
                     </div>
 
@@ -879,193 +877,193 @@ renderStep4() {
             </div>
         `;
 
-    if (window.lucide) window.lucide.createIcons();
+        if (window.lucide) window.lucide.createIcons();
 
-    // Toggle name input
-    setTimeout(() => {
-        const saveCheck = document.getElementById('wizard-save-pattern');
-        if (saveCheck) {
-            saveCheck.onchange = (e) => {
-                document.getElementById('wizard-pattern-name').style.display = e.target.checked ? 'block' : 'none';
-            };
-        }
-    }, 100);
-}
-
-calculateRequiredStaff() {
-    if (window.RosterLogic) {
-        return RosterLogic.calculateRequiredStaff(this.config);
-    }
-    return 0;
-}
-
-estimateShifts() {
-    const weeks = parseInt(document.getElementById('wizard-weeks')?.value) || 4;
-    if (window.RosterLogic) {
-        return RosterLogic.estimateShifts(this.config, weeks);
-    }
-    return 0;
-}
-showAnalytics() {
-    const staffNeeded = this.calculateRequiredStaff();
-    const staffSelected = this.config.selectedStaff.length;
-    const estimatedShifts = this.estimateShifts();
-
-    const analysisData = {
-        timestamp: new Date().toISOString(),
-        rosterName: this.config.rosterName || 'Unnamed Roster',
-        pattern: {
-            name: this.config.sourcePatternName || 'Custom',
-            sequence: this.config.patternSequence,
-            cycleLength: this.config.patternSequence.length,
-            shiftCounts: this.config.patternSequence.reduce((acc, c) => { if (c !== 'R') acc[c] = (acc[c] || 0) + 1; return acc; }, {})
-        },
-        requirements: this.config.requirements,
-        staffing: {
-            selected: staffSelected,
-            required: staffNeeded,
-            isFeasible: staffSelected >= staffNeeded,
-            surplus: Math.max(0, staffSelected - staffNeeded),
-            deficit: Math.max(0, staffNeeded - staffSelected)
-        },
-        projection: {
-            weeks: parseInt(document.getElementById('wizard-weeks')?.value || 4),
-            estimatedTotalShifts: estimatedShifts
-        }
-    };
-
-    const json = JSON.stringify(analysisData, null, 2);
-
-    // Copy to clipboard
-    navigator.clipboard.writeText(json).then(() => {
-        this.app.showToast('Analytics JSON copied to clipboard!', 'check-circle');
-    }).catch(err => {
-        console.error('Clipboard failed', err);
-        // Fallback: Prompt
-        prompt("Copy this JSON:", json);
-    });
-}
-
-finish() {
-    try {
-        console.log('[RosterWizard] finish() called');
-
-        // Sync final values from UI
-        this.config.startDate = document.getElementById('wizard-start-date')?.value;
-        this.config.weeks = parseInt(document.getElementById('wizard-weeks')?.value) || 4;
-        this.config.clearExisting = document.getElementById('wizard-clear-existing')?.checked;
-        this.config.rosterName = document.getElementById('wizard-roster-name')?.value || 'New Roster';
-        this.config.saveToLibrary = document.getElementById('wizard-save-pattern')?.checked;
-        this.config.patternName = document.getElementById('wizard-pattern-name')?.value;
-
-        const startDateStr = this.config.startDate;
-
-        // Robust Date Validation
-        if (!startDateStr) {
-            this.app.showToast('Please select a start date', 'alert-circle');
-            return;
-        }
-        const startDate = new Date(startDateStr);
-        if (isNaN(startDate.getTime())) {
-            this.app.showToast('Invalid start date format', 'alert-circle');
-            return;
-        }
-
-        if (!Array.isArray(this.config.selectedStaff) || this.config.selectedStaff.length === 0) {
-            this.app.showToast('No staff selected', 'alert-circle');
-            return;
-        }
-
-        console.log(`[RosterWizard] Generating ${this.config.weeks} weeks from ${startDateStr} for ${this.config.selectedStaff.length} staff`);
-
-        // Save session for restoration
-        localStorage.setItem('shiftcraft_wizard_last_run', JSON.stringify({
-            ...this.config,
-            timestamp: new Date().toISOString()
-        }));
-
-        // Update App's roster name
-        if (this.app.setRosterName) {
-            this.app.setRosterName(this.config.rosterName);
-        }
-
-        const totalDays = this.config.weeks * 7;
-        const endDate = new Date(startDate);
-        endDate.setDate(endDate.getDate() + totalDays);
-
-        // 1. Clear existing shifts
-        if (this.config.clearExisting) {
-            const endStr = endDate.toISOString().split('T')[0];
-            const selectedStaffIds = this.config.selectedStaff;
-            this.app.shifts = this.app.shifts.filter(s => {
-                if (s.date < startDateStr || s.date >= endStr) return true;
-                if (!selectedStaffIds.includes(s.staffId)) return true;
-                return false;
-            });
-        }
-
-        // 2. Generation (Delegated to RosterLogic)
-        let shiftsGenerated = 0;
-        if (window.RosterLogic) {
-            const newShifts = RosterLogic.generateShifts(this.config, this.app.settings);
-            this.app.shifts.push(...newShifts);
-            shiftsGenerated = newShifts.length;
-        } else {
-            console.error("RosterLogic module missing");
-        }
-
-        // 3. Navigation (Robust)
-        const genStart = new Date(startDate);
-        if (!isNaN(genStart.getTime())) {
-            const day = genStart.getDay();
-            const diff = genStart.getDate() - day + (day === 0 ? -6 : 1);
-            const newWeekStart = new Date(genStart.setDate(diff));
-
-            if (!isNaN(newWeekStart.getTime())) {
-                this.app.weekStart = newWeekStart;
-                this.app.currentMonth = new Date(startDate);
+        // Toggle name input
+        setTimeout(() => {
+            const saveCheck = document.getElementById('wizard-save-pattern');
+            if (saveCheck) {
+                saveCheck.onchange = (e) => {
+                    document.getElementById('wizard-pattern-name').style.display = e.target.checked ? 'block' : 'none';
+                };
             }
-        }
-
-        this.app.saveToStorage();
-        if (this.app.renderTableBody) this.app.renderTableBody();
-        if (this.app.renderTableHead) this.app.renderTableHead();
-        if (this.app.updateStats) this.app.updateStats();
-
-        // Save Pattern
-        if (this.config.saveToLibrary && this.config.patternName) {
-            this.savePatternToLibrary();
-        }
-
-        if (shiftsGenerated === 0) {
-            this.app.showToast('No shifts generated. Check staff/pattern settings.', 'alert-triangle');
-        } else {
-            this.app.showToast(`Success! Generated ${shiftsGenerated} shifts.`, 'check-circle');
-        }
-
-        this.close();
-
-    } catch (error) {
-        console.error('[RosterWizard] Error in finish():', error);
-        this.app.showToast('Wizard Error: ' + error.message, 'alert-circle');
+        }, 100);
     }
-}
 
-savePatternToLibrary() {
-    const myPatterns = JSON.parse(localStorage.getItem('shiftcraft_my_patterns')) || [];
-    const newPattern = {
-        id: 'p-' + Date.now(),
-        name: this.config.patternName,
-        description: 'Custom pattern generated via wizard',
-        cycleDays: this.config.cycleLength,
-        rosterPattern: [this.config.patternSequence], // Save as a single-team rotation for simplicity
-        requirements: this.config.requirements,
-        created: new Date().toISOString()
-    };
-    myPatterns.push(newPattern);
-    localStorage.setItem('shiftcraft_my_patterns', JSON.stringify(myPatterns));
-    console.log('[RosterWizard] Saved pattern to My Patterns:', this.config.patternName);
-}
+    calculateRequiredStaff() {
+        if (window.RosterLogic) {
+            return RosterLogic.calculateRequiredStaff(this.config);
+        }
+        return 0;
+    }
+
+    estimateShifts() {
+        const weeks = parseInt(document.getElementById('wizard-weeks')?.value) || 4;
+        if (window.RosterLogic) {
+            return RosterLogic.estimateShifts(this.config, weeks);
+        }
+        return 0;
+    }
+    showAnalytics() {
+        const staffNeeded = this.calculateRequiredStaff();
+        const staffSelected = this.config.selectedStaff.length;
+        const estimatedShifts = this.estimateShifts();
+
+        const analysisData = {
+            timestamp: new Date().toISOString(),
+            rosterName: this.config.rosterName || 'Unnamed Roster',
+            pattern: {
+                name: this.config.sourcePatternName || 'Custom',
+                sequence: this.config.patternSequence,
+                cycleLength: this.config.patternSequence.length,
+                shiftCounts: this.config.patternSequence.reduce((acc, c) => { if (c !== 'R') acc[c] = (acc[c] || 0) + 1; return acc; }, {})
+            },
+            requirements: this.config.requirements,
+            staffing: {
+                selected: staffSelected,
+                required: staffNeeded,
+                isFeasible: staffSelected >= staffNeeded,
+                surplus: Math.max(0, staffSelected - staffNeeded),
+                deficit: Math.max(0, staffNeeded - staffSelected)
+            },
+            projection: {
+                weeks: parseInt(document.getElementById('wizard-weeks')?.value || 4),
+                estimatedTotalShifts: estimatedShifts
+            }
+        };
+
+        const json = JSON.stringify(analysisData, null, 2);
+
+        // Copy to clipboard
+        navigator.clipboard.writeText(json).then(() => {
+            this.app.showToast('Analytics JSON copied to clipboard!', 'check-circle');
+        }).catch(err => {
+            console.error('Clipboard failed', err);
+            // Fallback: Prompt
+            prompt("Copy this JSON:", json);
+        });
+    }
+
+    finish() {
+        try {
+            console.log('[RosterWizard] finish() called');
+
+            // Sync final values from UI
+            this.config.startDate = document.getElementById('wizard-start-date')?.value;
+            this.config.weeks = parseInt(document.getElementById('wizard-weeks')?.value) || 4;
+            this.config.clearExisting = document.getElementById('wizard-clear-existing')?.checked;
+            this.config.rosterName = document.getElementById('wizard-roster-name')?.value || 'New Roster';
+            this.config.saveToLibrary = document.getElementById('wizard-save-pattern')?.checked;
+            this.config.patternName = document.getElementById('wizard-pattern-name')?.value;
+
+            const startDateStr = this.config.startDate;
+
+            // Robust Date Validation
+            if (!startDateStr) {
+                this.app.showToast('Please select a start date', 'alert-circle');
+                return;
+            }
+            const startDate = new Date(startDateStr);
+            if (isNaN(startDate.getTime())) {
+                this.app.showToast('Invalid start date format', 'alert-circle');
+                return;
+            }
+
+            if (!Array.isArray(this.config.selectedStaff) || this.config.selectedStaff.length === 0) {
+                this.app.showToast('No staff selected', 'alert-circle');
+                return;
+            }
+
+            console.log(`[RosterWizard] Generating ${this.config.weeks} weeks from ${startDateStr} for ${this.config.selectedStaff.length} staff`);
+
+            // Save session for restoration
+            localStorage.setItem('shiftcraft_wizard_last_run', JSON.stringify({
+                ...this.config,
+                timestamp: new Date().toISOString()
+            }));
+
+            // Update App's roster name
+            if (this.app.setRosterName) {
+                this.app.setRosterName(this.config.rosterName);
+            }
+
+            const totalDays = this.config.weeks * 7;
+            const endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + totalDays);
+
+            // 1. Clear existing shifts
+            if (this.config.clearExisting) {
+                const endStr = endDate.toISOString().split('T')[0];
+                const selectedStaffIds = this.config.selectedStaff;
+                this.app.shifts = this.app.shifts.filter(s => {
+                    if (s.date < startDateStr || s.date >= endStr) return true;
+                    if (!selectedStaffIds.includes(s.staffId)) return true;
+                    return false;
+                });
+            }
+
+            // 2. Generation (Delegated to RosterLogic)
+            let shiftsGenerated = 0;
+            if (window.RosterLogic) {
+                const newShifts = RosterLogic.generateShifts(this.config, this.app.settings);
+                this.app.shifts.push(...newShifts);
+                shiftsGenerated = newShifts.length;
+            } else {
+                console.error("RosterLogic module missing");
+            }
+
+            // 3. Navigation (Robust)
+            const genStart = new Date(startDate);
+            if (!isNaN(genStart.getTime())) {
+                const day = genStart.getDay();
+                const diff = genStart.getDate() - day + (day === 0 ? -6 : 1);
+                const newWeekStart = new Date(genStart.setDate(diff));
+
+                if (!isNaN(newWeekStart.getTime())) {
+                    this.app.weekStart = newWeekStart;
+                    this.app.currentMonth = new Date(startDate);
+                }
+            }
+
+            this.app.saveToStorage();
+            if (this.app.renderTableBody) this.app.renderTableBody();
+            if (this.app.renderTableHead) this.app.renderTableHead();
+            if (this.app.updateStats) this.app.updateStats();
+
+            // Save Pattern
+            if (this.config.saveToLibrary && this.config.patternName) {
+                this.savePatternToLibrary();
+            }
+
+            if (shiftsGenerated === 0) {
+                this.app.showToast('No shifts generated. Check staff/pattern settings.', 'alert-triangle');
+            } else {
+                this.app.showToast(`Success! Generated ${shiftsGenerated} shifts.`, 'check-circle');
+            }
+
+            this.close();
+
+        } catch (error) {
+            console.error('[RosterWizard] Error in finish():', error);
+            this.app.showToast('Wizard Error: ' + error.message, 'alert-circle');
+        }
+    }
+
+    savePatternToLibrary() {
+        const myPatterns = JSON.parse(localStorage.getItem('shiftcraft_my_patterns')) || [];
+        const newPattern = {
+            id: 'p-' + Date.now(),
+            name: this.config.patternName,
+            description: 'Custom pattern generated via wizard',
+            cycleDays: this.config.cycleLength,
+            rosterPattern: [this.config.patternSequence], // Save as a single-team rotation for simplicity
+            requirements: this.config.requirements,
+            created: new Date().toISOString()
+        };
+        myPatterns.push(newPattern);
+        localStorage.setItem('shiftcraft_my_patterns', JSON.stringify(myPatterns));
+        console.log('[RosterWizard] Saved pattern to My Patterns:', this.config.patternName);
+    }
 
 
 }
