@@ -59,6 +59,11 @@ class RosterWizard {
         const modal = document.getElementById('roster-wizard-modal');
         if (modal) {
             modal.classList.add('active');
+
+            // Re-bind close button to ensure it works
+            const closeBtn = modal.querySelector('.modal-header button');
+            if (closeBtn) closeBtn.onclick = () => this.close();
+
             this.updateHeaderBadge();
             this.showStep(1);
         } else {
@@ -140,6 +145,12 @@ class RosterWizard {
         if (step === 2) this.renderStep2();
         if (step === 3) this.renderStep3();
         if (step === 4) this.renderStep4();
+    }
+
+    prev() {
+        if (this.currentStep > 1) {
+            this.showStep(this.currentStep - 1);
+        }
     }
 
     next() {
