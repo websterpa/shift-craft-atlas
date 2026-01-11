@@ -191,20 +191,20 @@ class RosterWizard {
             const existingSelector = step1Panel.querySelector('#pattern-library-selector');
             if (!existingSelector) {
                 const selectorHTML = `
-                    <div class="form-group" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--glass-bg); border-radius: 8px; border: 1px solid var(--glass-border);">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Choose a Pattern Template</label>
-                        <select class="form-control" id="pattern-library-selector" style="margin-bottom: 0.5rem;">
-                            <option value="">Custom Pattern (Design Your Own)</option>
-                            ${this.loadPatternLibraryOptions().map(p =>
+                <div class="wizard-box">
+                    <label class="wizard-label">Choose a Pattern Template</label>
+                    <select class="form-control" id="pattern-library-selector" style="margin-bottom: 0.5rem;">
+                        <option value="">Custom Pattern (Design Your Own)</option>
+                        ${this.loadPatternLibraryOptions().map(p =>
                     `<option value="${p.id}">${p.name} - ${p.description}</option>`
                 ).join('')}
-                        </select>
-                        <small style="color: var(--text-muted); display: block;">
-                            Select a pre-designed industry pattern or create your own below
-                        </small>
-                        <div id="wizard-pattern-insight"></div>
-                    </div>
-                `;
+                    </select>
+                    <small class="wizard-help-text">
+                        Select a pre-designed industry pattern or create your own below
+                    </small>
+                    <div id="wizard-pattern-insight"></div>
+                </div>
+            `;
 
                 const firstH3 = step1Panel.querySelector('h3');
                 if (firstH3) {
@@ -604,30 +604,32 @@ class RosterWizard {
         };
 
         container.innerHTML = `
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
-                Define how many staff members should work each shift type for proper coverage.
-            </p>
-        ` + types.map(type => `
-            <div class="resource-row" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--glass-bg); border-radius: 8px; border: 1px solid var(--glass-border);">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+        <p class="wizard-help-text">
+            Define how many staff members should work each shift type for proper coverage.
+        </p>
+    ` + types.map(type => `
+        <div class="wizard-box">
+            <label class="wizard-label">
                 ${shiftNames[type] || type} Shift Coverage
             </label>
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div class="wizard-input-group">
                 <input type="number" min="0" max="20" value="${this.config.requirements[type] !== undefined ? this.config.requirements[type] : 1}" 
                     onchange="window.wizard.updateRequirement('${type}', this.value)"
                     class="form-control" style="width: 80px;">
-                <span style="color: var(--text-muted); font-size: 0.9rem;">staff members per ${shiftNames[type] || type} shift</span>
+                <span class="wizard-help-text" style="margin-bottom:0;">
+                    staff members per ${shiftNames[type] || type} shift
+                </span>
             </div>
-                ${type === 'C' ? '<small style="display:block;color:var(--text-muted);margin-top:0.5rem;">Applies to all custom time shifts</small>' : ''}
-            </div>
-        `).join('') + `
-            <div id="headcount-advice" style="margin-top: 2rem; padding: 1rem; background: var(--accent-blue-transparent); border-left: 4px solid var(--accent-blue); border-radius: 4px;">
-                <h4 style="margin: 0 0 0.5rem 0; color: var(--accent-blue);">Headcount Assessment</h4>
-                <p id="headcount-advice-text" style="margin: 0; font-size: 0.9rem;">
-                   Calculating requirements...
-                </p>
-            </div>
-        `;
+            ${type === 'C' ? '<small class="wizard-help-text" style="margin-top:0.5rem;">Applies to all custom time shifts</small>' : ''}
+        </div>
+    `).join('') + `
+        <div id="headcount-advice" class="wizard-advice-box">
+            <h4 class="wizard-advice-h4">Headcount Assessment</h4>
+            <p id="headcount-advice-text" style="margin: 0; font-size: 0.9rem;">
+               Calculating requirements...
+            </p>
+        </div>
+    `;
 
         this.updateHeadcountAdvice();
     }

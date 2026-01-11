@@ -304,3 +304,44 @@
         transform: translateY(0);
     }
 }
+
+/* Roster Wizard Standardized Styles */
+.wizard-box {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--glass-bg);
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+}
+
+.wizard-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.wizard-help-text {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    display: block;
+}
+
+.wizard-input-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.wizard-advice-box {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: rgba(99, 102, 241, 0.1);
+    /* accent-blue-transparent */
+    border-left: 4px solid var(--accent-blue);
+    border-radius: 4px;
+}
+
+.wizard-advice-h4 {
+    margin: 0 0 0.5rem 0;
+    color: var(--accent-blue);
+}
