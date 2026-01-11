@@ -445,7 +445,7 @@ class RosterWizard {
     syncRequirements() {
         // Ensure every active code in the sequence has a requirement entry
         this.config.patternSequence.forEach(code => {
-            if (code !== 'R' && !this.config.requirements[code]) {
+            if (code !== 'R' && this.config.requirements[code] === undefined) {
                 this.config.requirements[code] = 1;
             }
         });
@@ -610,14 +610,14 @@ class RosterWizard {
         ` + types.map(type => `
             <div class="resource-row" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--glass-bg); border-radius: 8px; border: 1px solid var(--glass-border);">
                 <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
-                    ${shiftNames[type] || type} Shift Coverage
-                </label>
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <input type="number" min="1" max="20" value="${this.config.requirements[type] || 1}" 
-                        onchange="window.wizard.updateRequirement('${type}', this.value)"
-                        class="form-control" style="width: 80px;">
-                    <span style="color: var(--text-muted); font-size: 0.9rem;">staff members per ${shiftNames[type] || type} shift</span>
-                </div>
+                ${shiftNames[type] || type} Shift Coverage
+            </label>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <input type="number" min="0" max="20" value="${this.config.requirements[type] !== undefined ? this.config.requirements[type] : 1}" 
+                    onchange="window.wizard.updateRequirement('${type}', this.value)"
+                    class="form-control" style="width: 80px;">
+                <span style="color: var(--text-muted); font-size: 0.9rem;">staff members per ${shiftNames[type] || type} shift</span>
+            </div>
                 ${type === 'C' ? '<small style="display:block;color:var(--text-muted);margin-top:0.5rem;">Applies to all custom time shifts</small>' : ''}
             </div>
         `).join('') + `
@@ -839,7 +839,7 @@ class RosterWizard {
     }
 
     calculateRequiredStaff() {
-        const cycleLen = this.config.cycleLength;
+        const cycleLen = this.config.patternSequence.length; // Source of Truth
         const pattern = this.config.patternSequence;
         const requirements = this.config.requirements;
 
@@ -856,11 +856,8 @@ class RosterWizard {
         if (types.length === 0) return 0;
 
         // Calculate needed for each requirement
-        // Formula: StaffNeeded = DailyRequirement / (ShiftsPerCycle / CycleLength)
-        // Which is: StaffNeeded = (DailyRequirement * CycleLength) / ShiftsPerCycle
-
         types.forEach(code => {
-            const reqPerDay = requirements[code] || 1; // Default to 1 if not set in Step 2
+            const reqPerDay = requirements[code] !== undefined ? parseInt(requirements[code], 10) : 1;
             const shiftsInCycle = countsInPattern[code];
 
             const needed = Math.ceil((reqPerDay * cycleLen) / shiftsInCycle);
@@ -875,26 +872,17 @@ class RosterWizard {
         const totalDays = weeks * 7;
         const requirements = this.config.requirements;
 
-        // Sum up total daily requirements
-        let totalReqPerDay = 0;
-        Object.keys(requirements).forEach(code => {
-            totalReqPerDay += (requirements[code] || 1);
+        // Truth Protocol: Generate EXACTLY enough to fill requirements.
+        let total = 0;
+        Object.keys(requirements).forEach(k => {
+            total += (requirements[k] !== undefined ? parseInt(requirements[k], 10) : 0);
         });
 
-        if (totalReqPerDay === 0) {
-            // Fallback if requirements not set: shifts in pattern * selected staff
-            const shiftsInPattern = this.config.patternSequence.filter(x => x !== 'R').length;
-            return Math.floor((totalDays / this.config.cycleLength) * shiftsInPattern * this.config.selectedStaff.length);
+        // Only fallback if NO requirements are defined at all (Step 1 state)
+        if (Object.keys(requirements).length === 0) {
+            return 0;
         }
 
-        // Truth Protocol: If we have requirements, we generate EXACTLY enough to fill them.
-        let total = 0;
-        Object.keys(requirements).forEach(k => total += requirements[k]);
-        if (total === 0) {
-            // Ultimate fallback: 1 person per shift type in pattern
-            const distinctTypes = new Set(this.config.patternSequence.filter(x => x !== 'R'));
-            total = distinctTypes.size;
-        }
         return totalDays * total;
     }
 
@@ -993,7 +981,7 @@ class RosterWizard {
                 Object.keys(dayRequirements).forEach(code => {
                     const required = dayRequirements[code];
                     while (assignedToday[code] < required && unassignedStaff.length > 0) {
-                        const candidate = unassignedStaff.pop();
+                        const candidate = unassignedStaff.shift(); // FIFO for fairness
                         this._createWizardShift(candidate.staffId, dateStr, code, candidate.patternIdx);
                         assignedToday[code]++;
                         shiftsGenerated++;
