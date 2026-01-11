@@ -1,6 +1,7 @@
 // Data storage
 let employees = [];
 let shifts = [];
+let idCounter = Date.now();
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,15 +20,24 @@ function setDefaultDate() {
 
 // Load data from localStorage
 function loadData() {
-    const savedEmployees = localStorage.getItem('employees');
-    const savedShifts = localStorage.getItem('shifts');
-    
-    if (savedEmployees) {
-        employees = JSON.parse(savedEmployees);
-    }
-    
-    if (savedShifts) {
-        shifts = JSON.parse(savedShifts);
+    try {
+        const savedEmployees = localStorage.getItem('employees');
+        const savedShifts = localStorage.getItem('shifts');
+        
+        if (savedEmployees) {
+            employees = JSON.parse(savedEmployees);
+        }
+        
+        if (savedShifts) {
+            shifts = JSON.parse(savedShifts);
+        }
+    } catch (error) {
+        console.error('Error loading data from localStorage:', error);
+        // Reset to empty arrays if data is corrupted
+        employees = [];
+        shifts = [];
+        localStorage.removeItem('employees');
+        localStorage.removeItem('shifts');
     }
 }
 
@@ -51,7 +61,7 @@ function addEmployee() {
     }
     
     const employee = {
-        id: Date.now(),
+        id: ++idCounter,
         name: name,
         role: role || 'Staff'
     };
@@ -141,7 +151,7 @@ function addShift() {
     const employee = employees.find(emp => emp.id === parseInt(employeeId));
     
     const shift = {
-        id: Date.now(),
+        id: ++idCounter,
         employeeId: parseInt(employeeId),
         employeeName: employee.name,
         date: date,
@@ -218,7 +228,13 @@ function clearFilter() {
 // Utility functions
 function calculateDuration(startTime, endTime) {
     const start = new Date(`2000-01-01T${startTime}`);
-    const end = new Date(`2000-01-01T${endTime}`);
+    let end = new Date(`2000-01-01T${endTime}`);
+    
+    // Handle shifts that cross midnight
+    if (end <= start) {
+        end = new Date(`2000-01-02T${endTime}`);
+    }
+    
     const diff = (end - start) / (1000 * 60 * 60);
     return `${diff}h`;
 }
