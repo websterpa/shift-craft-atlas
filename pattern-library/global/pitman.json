@@ -1,7 +1,7 @@
 {
     "patternId": "pitman-2-2-3",
     "name": "Pitman Schedule (2-2-3)",
-    "description": "2 days ON \u2192 2 days OFF \u2192 3 days ON \u2192 2 days OFF \u2192 2 days ON \u2192 3 days OFF. 14-day rotation providing every other weekend off.",
+    "description": "Hybrid 2-2-3 rotation with Days and Nights. 2 Days ON, 2 OFF, 3 Days ON, 3 OFF, 2 Nights ON, 2 OFF. Variant of classic Pitman providing coverage with mixed shifts.",
     "industry": [
         "police",
         "corrections",
