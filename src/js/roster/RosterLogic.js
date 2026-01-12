@@ -70,11 +70,17 @@ class RosterLogic {
         const cycleLen = config.patternSequence.length;
         const selectedStaffIds = config.selectedStaff;
 
-        // Traceability for blocked assignments
+        // Traceability & Fairness Counters
         RosterLogic.shortfalls = [];
+        const forcedAssignmentsCount = {};
+        const nightAssignmentsCount = {};
+
+        selectedStaffIds.forEach(id => {
+            forcedAssignmentsCount[id] = 0;
+            nightAssignmentsCount[id] = 0;
+        });
 
         // Map to track the END time of the last shift for each staff member
-        // This ensures we respect rest periods across the generation boundary
         const lastAssignmentMap = {};
 
         // Initialize from existing shifts
@@ -115,64 +121,74 @@ class RosterLogic {
                 if (code !== 'R') {
                     const required = dayRequirements[code] || 0;
 
-                    // Proposed Shift
                     const tempShift = RosterLogic.createShift(staffId, dateStr, code, patternIdx, config, settings);
                     const safe = RosterLogic.checkRestSafety(staffId, tempShift, lastAssignmentMap);
 
                     if (!safe.allowed) {
-                        // Blocked by allocator constraint
-                        RosterLogic.shortfalls.push({
-                            date: dateStr,
-                            staffId: staffId,
-                            targetShift: code,
-                            reason: safe.reason
-                        });
-                        // Add to unassigned to see if they can fill a different safe slot (unlikely if rest is issue, but good practice)
+                        RosterLogic.shortfalls.push({ date: dateStr, staffId, targetShift: code, reason: safe.reason });
                         unassignedStaff.push({ staffId, patternIdx });
                     } else if (assignedToday[code] < required) {
                         shifts.push(tempShift);
                         assignedToday[code]++;
-                        // Update Map
                         lastAssignmentMap[staffId] = RosterLogic.calculateEndTime(tempShift.date, tempShift.start, tempShift.end);
+                        if (code === 'N') nightAssignmentsCount[staffId]++;
                     } else {
                         unassignedStaff.push({ staffId, patternIdx });
                     }
                 }
             });
 
-            // Pass 2: Gap Filling (FIFO for Fairness)
+            // Pass 2: Gap Filling (Fairness Optimized)
             Object.keys(dayRequirements).forEach(code => {
                 const required = dayRequirements[code];
 
-                // We need a specific loop here because simple while(unassigned > 0) isn't enough given constraints
-                // We iterate through available candidates, assigning if safe, until quota met or candidates exhausted
-                let attempts = unassignedStaff.length;
-                while (assignedToday[code] < required && unassignedStaff.length > 0 && attempts > 0) {
-                    attempts--;
-                    const candidate = unassignedStaff.shift(); // Pop first
+                while (assignedToday[code] < required && unassignedStaff.length > 0) {
+                    // Filter Safe Candidates
+                    // Map to carry check result, then filter
+                    const candidates = unassignedStaff.map(c => {
+                        const tempShift = RosterLogic.createShift(c.staffId, dateStr, code, c.patternIdx, config, settings);
+                        const result = RosterLogic.checkRestSafety(c.staffId, tempShift, lastAssignmentMap);
+                        return { ...c, tempShift, allowed: result.allowed, reason: result.reason };
+                    }).filter(c => c.allowed);
 
-                    const tempShift = RosterLogic.createShift(candidate.staffId, dateStr, code, candidate.patternIdx, config, settings);
-                    const safe = RosterLogic.checkRestSafety(candidate.staffId, tempShift, lastAssignmentMap);
-
-                    if (safe.allowed) {
-                        shifts.push(tempShift);
-                        assignedToday[code]++;
-                        lastAssignmentMap[candidate.staffId] = RosterLogic.calculateEndTime(tempShift.date, tempShift.start, tempShift.end);
-                    } else {
-                        // If unsafe for this specific shift code, they might be safe for a later one?
-                        // For now, put back at end of queue? Or discard for this code?
-                        // If we put back, we risk infinite loop if we don't decrement logic.
-                        // Since 'attempts' limits us, we can safely push back.
-                        unassignedStaff.push(candidate);
-
-                        // Trace
+                    if (candidates.length === 0) {
+                        // No safe candidates left for this code
                         RosterLogic.shortfalls.push({
                             date: dateStr,
-                            staffId: candidate.staffId,
+                            staffId: 'ALL_CANDIDATES',
                             targetShift: code + ' (GapFill)',
-                            reason: safe.reason
+                            reason: 'No safe candidates available'
                         });
+                        break; // Cannot fill this demand
                     }
+
+                    // Fairness Sort: Min Forced -> Min Nights -> Stable
+                    candidates.sort((a, b) => {
+                        const forcedA = forcedAssignmentsCount[a.staffId] || 0;
+                        const forcedB = forcedAssignmentsCount[b.staffId] || 0;
+                        if (forcedA !== forcedB) return forcedA - forcedB;
+
+                        const nightA = nightAssignmentsCount[a.staffId] || 0;
+                        const nightB = nightAssignmentsCount[b.staffId] || 0;
+                        if (nightA !== nightB) return nightA - nightB;
+
+                        return 0; // Stable
+                    });
+
+                    // Pick Winner
+                    const best = candidates[0];
+
+                    shifts.push(best.tempShift);
+                    assignedToday[code]++;
+                    lastAssignmentMap[best.staffId] = RosterLogic.calculateEndTime(best.tempShift.date, best.tempShift.start, best.tempShift.end);
+
+                    // Update Counters
+                    forcedAssignmentsCount[best.staffId] = (forcedAssignmentsCount[best.staffId] || 0) + 1;
+                    if (code === 'N') nightAssignmentsCount[best.staffId] = (nightAssignmentsCount[best.staffId] || 0) + 1;
+
+                    // Remove from pool
+                    const idx = unassignedStaff.findIndex(x => x.staffId === best.staffId);
+                    if (idx > -1) unassignedStaff.splice(idx, 1);
                 }
             });
         }
