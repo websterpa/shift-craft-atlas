@@ -458,21 +458,21 @@ class RosterWizard {
             return `
             <div class="pattern-cell" data-index="${idx}" style="
                 border: 1px solid var(--glass-border);
-                padding: 10px;
+                padding: 6px;
                 text-align: center;
-                border-radius: 8px;
+                border-radius: 6px;
                 cursor: pointer;
                 background: ${this.getShiftColor(code)};
                 color: ${this.getContrastColor(code)};
                 position: relative;
-                min-height: 80px;
+                min-height: 50px;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
                 align-items: center;
             ">
-                <div style="font-size:0.75rem; text-transform: uppercase; margin-bottom:4px; opacity: 0.8;">${label}</div>
-                <div style="font-weight:800; font-size:1.5rem;">${code}</div>
+                <div style="font-size:0.7rem; text-transform: uppercase; margin-bottom:2px; opacity: 0.8;">${label}</div>
+                <div style="font-weight:800; font-size:1.2rem;">${code}</div>
                 ${this.config.customShifts[idx] ? `<div style="font-size:0.6rem; margin-top:2px;">${this.config.customShifts[idx]}</div>` : ''}
             </div>
             `;
