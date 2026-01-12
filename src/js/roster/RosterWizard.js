@@ -428,12 +428,21 @@ class RosterWizard {
         // Update Grid Columns
         container.style.gridTemplateColumns = `repeat(7, 1fr)`;
 
+        // Event Delegation for Grid
+        container.onclick = (e) => {
+            const cell = e.target.closest('.pattern-cell');
+            if (cell) {
+                const idx = parseInt(cell.dataset.index);
+                if (!isNaN(idx)) this.toggleShift(idx);
+            }
+        };
+
         const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
         container.innerHTML = this.config.patternSequence.map((code, idx) => {
             const label = this.config.mode === 'calendar' ? days[idx % 7] : `Day ${idx + 1}`;
             return `
-            <div class="pattern-cell" onclick="window.wizard.toggleShift(${idx})" style="
+            <div class="pattern-cell" data-index="${idx}" style="
                 border: 1px solid var(--glass-border);
                 padding: 10px;
                 text-align: center;
@@ -661,16 +670,15 @@ class RosterWizard {
             return;
         }
 
-        container.innerHTML = `
             <div style="display:flex; justify-content:space-between; margin-bottom:1.25rem; align-items:center; background: var(--glass-light); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--glass-border);">
                 <label style="cursor:pointer; display:flex; align-items:center; gap:0.5rem; font-weight: 600;">
-                    <input type="checkbox" id="wizard-select-all" onchange="window.wizard.toggleAllStaff(this.checked)" ${this.config.selectedStaff.length === this.app.staff.length ? 'checked' : ''}> Select All
+                    <input type="checkbox" id="wizard-select-all" ${this.config.selectedStaff.length === this.app.staff.length ? 'checked' : ''}> Select All
                 </label>
                 <div style="font-size:0.9rem; font-weight: 700; color: var(--primary);" id="wizard-selection-count">
                     ${this.config.selectedStaff.length} selected
                 </div>
             </div>
-            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; max-height: 400px; overflow-y: auto;">
+            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; max-height: 400px; overflow-y: auto;" id="wizard-staff-grid">
                 ${this.app.staff.map(p => `
                     <label class="staff-card-select" data-staff-id="${p.id}" style="
                         display: flex; align-items: center; gap: 0.75rem; 
@@ -681,9 +689,8 @@ class RosterWizard {
                         cursor: pointer;
                         transition: all 0.2s;
                     ">
-                        <input type="checkbox" value="${p.id}" 
+                        <input type="checkbox" value="${p.id}" class="staff-checkbox"
                             ${this.config.selectedStaff.includes(p.id) ? 'checked' : ''}
-                            onchange="window.wizard.toggleStaff('${p.id}', this.checked)"
                             style="width: 16px; height: 16px; cursor: pointer;">
                         <div>
                             <div style="font-weight: 600;">${p.name}</div>
@@ -693,6 +700,21 @@ class RosterWizard {
                 `).join('')}
             </div>
         `;
+
+        // Bind Events
+        const selectAll = document.getElementById('wizard-select-all');
+        if (selectAll) {
+            selectAll.onchange = (e) => this.toggleAllStaff(e.target.checked);
+        }
+        
+        const grid = document.getElementById('wizard-staff-grid');
+        if (grid) {
+            grid.onchange = (e) => {
+                if (e.target.classList.contains('staff-checkbox')) {
+                    this.toggleStaff(e.target.value, e.target.checked);
+                }
+            };
+        }
     }
 
     toggleStaff(id, checked) {
@@ -704,9 +726,9 @@ class RosterWizard {
 
         // Update UI state without full re-render for performance
         const countEl = document.getElementById('wizard-selection-count');
-        if (countEl) countEl.textContent = `${this.config.selectedStaff.length} selected`;
+        if (countEl) countEl.textContent = `${ this.config.selectedStaff.length } selected`;
 
-        const card = document.querySelector(`.staff-card-select[data-staff-id="${id}"]`);
+        const card = document.querySelector(`.staff - card - select[data - staff - id="${id}"]`);
         if (card) {
             card.style.border = checked ? '1px solid var(--primary)' : '1px solid var(--glass-border)';
             card.style.background = checked ? 'rgba(99, 102, 241, 0.1)' : 'var(--glass-bg)';
@@ -743,7 +765,7 @@ class RosterWizard {
         const defaultDate = this.config.startDate;
 
         container.innerHTML = `
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            < div style = "display:grid; grid-template-columns: 1fr 1fr; gap: 2rem;" >
                 <div>
                     <h4 style="margin-bottom:1rem; color:var(--accent-blue)">Configuration</h4>
                     <div class="form-group">
@@ -772,20 +794,19 @@ class RosterWizard {
                     <div class="form-group" style="margin-top:1rem;">
                         <label>Save Pattern?</label>
                         <div style="display:flex; gap:0.5rem; align-items:center;">
-                            <input type="checkbox" id="wizard-save-pattern" ${this.config.saveToLibrary ? 'checked' : ''} onchange="window.wizard.config.saveToLibrary = this.checked; document.getElementById('wizard-pattern-name').style.display = this.checked ? 'block' : 'none';">
+                            <input type="checkbox" id="wizard-save-pattern" ${this.config.saveToLibrary ? 'checked' : ''}>
                             <span>Save to "My Patterns"</span>
                         </div>
                         <input type="text" class="form-control" id="wizard-pattern-name" placeholder="Pattern Name" 
                             style="margin-top:0.5rem; display:${this.config.saveToLibrary ? 'block' : 'none'};" 
-                            value="${this.config.patternName || ''}"
-                            oninput="window.wizard.config.patternName = this.value">
+                            value="${this.config.patternName || ''}">
                     </div>
                 </div>
                 
                 <div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
                         <h4 style="margin:0; color:var(--accent-emerald)">Feasibility & Summary</h4>
-                        <button onclick="window.wizard.showAnalytics()" class="btn-outline" style="font-size:0.8rem; padding:0.25rem 0.5rem;">
+                        <button id="wizard-analyze-btn" class="btn-outline" style="font-size:0.8rem; padding:0.25rem 0.5rem;">
                             <i data-lucide="clipboard-copy" style="width:14px; margin-right:4px;"></i> Copy for Analysis
                         </button>
                     </div>
@@ -816,8 +837,8 @@ class RosterWizard {
                         </li>
                     </ul>
                 </div>
-            </div>
-        `;
+            </div >
+            `;
 
         if (window.lucide) window.lucide.createIcons();
 
@@ -899,10 +920,10 @@ class RosterWizard {
         const totalBreaches = breaches.reduce((sum, b) => sum + b.violations.length, 0);
         // Limit staff names list
         let staffNames = breaches.map(b => b.staff).slice(0, 3).join(', ');
-        if (breaches.length > 3) staffNames += ` +${breaches.length - 3} others`;
+        if (breaches.length > 3) staffNames += ` + ${ breaches.length - 3 } others`;
 
         modal.innerHTML = `
-            <div style="background: #1e1e2e; border: 2px solid var(--accent-rose); width: 90%; max-width: 550px; padding: 2rem; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+            < div style = "background: #1e1e2e; border: 2px solid var(--accent-rose); width: 90%; max-width: 550px; padding: 2rem; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);" >
                 <div style="display:flex; gap:1rem; align-items:center; margin-bottom:1.5rem; color:var(--accent-rose);">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-octagon"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/></svg>
                     <h2 style="margin:0; font-size:1.5rem; font-weight:700;">Compliance Alert</h2>
@@ -926,8 +947,8 @@ class RosterWizard {
                         Generate Anyway
                     </button>
                 </div>
-            </div>
-        `;
+            </div >
+            `;
 
         // Direct binding with safeguards
         const fixBtn = document.getElementById('gate-fix-btn');
@@ -970,7 +991,7 @@ class RosterWizard {
                 return;
             }
 
-            console.log(`[RosterWizard] Generating ${this.config.weeks} weeks from ${startDateStr} for ${this.config.selectedStaff.length} staff`);
+            console.log(`[RosterWizard] Generating ${ this.config.weeks } weeks from ${ startDateStr } for ${ this.config.selectedStaff.length } staff`);
 
             // Save session for restoration
             localStorage.setItem('shiftcraft_wizard_last_run', JSON.stringify({
@@ -1077,7 +1098,7 @@ class RosterWizard {
             if (shiftsGenerated === 0) {
                 this.app.showToast('No shifts generated. Check staff/pattern settings.', 'alert-triangle');
             } else {
-                this.app.showToast(`Success! Generated ${shiftsGenerated} shifts.`, 'check-circle');
+                this.app.showToast(`Success! Generated ${ shiftsGenerated } shifts.`, 'check-circle');
             }
 
             this.close();
