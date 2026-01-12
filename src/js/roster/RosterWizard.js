@@ -793,7 +793,8 @@ class RosterWizard {
                     </div>
                     <div class="form-group">
                         <label>Repeat for (Weeks)</label>
-                        <input type="number" class="form-control" id="wizard-weeks" value="4" min="1" max="52">
+                        <input type="number" class="form-control" id="wizard-weeks" value="8" min="1" max="156">
+                        <small style="color:var(--text-muted);">Generate up to 3 years (156 weeks) in advance.</small>
                     </div>
                     
                     <div class="form-group" style="margin-top:2rem;">
