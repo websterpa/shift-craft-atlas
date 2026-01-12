@@ -1103,7 +1103,7 @@ class RosterWizard {
             const genStart = new Date(startDate);
             if (!isNaN(genStart.getTime())) {
                 const day = genStart.getDay();
-                const diff = genStart.getDate() - day + (day === 0 ? -6 : 1);
+                const diff = genStart.getDate() - day;
                 const newWeekStart = new Date(genStart.setDate(diff));
 
                 if (!isNaN(newWeekStart.getTime())) {
@@ -1123,7 +1123,7 @@ class RosterWizard {
             }
 
             if (shiftsGenerated === 0) {
-                this.app.showToast('No shifts generated. Check staff/pattern settings.', 'alert-triangle');
+                this.app.showToast('No shifts generated. Compliance rules (11h rest) may be blocking assignments. Try clearing existing shifts.', 'alert-triangle');
             } else {
                 this.app.showToast(`Success! Generated ${shiftsGenerated} shifts.`, 'check-circle');
             }
