@@ -121,7 +121,8 @@ class RosterLogic {
                 if (code !== 'R') {
                     const required = dayRequirements[code] || 0;
 
-                    const tempShift = RosterLogic.createShift(staffId, dateStr, code, patternIdx, config, settings);
+                    // Proposed Shift (Pass 1 - Natural)
+                    const tempShift = RosterLogic.createShift(staffId, dateStr, code, patternIdx, config, settings, { isForced: false });
                     const safe = RosterLogic.checkRestSafety(staffId, tempShift, lastAssignmentMap);
 
                     if (!safe.allowed) {
@@ -146,7 +147,7 @@ class RosterLogic {
                     // Filter Safe Candidates
                     // Map to carry check result, then filter
                     const candidates = unassignedStaff.map(c => {
-                        const tempShift = RosterLogic.createShift(c.staffId, dateStr, code, c.patternIdx, config, settings);
+                        const tempShift = RosterLogic.createShift(c.staffId, dateStr, code, c.patternIdx, config, settings, { isForced: true, forcedReason: 'Gap Fill' });
                         const result = RosterLogic.checkRestSafety(c.staffId, tempShift, lastAssignmentMap);
                         return { ...c, tempShift, allowed: result.allowed, reason: result.reason };
                     }).filter(c => c.allowed);
@@ -232,7 +233,7 @@ class RosterLogic {
     /**
      * Helper to construct a single shift object
      */
-    static createShift(staffId, dateStr, code, patternIdx, config, settings) {
+    static createShift(staffId, dateStr, code, patternIdx, config, settings, meta = {}) {
         let start = '09:00', end = '17:00';
 
         // Custom Time Override
@@ -257,7 +258,9 @@ class RosterLogic {
             date: dateStr,
             start: start,
             end: end,
-            shiftType: code
+            shiftType: code,
+            isForced: !!meta.isForced,
+            forcedReason: meta.forcedReason || null
         };
     }
 }

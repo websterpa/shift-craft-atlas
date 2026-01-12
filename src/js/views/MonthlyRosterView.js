@@ -162,6 +162,7 @@ class MonthlyRosterView {
         let totalHours = 0;
         let restDays = 0;
         let nightShifts = 0;
+        let forcedShifts = 0;
 
         // Fill previous month's days
         const prevMonth = new Date(year, month, 0);
@@ -186,6 +187,7 @@ class MonthlyRosterView {
                     const hours = this.calculateDuration(s.start, s.end);
                     totalHours += hours;
                     if (this.isNightShift(s.start)) nightShifts++;
+                    if (s.isForced) forcedShifts++;
                 });
             } else {
                 restDays++;
@@ -201,7 +203,7 @@ class MonthlyRosterView {
         }
 
         // Update stats summary
-        this.updateStats(totalShifts, totalHours, restDays, nightShifts);
+        this.updateStats(totalShifts, totalHours, restDays, nightShifts, forcedShifts);
 
         // Refresh icons
         if (window.lucide) window.lucide.createIcons();
@@ -234,8 +236,25 @@ class MonthlyRosterView {
                 pill.classList.add(shiftInfo.cssClass);
 
                 // Add shift type label and times
-                pill.innerHTML = `<span class="shift-type-badge">${shiftInfo.code}</span> ${shift.start} - ${shift.end}`;
-                pill.title = `${shiftInfo.label}: ${shift.start} - ${shift.end} (${this.calculateDuration(shift.start, shift.end).toFixed(1)}h)`;
+                let html = `<span class="shift-type-badge">${shiftInfo.code}</span> ${shift.start} - ${shift.end}`;
+
+                // Visual Indicator for Forced/Gap-Fill Assignments
+                if (shift.isForced) {
+                    pill.classList.add('forced-shift-pill'); // Hook for custom CSS if needed
+                    pill.style.borderLeft = '3px solid #f59e0b';
+                    pill.style.paddingLeft = '4px';
+                    const reason = shift.forcedReason || 'Gap Fill';
+                    html += `<span title="Forced: ${reason}" style="color:#f59e0b; font-weight:bold; margin-left:6px; cursor:help;">(F)</span>`;
+
+                    // Enhanced Tooltip
+                    const duration = this.calculateDuration(shift.start, shift.end).toFixed(1);
+                    pill.title = `${shiftInfo.label}: ${shift.start} - ${shift.end} (${duration}h)\n⚠️ Forced Assignment: ${reason}`;
+                } else {
+                    const duration = this.calculateDuration(shift.start, shift.end).toFixed(1);
+                    pill.title = `${shiftInfo.label}: ${shift.start} - ${shift.end} (${duration}h)`;
+                }
+
+                pill.innerHTML = html;
                 cell.appendChild(pill);
             });
         } else if (!isOtherMonth && this.selectedStaffId) {
@@ -264,7 +283,7 @@ class MonthlyRosterView {
         );
     }
 
-    updateStats(shifts, hours, restDays, nights) {
+    updateStats(shifts, hours, restDays, nights, forced = 0) {
         const summary = document.getElementById('monthly-stats-summary');
         if (!summary) return;
 
@@ -274,6 +293,33 @@ class MonthlyRosterView {
             document.getElementById('monthly-total-hours').textContent = `${hours.toFixed(1)}h`;
             document.getElementById('monthly-rest-days').textContent = restDays;
             document.getElementById('monthly-night-shifts').textContent = nights;
+
+            // Add or Update Forced Stats
+            let forcedEl = document.getElementById('monthly-forced-shifts');
+            if (!forcedEl) {
+                // If the element doesn't exist in HTML, inject it dynamically
+                const container = summary.querySelector('.stats-grid') || summary; // Try to adhere to grid if exists
+                if (container) {
+                    const statDiv = document.createElement('div');
+                    statDiv.className = 'stat-item';
+                    statDiv.innerHTML = `
+                        <div class="stat-label">Forced</div>
+                        <div class="stat-value" id="monthly-forced-shifts" style="color:#f59e0b;">${forced}</div>
+                    `;
+                    // Append only if not already there (double check)
+                    if (!container.querySelector('#monthly-forced-shifts')) {
+                        // Find a good place to insert. Maybe after Night Shifts?
+                        container.appendChild(statDiv);
+                    }
+                    forcedEl = document.getElementById('monthly-forced-shifts');
+                }
+            }
+
+            if (forcedEl) {
+                forcedEl.textContent = forced;
+                forcedEl.style.color = forced > 0 ? '#f59e0b' : 'inherit';
+            }
+
         } else {
             summary.style.display = 'none';
         }
