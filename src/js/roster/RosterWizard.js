@@ -247,6 +247,20 @@ class RosterWizard {
                         }
                     };
                 }
+            } else {
+                // Selector exists, check if we need to show the Restore option
+                const hasLastRunOption = existingSelector.querySelector('option[value="LAST_RUN"]');
+                const hasData = !!localStorage.getItem('shiftcraft_wizard_last_run');
+
+                if (hasData && !hasLastRunOption) {
+                    const opt = document.createElement('option');
+                    opt.value = 'LAST_RUN';
+                    opt.textContent = 'Restore Last Session (Auto-Saved)';
+                    // Insert after first option (Custom)
+                    if (existingSelector.options.length > 0) {
+                        existingSelector.insertBefore(opt, existingSelector.options[1]);
+                    }
+                }
             }
         }
 
