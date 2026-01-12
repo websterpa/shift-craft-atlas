@@ -136,6 +136,9 @@ class RosterLogic {
                     } else {
                         unassignedStaff.push({ staffId, patternIdx });
                     }
+                } else {
+                    // Staff on Rest are available for Gap Filling
+                    unassignedStaff.push({ staffId, patternIdx });
                 }
             });
 
