@@ -281,6 +281,33 @@ class ShiftCraftApp {
         document.getElementById('cancel-modal').onclick = () => this.toggleModal('modal-overlay', false);
         document.getElementById('shift-form').onsubmit = (e) => { e.preventDefault(); this.handleShiftSubmit(); };
 
+        // Bind Shift Type Preset
+        const shiftTypeSelect = document.getElementById('form-shift-type');
+        if (shiftTypeSelect) {
+            shiftTypeSelect.onchange = (e) => {
+                const type = e.target.value;
+                if (!type) return;
+
+                const s = this.settings.standards || {};
+                let start, end;
+                // E, L, N (8h) and D12, N12 (12h)
+                switch (type) {
+                    case 'E': start = s.early8 || '06:00'; end = s.late8 || '14:00'; break;
+                    case 'L': start = s.late8 || '14:00'; end = s.night8 || '22:00'; break;
+                    case 'N': start = s.night8 || '22:00'; end = '06:00'; break;
+                    case 'D12': start = s.day12 || '07:00'; end = s.night12 || '19:00'; break;
+                    case 'N12': start = s.night12 || '19:00'; end = s.day12 || '07:00'; break;
+                }
+
+                if (start && end) {
+                    const startEl = document.getElementById('form-start');
+                    const endEl = document.getElementById('form-end');
+                    if (startEl) startEl.value = start;
+                    if (endEl) endEl.value = end;
+                }
+            };
+        }
+
         const headerExportEl = document.getElementById('header-export-btn');
         if (headerExportEl) headerExportEl.onclick = () => this.generatePayrollExport();
 
