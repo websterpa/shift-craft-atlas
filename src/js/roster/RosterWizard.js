@@ -743,7 +743,7 @@ class RosterWizard {
         const countEl = document.getElementById('wizard-selection-count');
         if (countEl) countEl.textContent = `${this.config.selectedStaff.length} selected`;
 
-        const card = document.querySelector(`.staff - card - select[data - staff - id="${id}"]`);
+        const card = document.querySelector(`.staff-card-select[data-staff-id="${id}"]`);
         if (card) {
             card.style.border = checked ? '1px solid var(--primary)' : '1px solid var(--glass-border)';
             card.style.background = checked ? 'rgba(99, 102, 241, 0.1)' : 'var(--glass-bg)';
