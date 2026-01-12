@@ -13,7 +13,9 @@ class RosterWizard {
         this.patternEngine = new window.PatternEngine(); // Re-use logic
 
         // Fix: Expose globally so HTML onclick="window.wizard.close()" works
+        // (Legacy support, but we are moving to direct bindings)
         window.wizard = this;
+        this._controlsBound = false;
 
         this.currentStep = 1;
         this.config = {
@@ -39,7 +41,35 @@ class RosterWizard {
         console.log('[RosterWizard] Initialized');
         if (this.patternEngine) this.patternEngine.loadLibrary();
 
-        // Bind navigation events
+        // Initial binding attempt (in case DOM is ready)
+        this.bindControls();
+    }
+
+    open() {
+        console.log('[RosterWizard] Opening modal...');
+        this.bindControls(); // Ensure controls are bound
+
+        const modal = document.getElementById('roster-wizard-modal');
+        if (modal) {
+            modal.classList.add('active');
+            this.updateHeaderBadge();
+            this.showStep(1);
+        } else {
+            console.error('Roster Wizard Modal not found in DOM');
+            this.app.showToast('Error: Wizard modal missing', 'alert-circle');
+        }
+    }
+
+    bindControls() {
+        if (this._controlsBound) return;
+
+        // Close Button
+        const closeBtn = document.getElementById('wizard-close-btn');
+        if (closeBtn) {
+            closeBtn.onclick = () => this.close();
+        }
+
+        // Footer Buttons
         const prevBtn = document.getElementById('wizard-prev-btn');
         if (prevBtn) prevBtn.onclick = () => this.prev();
 
@@ -49,26 +79,9 @@ class RosterWizard {
         const finishBtn = document.getElementById('wizard-finish-btn');
         if (finishBtn) finishBtn.onclick = () => this.finish();
 
-        // Try to bind Close button if reachable (fallback)
-        const closeBtn = document.querySelector('#roster-wizard-modal .modal-header button');
-        if (closeBtn) closeBtn.onclick = () => this.close();
-    }
-
-    open() {
-        console.log('[RosterWizard] Opening modal...');
-        const modal = document.getElementById('roster-wizard-modal');
-        if (modal) {
-            modal.classList.add('active');
-
-            // Re-bind close button to ensure it works
-            const closeBtn = modal.querySelector('.modal-header button');
-            if (closeBtn) closeBtn.onclick = () => this.close();
-
-            this.updateHeaderBadge();
-            this.showStep(1);
-        } else {
-            console.error('Roster Wizard Modal not found in DOM');
-            this.app.showToast('Error: Wizard modal missing', 'alert-circle');
+        if (closeBtn && prevBtn && nextBtn) {
+            this._controlsBound = true;
+            console.log('[RosterWizard] Controls successfully bound');
         }
     }
 
@@ -136,15 +149,12 @@ class RosterWizard {
             } else {
                 prevBtn.removeAttribute('disabled');
             }
-            prevBtn.onclick = () => this.prev(); // Force bind
         }
         if (nextBtn) {
             nextBtn.style.display = step === 4 ? 'none' : 'block';
-            nextBtn.onclick = () => this.next(); // Force bind
         }
         if (finishBtn) {
             finishBtn.style.display = step === 4 ? 'block' : 'none';
-            finishBtn.onclick = () => this.finish(); // Force bind
         }
 
         // Render step specific content

@@ -1405,7 +1405,7 @@
                     <p style="color:var(--text-muted);font-size:0.9rem;">Design compliance-safe rosters in 4 steps
                     </p>
                 </div>
-                <button class="btn btn-outline btn-icon" onclick="window.wizard.close()"><i
+                <button type="button" class="btn btn-outline btn-icon" id="wizard-close-btn"><i
                         data-lucide="x"></i></button>
             </div>
 
@@ -1476,12 +1476,11 @@
             </div>
 
             <div class="modal-footer" style="justify-content: space-between;">
-                <button class="btn btn-outline" id="wizard-prev-btn" onclick="window.wizard.prev()"
-                    disabled>Back</button>
+                <button type="button" class="btn btn-outline" id="wizard-prev-btn" disabled>Back</button>
                 <div>
-                    <button class="btn btn-primary" id="wizard-next-btn" onclick="window.wizard.next()">Next
+                    <button type="button" class="btn btn-primary" id="wizard-next-btn">Next
                         Step</button>
-                    <button class="btn btn-primary" id="wizard-finish-btn" onclick="window.wizard.finish()"
+                    <button type="button" class="btn btn-primary" id="wizard-finish-btn"
                         style="display: none; background: var(--accent-emerald); border-color: var(--accent-emerald);">Generate
                         Roster</button>
                 </div>
