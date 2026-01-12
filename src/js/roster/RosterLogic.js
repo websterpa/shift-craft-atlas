@@ -27,7 +27,7 @@ class RosterLogic {
 
         // Calculate needed for each requirement
         types.forEach(code => {
-            const reqPerDay = requirements[code] !== undefined ? parseInt(requirements[code], 10) : 1;
+            const reqPerDay = requirements[code] !== undefined ? parseInt(requirements[code], 10) : 0;
             const shiftsInCycle = countsInPattern[code];
 
             const needed = Math.ceil((reqPerDay * cycleLen) / shiftsInCycle);
@@ -80,7 +80,7 @@ class RosterLogic {
             config.patternSequence.forEach(c => {
                 if (c !== 'R') {
                     const rawReq = config.requirements[c];
-                    dayRequirements[c] = parseInt(rawReq !== undefined ? rawReq : 1, 10);
+                    dayRequirements[c] = parseInt(rawReq !== undefined ? rawReq : 0, 10);
                 }
             });
 
