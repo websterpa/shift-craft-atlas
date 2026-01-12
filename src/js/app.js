@@ -348,9 +348,33 @@ class ShiftCraftApp {
         this.initViewToggle();
 
         // Roster Wizard Button
+        // Roster Wizard Button
         const wizardBtn = document.getElementById('roster-wizard-btn');
-        if (wizardBtn && window.wizard) {
-            wizardBtn.onclick = () => window.wizard.open();
+        if (wizardBtn) {
+            wizardBtn.onclick = () => {
+                console.log('[RosterWizard] Launch Requested');
+
+                // Robust instance resolution
+                let wizard;
+                if (this.services) {
+                    wizard = this.services.get('wizard');
+                }
+
+                if (!wizard && window.wizard) {
+                    wizard = window.wizard; // Fallback
+                }
+
+                if (wizard) {
+                    // Update global ref just in case logic depends on it
+                    if (!window.wizard) window.wizard = wizard;
+
+                    console.log('[RosterWizard] Instance found, opening...');
+                    wizard.open();
+                } else {
+                    console.error('[RosterWizard] Critical: Wizard instance could not be created');
+                    this.showToast('Error: Roster Wizard not available', 'alert-triangle');
+                }
+            };
         }
 
         // Bulk Actions
