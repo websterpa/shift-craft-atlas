@@ -22,4 +22,8 @@ test('Navigation to Help & Features View', async ({ page }) => {
     // 5. Verify a card exists (e.g. Core Rostering)
     const card = helpView.locator('h3', { hasText: 'Core Rostering' });
     await expect(card).toBeVisible();
+
+    // 6. Verify Advanced Patterns card exists
+    const patternsCard = helpView.locator('h3', { hasText: 'Roster Wizard & Patterns' });
+    await expect(patternsCard).toBeVisible();
 });
