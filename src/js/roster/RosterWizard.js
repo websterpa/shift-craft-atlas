@@ -416,7 +416,7 @@ class RosterWizard {
                     </div>
                 </div>
 
-                <div class="insight-lists">
+                <div class="insight-lists" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                     <div>
                         <h5>Advantages</h5>
                         ${prosHtml || '<span style="color:var(--text-muted); font-size:0.85rem;">Standard pattern</span>'}
