@@ -98,16 +98,16 @@ class ShiftCraftApp {
         }
 
         // 2. Initialize Essential State
-        this.days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        this.days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         this.currentView = 'roster';
         this.bankHolidays = [];
         this.rosterName = localStorage.getItem('shiftcraft_roster_name') || 'Main Roster';
 
-        // Initialise to current week starting Monday
+        // Initialise to current week starting Sunday
         const now = new Date();
-        const day = now.getDay() || 7;
+        const day = now.getDay();
         now.setHours(0, 0, 0, 0);
-        this.weekStart = new Date(now.setDate(now.getDate() - day + 1));
+        this.weekStart = new Date(now.setDate(now.getDate() - day));
 
         // 3. Start Application
         this.applyCustomTheme();
@@ -988,7 +988,7 @@ class ShiftCraftApp {
             const p = this.staff.find(staff => staff.id === s.staffId);
             if (!p) return;
             const h = parseFloat(this.calculateDuration(s.start, s.end));
-            const dayIdx = (new Date(s.date).getDay() + 6) % 7; // Mon=0
+            const dayIdx = new Date(s.date).getDay(); // Sun=0
 
             dailyScheduled[dayIdx] += h;
             dailyCosts[dayIdx] += h * p.rate * (1 + CONFIG.WTR.HOLIDAY_ACCRUAL_RATE);
@@ -1001,7 +1001,7 @@ class ShiftCraftApp {
         // Calculate Demand (Previous Week)
         this.shifts.filter(s => prevDates.includes(s.date)).forEach(s => {
             const h = parseFloat(this.calculateDuration(s.start, s.end));
-            const dayIdx = (new Date(s.date).getDay() + 6) % 7;
+            const dayIdx = new Date(s.date).getDay();
             dailyDemand[dayIdx] += h;
         });
 
@@ -1362,7 +1362,7 @@ class ShiftCraftApp {
             if (!p) return;
             const h = parseFloat(this.calculateDuration(s.start, s.end));
             hours += h;
-            cost += h * p.rate;
+            cost += h * (p.rate || p.hourlyRate || 0);
             if (this.checkCompliance(s, p, staffShiftMap.get(p.id)).length > 0) alerts++;
         });
 
@@ -1442,7 +1442,7 @@ class ShiftCraftApp {
                 <td>${p.staffNumber || '---'}</td>
                 <td><strong>${p.name}</strong></td>
                 <td>${p.role || 'N/A'}</td>
-                <td>£${(p.rate || 0).toFixed(2)}</td>
+                <td>£${(p.rate || p.hourlyRate || 0).toFixed(2)}</td>
                 <td>${p.contractedHours || 40}h</td>
                 <td>${p.optOut48h ? '✅' : '❌'}</td>
                 <td style="text-align: right;">
@@ -1574,7 +1574,7 @@ class ShiftCraftApp {
                 role: role,
                 contractType: type,
                 contractHours: type === 'FULLTIME' ? 42 : (type === 'PARTTIME' ? 24 : 0),
-                hourlyRate: 12.50,
+                rate: 12.50,
                 email: `${name.replace(' ', '.').toLowerCase()}@example.com`
             });
         }
