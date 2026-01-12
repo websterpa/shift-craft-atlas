@@ -1124,7 +1124,12 @@ class RosterWizard {
             }
 
             if (shiftsGenerated === 0) {
-                this.app.showToast('No shifts generated. Compliance rules (11h rest) may be blocking assignments. Try clearing existing shifts.', 'alert-triangle');
+                // Check for specific blockers
+                if (window.RosterLogic && window.RosterLogic.shortfalls && window.RosterLogic.shortfalls.length > 0) {
+                    this.showShortfallsModal(window.RosterLogic.shortfalls);
+                } else {
+                    this.app.showToast('No shifts generated. Check staff/pattern settings.', 'alert-triangle');
+                }
             } else {
                 this.app.showToast(`Success! Generated ${shiftsGenerated} shifts.`, 'check-circle');
             }
@@ -1151,6 +1156,55 @@ class RosterWizard {
         myPatterns.push(newPattern);
         localStorage.setItem('shiftcraft_my_patterns', JSON.stringify(myPatterns));
         console.log('[RosterWizard] Saved pattern to My Patterns:', this.config.patternName);
+    }
+
+    showShortfallsModal(shortfalls) {
+        // Group by reason
+        const grouped = {};
+        shortfalls.forEach(s => {
+            const k = s.reason;
+            if (!grouped[k]) grouped[k] = 0;
+            grouped[k]++;
+        });
+
+        let summaryHtml = '<ul style="margin: 1rem 0; padding-left: 1.5rem;">';
+        Object.keys(grouped).forEach(k => {
+            summaryHtml += `<li><strong>${grouped[k]}</strong> blocked by: ${k}</li>`;
+        });
+        summaryHtml += '</ul>';
+
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.classList.add('active'); // Force display
+        modal.style.zIndex = '4000';
+        modal.innerHTML = `
+            <div class="modal" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2 style="color:var(--accent-rose); display:flex; align-items:center; gap:0.5rem;"><i data-lucide="shield-alert"></i> Generation Blocked</h2>
+                    <button class="btn btn-outline btn-icon" onclick="this.closest('.modal-overlay').remove()"><i data-lucide="x"></i></button>
+                </div>
+                <div style="padding: 0 1.5rem 1.5rem;">
+                    <p>Safety rules prevented assignments. To fix, try <strong>Checking "Clear Existing Shifts"</strong> or ensuring staff have enough rest.</p>
+                    ${summaryHtml}
+                    <div style="background: var(--bg-dark); padding: 1rem; border-radius: 8px; margin-top: 1rem; font-family: monospace; font-size: 0.85rem; max-height: 200px; overflow-y: auto;">
+                        ${shortfalls.slice(0, 20).map(s => {
+            const staff = this.app.staff.find(st => st.id === s.staffId);
+            return `<div style="margin-bottom:4px; border-bottom:1px solid #333; padding-bottom:2px;">
+                                <span style="color:var(--text-main)">${s.date}</span> 
+                                <span style="color:var(--accent-blue)">${staff ? staff.name : 'Staff'}</span>: 
+                                <span style="color:var(--accent-rose)">${s.reason}</span>
+                            </div>`;
+        }).join('')}
+                        ${shortfalls.length > 20 ? `<div style="text-align:center; padding-top:8px; color:var(--text-muted)">...and ${shortfalls.length - 20} more</div>` : ''}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                   <button class="btn btn-primary" onclick="this.closest('.modal-overlay').remove()">Dismiss</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        if (window.lucide) window.lucide.createIcons();
     }
 
 
