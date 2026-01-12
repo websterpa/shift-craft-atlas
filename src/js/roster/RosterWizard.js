@@ -876,7 +876,61 @@ class RosterWizard {
         });
     }
 
-    finish() {
+    showComplianceModal(breaches) {
+        const modalId = 'compliance-gate-modal';
+        let modal = document.getElementById(modalId);
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = modalId;
+            modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:flex; justify-content:center; align-items:center; backdrop-filter: blur(4px);';
+            document.body.appendChild(modal);
+        }
+
+        const totalBreaches = breaches.reduce((sum, b) => sum + b.violations.length, 0);
+        // Limit staff names list
+        let staffNames = breaches.map(b => b.staff).slice(0, 3).join(', ');
+        if (breaches.length > 3) staffNames += ` +${breaches.length - 3} others`;
+
+        modal.innerHTML = `
+            <div style="background: #1e1e2e; border: 2px solid var(--accent-rose); width: 90%; max-width: 550px; padding: 2rem; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                <div style="display:flex; gap:1rem; align-items:center; margin-bottom:1.5rem; color:var(--accent-rose);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-octagon"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/></svg>
+                    <h2 style="margin:0; font-size:1.5rem; font-weight:700;">Compliance Alert</h2>
+                </div>
+                
+                <p style="margin-bottom:1.5rem; line-height:1.6; color:#e2e8f0; font-size:1.05rem;">
+                    The roster generates <strong>${totalBreaches} breach(es)</strong> of Working Time Regulations (Daily Rest).<br>
+                    Proceeding without correcting this poses a compliance risk.
+                </p>
+                
+                <div style="background:rgba(226, 88, 88, 0.15); padding:1rem; border-radius:8px; margin-bottom:2rem; border-left:4px solid var(--accent-rose);">
+                    <div style="font-weight:700; color:var(--accent-rose); margin-bottom:0.5rem;">Affects:</div>
+                    <div style="color:#cbd5e1;">${staffNames}</div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:1rem;">
+                    <button id="gate-fix-btn" style="padding:0.75rem 1.5rem; border-radius:6px; background:transparent; border:1px solid #94a3b8; color:#f1f5f9; cursor:pointer; font-weight:600; font-size:0.95rem;">
+                        Go Back & Fix
+                    </button>
+                    <button id="gate-override-btn" style="padding:0.75rem 1.5rem; border-radius:6px; background:var(--accent-rose); border:none; color:white; cursor:pointer; font-weight:600; font-size:0.95rem; box-shadow: 0 4px 6px -1px rgba(225, 29, 72, 0.3);">
+                        Generate Anyway
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Direct binding with safeguards
+        const fixBtn = document.getElementById('gate-fix-btn');
+        const overBtn = document.getElementById('gate-override-btn');
+
+        if (fixBtn) fixBtn.onclick = () => modal.remove();
+        if (overBtn) overBtn.onclick = () => {
+            modal.remove();
+            this.finish(true);
+        };
+    }
+
+    finish(override = false) {
         try {
             console.log('[RosterWizard] finish() called');
 
@@ -923,9 +977,52 @@ class RosterWizard {
             const endDate = new Date(startDate);
             endDate.setDate(endDate.getDate() + totalDays);
 
-            // 1. Clear existing shifts
+            const endStr = endDate.toISOString().split('T')[0];
+
+            // --- Compliance Decision Gate ---
+            // Simulate generation first to check for breaches before committing
+            if (!override && window.RosterLogic && this.app.complianceEngine) {
+                // 1. Get Base Shifts (Simulation)
+                let simulatedShifts = [...this.app.shifts];
+                if (this.config.clearExisting) {
+                    const selectedStaffIds = this.config.selectedStaff;
+                    simulatedShifts = simulatedShifts.filter(s => {
+                        if (s.date < startDateStr || s.date >= endStr) return true;
+                        if (!selectedStaffIds.includes(s.staffId)) return true;
+                        return false;
+                    });
+                }
+
+                // 2. Generate Draft Shifts
+                const draftShifts = RosterLogic.generateShifts(this.config, this.app.settings);
+                const allDraftShifts = [...simulatedShifts, ...draftShifts];
+
+                // 3. Check for Breaches
+                const breaches = [];
+                this.config.selectedStaff.forEach(staffId => {
+                    const violations = this.app.complianceEngine.checkDailyRest(staffId, allDraftShifts);
+                    if (violations.length > 0) {
+                        const staff = this.app.staff.find(s => s.id === staffId);
+                        breaches.push({ staff: staff ? staff.name : 'Unknown', violations });
+                    }
+                });
+
+                if (breaches.length > 0) {
+                    this.showComplianceModal(breaches);
+                    return; // Interrupt Generation - User must decide
+                }
+            }
+
+            // --- Commit Roster Changes ---
+
+            // Mark Override if chosen
+            if (override) {
+                this.config.rosterName += " (Non-Compliant)";
+                this.app.showToast('Compliance override active', 'alert-triangle');
+            }
+
+            // 1. Clear existing shifts (Actual)
             if (this.config.clearExisting) {
-                const endStr = endDate.toISOString().split('T')[0];
                 const selectedStaffIds = this.config.selectedStaff;
                 this.app.shifts = this.app.shifts.filter(s => {
                     if (s.date < startDateStr || s.date >= endStr) return true;
@@ -934,7 +1031,7 @@ class RosterWizard {
                 });
             }
 
-            // 2. Generation (Delegated to RosterLogic)
+            // 2. Generation (Actual)
             let shiftsGenerated = 0;
             if (window.RosterLogic) {
                 const newShifts = RosterLogic.generateShifts(this.config, this.app.settings);
