@@ -1,0 +1,115 @@
+{
+    "scenario_A_prevention": {
+        "description": "Attempt to trigger Night -> Early transition via pattern rotation",
+        "config": {
+            "startDate": "2024-01-01",
+            "weeks": 1,
+            "selectedStaff": [
+                "staff-1"
+            ],
+            "patternSequence": [
+                "N",
+                "E",
+                "R",
+                "R",
+                "R",
+                "R",
+                "R"
+            ],
+            "requirements": {
+                "N": 1,
+                "E": 1
+            }
+        },
+        "settings": {
+            "standards": {
+                "early8": "06:00",
+                "late8": "14:00",
+                "night8": "22:00"
+            }
+        },
+        "expected": {
+            "assignments": [
+                {
+                    "date": "2024-01-01",
+                    "type": "N"
+                }
+            ],
+            "shortfalls": 1
+        }
+    },
+    "scenario_B_forced": {
+        "description": "High requirements force usage of staff on Rest days (Gap Fill)",
+        "config": {
+            "startDate": "2024-01-01",
+            "weeks": 1,
+            "selectedStaff": [
+                "staff-1",
+                "staff-2"
+            ],
+            "patternSequence": [
+                "E",
+                "R",
+                "R",
+                "R",
+                "R",
+                "R",
+                "R"
+            ],
+            "requirements": {
+                "E": 2
+            }
+        },
+        "settings": {
+            "standards": {
+                "early8": "06:00"
+            }
+        },
+        "expected": {
+            "assignments_count": 14,
+            "forced_min": 14
+        }
+    },
+    "scenario_C_impossible": {
+        "description": "Impossible coverage due to rest constraints (prev N -> req E)",
+        "config": {
+            "startDate": "2024-01-02",
+            "weeks": 1,
+            "selectedStaff": [
+                "staff-1"
+            ],
+            "patternSequence": [
+                "E",
+                "R",
+                "R",
+                "R",
+                "R",
+                "R",
+                "R"
+            ],
+            "requirements": {
+                "E": 1
+            }
+        },
+        "existingShifts": [
+            {
+                "id": "prev-1",
+                "staffId": "staff-1",
+                "date": "2024-01-01",
+                "start": "22:00",
+                "end": "06:00",
+                "shiftType": "N"
+            }
+        ],
+        "settings": {
+            "standards": {
+                "early8": "06:00",
+                "night8": "22:00"
+            }
+        },
+        "expected": {
+            "assignments_count": 0,
+            "shortfalls": 7
+        }
+    }
+}

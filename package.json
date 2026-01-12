@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npx playwright test",
+    "test:unit": "node tests/unit/roster_logic.test.mjs",
     "start": "live-server --port=8080 --entry-file=index.html"
   },
   "keywords": [],
