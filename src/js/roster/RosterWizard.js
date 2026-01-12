@@ -670,6 +670,7 @@ class RosterWizard {
             return;
         }
 
+        container.innerHTML = `
             <div style="display:flex; justify-content:space-between; margin-bottom:1.25rem; align-items:center; background: var(--glass-light); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--glass-border);">
                 <label style="cursor:pointer; display:flex; align-items:center; gap:0.5rem; font-weight: 600;">
                     <input type="checkbox" id="wizard-select-all" ${this.config.selectedStaff.length === this.app.staff.length ? 'checked' : ''}> Select All
@@ -706,7 +707,7 @@ class RosterWizard {
         if (selectAll) {
             selectAll.onchange = (e) => this.toggleAllStaff(e.target.checked);
         }
-        
+
         const grid = document.getElementById('wizard-staff-grid');
         if (grid) {
             grid.onchange = (e) => {
@@ -726,7 +727,7 @@ class RosterWizard {
 
         // Update UI state without full re-render for performance
         const countEl = document.getElementById('wizard-selection-count');
-        if (countEl) countEl.textContent = `${ this.config.selectedStaff.length } selected`;
+        if (countEl) countEl.textContent = `${this.config.selectedStaff.length} selected`;
 
         const card = document.querySelector(`.staff - card - select[data - staff - id="${id}"]`);
         if (card) {
@@ -842,15 +843,27 @@ class RosterWizard {
 
         if (window.lucide) window.lucide.createIcons();
 
-        // Toggle name input
-        setTimeout(() => {
-            const saveCheck = document.getElementById('wizard-save-pattern');
-            if (saveCheck) {
-                saveCheck.onchange = (e) => {
-                    document.getElementById('wizard-pattern-name').style.display = e.target.checked ? 'block' : 'none';
-                };
-            }
-        }, 100);
+        // Bind Events
+        const saveCheck = document.getElementById('wizard-save-pattern');
+        const patternNameInput = document.getElementById('wizard-pattern-name');
+
+        if (saveCheck && patternNameInput) {
+            saveCheck.onchange = (e) => {
+                this.config.saveToLibrary = e.target.checked;
+                patternNameInput.style.display = e.target.checked ? 'block' : 'none';
+            };
+        }
+
+        if (patternNameInput) {
+            patternNameInput.oninput = (e) => {
+                this.config.patternName = e.target.value;
+            };
+        }
+
+        const analyzeBtn = document.getElementById('wizard-analyze-btn');
+        if (analyzeBtn) {
+            analyzeBtn.onclick = () => this.showAnalytics();
+        }
     }
 
     calculateRequiredStaff() {
@@ -920,7 +933,7 @@ class RosterWizard {
         const totalBreaches = breaches.reduce((sum, b) => sum + b.violations.length, 0);
         // Limit staff names list
         let staffNames = breaches.map(b => b.staff).slice(0, 3).join(', ');
-        if (breaches.length > 3) staffNames += ` + ${ breaches.length - 3 } others`;
+        if (breaches.length > 3) staffNames += ` + ${breaches.length - 3} others`;
 
         modal.innerHTML = `
             < div style = "background: #1e1e2e; border: 2px solid var(--accent-rose); width: 90%; max-width: 550px; padding: 2rem; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);" >
@@ -991,7 +1004,7 @@ class RosterWizard {
                 return;
             }
 
-            console.log(`[RosterWizard] Generating ${ this.config.weeks } weeks from ${ startDateStr } for ${ this.config.selectedStaff.length } staff`);
+            console.log(`[RosterWizard] Generating ${this.config.weeks} weeks from ${startDateStr} for ${this.config.selectedStaff.length} staff`);
 
             // Save session for restoration
             localStorage.setItem('shiftcraft_wizard_last_run', JSON.stringify({
@@ -1098,7 +1111,7 @@ class RosterWizard {
             if (shiftsGenerated === 0) {
                 this.app.showToast('No shifts generated. Check staff/pattern settings.', 'alert-triangle');
             } else {
-                this.app.showToast(`Success! Generated ${ shiftsGenerated } shifts.`, 'check-circle');
+                this.app.showToast(`Success! Generated ${shiftsGenerated} shifts.`, 'check-circle');
             }
 
             this.close();

@@ -5,8 +5,8 @@ test.describe('Roster Wizard Step Functionality (Refactored Bindings)', () => {
 
     test.beforeEach(async ({ page }) => {
         await page.goto('http://127.0.0.1:54975');
-        // Open Wizard via UI
-        await page.click('#mobile-add-shift');
+        // Open Wizard via Header Button
+        await page.locator('#roster-wizard-btn').click();
         await expect(page.locator('#roster-wizard-modal')).toHaveClass(/active/);
     });
 
