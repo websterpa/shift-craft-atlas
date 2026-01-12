@@ -144,14 +144,8 @@ class WizardStep2 {
             return;
         }
 
-        let status = '';
-        if (selected > needed) {
-            status = `<span style="color:var(--accent-amber); font-weight:700;">Surplus Identified:</span> You have ${selected} staff selected, but only <strong>${needed}</strong> are required for this pattern. ${selected - needed} staff will remain unassigned (surplus).`;
-        } else if (selected < needed) {
-            status = `<span style="color:var(--accent-rose); font-weight:700;">Understaffed:</span> You need <strong>${needed}</strong> staff to maintain this roster, but only have ${selected} selected. Gaps will occur.`;
-        } else {
-            status = `<span style="color:var(--accent-emerald); font-weight:700;">Balanced:</span> Your selected staff (${selected}) matches the exactly required headcount for this roster.`;
-        }
+        // Step 2 is purely requirements definition. Validation happens in Step 3/4.
+        const status = `<span style="color:var(--accent-blue); font-weight:700;">Requirement:</span> Based on your input, this pattern requires a minimum of <strong>${needed} Staff Members</strong> to maintain full coverage.`;
 
         this.adviceText.innerHTML = status;
     }
