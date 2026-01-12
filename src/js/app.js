@@ -2032,8 +2032,8 @@ class ShiftCraftApp {
 
     // --- Bulk Staff Actions ---
     toggleAllStaff(checked) {
-        const checkboxes = document.querySelectorAll('.staff-checkbox');
-        checkboxes.forEach(cb => cb.checked = checked);
+        this.staff.forEach(s => s.selected = checked);
+        this.renderStaffList();
         this.updateSelectedCount();
     }
 
@@ -2042,9 +2042,7 @@ class ShiftCraftApp {
         const el = document.getElementById('selected-count');
         if (el) {
             el.textContent = count;
-            // Show/Hide bulk bar in Staff view if needed
-            const bar = document.querySelector('.bulk-actions-bar');
-            if (bar) bar.style.display = count > 0 ? 'flex' : 'none';
+            // Removed auto-hiding of bulk bar to keep it permanently visible
         }
     }
 
