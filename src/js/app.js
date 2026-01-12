@@ -260,7 +260,7 @@ class ShiftCraftApp {
     }
 
     setupEventListeners() {
-        const navs = ['dashboard', 'roster', 'staff', 'payroll', 'compliance', 'settings', 'admin', 'my-rosters'];
+        const navs = ['dashboard', 'roster', 'staff', 'payroll', 'compliance', 'settings', 'admin', 'my-rosters', 'help'];
         navs.forEach(id => {
             const el = document.getElementById(`nav-${id}`);
             if (el) el.onclick = (e) => { e.preventDefault(); this.switchView(id); };

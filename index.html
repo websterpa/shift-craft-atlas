@@ -65,6 +65,12 @@
             <nav>
                 <ul class="nav-links">
                     <li class="nav-item">
+                        <a href="#" class="nav-link" id="nav-help">
+                            <i data-lucide="help-circle"></i>
+                            Help & Features
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="#" class="nav-link" id="nav-settings">
                             <i data-lucide="settings"></i>
                             Settings
@@ -877,6 +883,92 @@
                         </div>
                     </div>
         </div>
+        </section>
+
+        <!-- Help & Features View -->
+        <section id="view-help" class="app-view" style="display: none;">
+            <header>
+                <div class="header-title">
+                    <h1>User Instructions & Features Help</h1>
+                    <p>Comprehensive guide to Shift Craft (Atlas) features and workflows.</p>
+                </div>
+            </header>
+            <div
+                style="margin-top: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem;">
+                <div class="stat-card" style="align-items: flex-start;">
+                    <h3
+                        style="margin-bottom: 1rem; color: var(--accent-blue); display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="calendar"></i> Core Rostering
+                    </h3>
+                    <ul style="padding-left: 1.25rem; line-height: 1.6; color: var(--text-muted);">
+                        <li style="margin-bottom:0.5rem"><strong>Weekly View:</strong> The main grid. Click empty cells
+                            to add shifts. Drag and drop to move shifts.</li>
+                        <li style="margin-bottom:0.5rem"><strong>Monthly View:</strong> Click the calendar icon next to
+                            a staff member to see their full month.</li>
+                        <li style="margin-bottom:0.5rem"><strong>Add Shift:</strong> Use the "New Shift" button or click
+                            on the grid. Select a "Preset" to auto-fill times (Early, Late, Night).</li>
+                        <li style="margin-bottom:0.5rem"><strong>Shift Types:</strong>
+                            <div
+                                style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem; margin-top:0.25rem; font-size:0.9em;">
+                                <span style="color: var(--shift-early)">● Early (E): 06:00-14:00</span>
+                                <span style="color: var(--shift-late)">● Late (L): 14:00-22:00</span>
+                                <span style="color: var(--shift-night)">● Night (N): 22:00-06:00</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="stat-card" style="align-items: flex-start;">
+                    <h3
+                        style="margin-bottom: 1rem; color: var(--accent-purple); display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="wand-2"></i> Automation Tools
+                    </h3>
+                    <ul style="padding-left: 1.25rem; line-height: 1.6; color: var(--text-muted);">
+                        <li style="margin-bottom:0.5rem"><strong>Roster Wizard:</strong> Create a full roster from
+                            scratch. Define patterns (e.g. 4-on-4-off) and let the system assign shifts.</li>
+                        <li style="margin-bottom:0.5rem"><strong>Smart Fill:</strong> Intelligently copies the previous
+                            week's pattern, respecting staff availability.</li>
+                        <li style="margin-bottom:0.5rem"><strong>AI Import:</strong> Paste unstructured text (emails,
+                            notes) to automatically generate shifts.</li>
+                        <li style="margin-bottom:0.5rem"><strong>Pattern Library:</strong> Save common shift sequences
+                            as templates.</li>
+                    </ul>
+                </div>
+
+                <div class="stat-card" style="align-items: flex-start;">
+                    <h3
+                        style="margin-bottom: 1rem; color: var(--accent-emerald); display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="shield-check"></i> Compliance & Pay
+                    </h3>
+                    <ul style="padding-left: 1.25rem; line-height: 1.6; color: var(--text-muted);">
+                        <li style="margin-bottom:0.5rem"><strong>WTR Compliance:</strong> Automatic checks for Working
+                            Time Regulations (11h daily rest, 24h/48h weekly rest).</li>
+                        <li style="margin-bottom:0.5rem"><strong>Real-time Costing:</strong> Payroll estimates update
+                            instantly. Includes Holiday Accrual (12.07%).</li>
+                        <li style="margin-bottom:0.5rem"><strong>Staff Management:</strong> Set hourly rates, roles, and
+                            48h opt-out status in the Staff Directory.</li>
+                        <li style="margin-bottom:0.5rem"><strong>Exports:</strong> Download Rosters as PDF or export
+                            Payroll data as CSV.</li>
+                    </ul>
+                </div>
+
+                <div class="stat-card" style="align-items: flex-start;">
+                    <h3
+                        style="margin-bottom: 1rem; color: var(--accent-amber); display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="settings"></i> System & Settings
+                    </h3>
+                    <ul style="padding-left: 1.25rem; line-height: 1.6; color: var(--text-muted);">
+                        <li style="margin-bottom:0.5rem"><strong>Theme Customization:</strong> Fully customizable color
+                            schemes with Glassmorphism support.</li>
+                        <li style="margin-bottom:0.5rem"><strong>My Rosters:</strong> Save "Snapshots" of your current
+                            work to restore later. Perfect for scenario planning.</li>
+                        <li style="margin-bottom:0.5rem"><strong>Branding:</strong> Upload your company logo and
+                            customize the header strapline.</li>
+                        <li style="margin-bottom:0.5rem"><strong>Keyboard Shortcuts:</strong> Press <kbd>?</kbd> to see
+                            available shortcuts.</li>
+                    </ul>
+                </div>
+            </div>
         </section>
         </main>
     </div>
