@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Roster Wizard Controls', () => {
 
     test.beforeEach(async ({ page }) => {
-        await page.goto('http://127.0.0.1:54975');
+        await page.goto('/');
 
         // Open Wizard
         // We can click the "Roster" nav button or the FAB "Add Shift"? 

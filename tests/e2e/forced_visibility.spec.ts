@@ -9,11 +9,19 @@ test.describe('Forced Assignment Visibility', () => {
 
         // 2. Inject Roster Data with Forced Shifts
         await page.evaluate(() => {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const d1 = '01';
+            const d2 = '02';
+            const date1 = `${yyyy}-${mm}-${d1}`;
+            const date2 = `${yyyy}-${mm}-${d2}`;
+
             const shifts = [
                 {
                     id: 'forced-1',
                     staffId: 'staff-1',
-                    date: '2024-01-01',
+                    date: date1,
                     start: '06:00',
                     end: '14:00',
                     shiftType: 'E',
@@ -23,7 +31,7 @@ test.describe('Forced Assignment Visibility', () => {
                 {
                     id: 'natural-1',
                     staffId: 'staff-1',
-                    date: '2024-01-02',
+                    date: date2,
                     start: '06:00',
                     end: '14:00',
                     shiftType: 'E',
@@ -32,14 +40,18 @@ test.describe('Forced Assignment Visibility', () => {
             ];
 
             // Mock Staff
-            window.ShiftCraftApp.staff = [
-                { id: 'staff-1', name: 'Test Staff', role: 'Tester' }
-            ];
-            window.ShiftCraftApp.shifts = shifts;
+            if (window.app) {
+                window.app.staff = [
+                    { id: 'staff-1', name: 'Test Staff', role: 'Tester' }
+                ];
+                window.app.shifts = shifts;
 
-            // Mock Stats View elements if needed (usually handled by MonthlyRosterView)
-            // trigger open
-            window.monthlyView = new MonthlyRosterView(window.ShiftCraftApp);
+                // Mock Stats View elements if needed (usually handled by MonthlyRosterView)
+                // trigger open
+                window.monthlyView = new MonthlyRosterView(window.app);
+            } else {
+                throw new Error('App instance (window.app) not found');
+            }
         });
 
         // 3. Open Monthly View

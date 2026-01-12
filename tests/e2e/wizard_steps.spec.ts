@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Roster Wizard Step Functionality (Refactored Bindings)', () => {
 
     test.beforeEach(async ({ page }) => {
-        await page.goto('http://127.0.0.1:54975');
+        await page.goto('/');
         // Open Wizard via Header Button
         await page.locator('#roster-wizard-btn').click();
         await expect(page.locator('#roster-wizard-modal')).toHaveClass(/active/);

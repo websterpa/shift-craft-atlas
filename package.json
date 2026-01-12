@@ -5,7 +5,7 @@
   "scripts": {
     "test": "npx playwright test",
     "test:unit": "node tests/unit/roster_logic.test.mjs",
-    "start": "live-server --port=8080 --entry-file=index.html"
+    "start": "http-server -p 8080 -c-1"
   },
   "keywords": [],
   "author": "",
@@ -13,13 +13,6 @@
   "description": "",
   "devDependencies": {
     "@playwright/test": "^1.57.0",
-    "live-server": "^1.2.2"
-  },
-  "dependencies": {
-    "jspdf": "^3.0.4",
-    "jspdf-autotable": "^5.0.2",
-    "pdfjs-dist": "^5.4.449",
-    "tesseract.js": "^7.0.0",
-    "xlsx": "^0.18.5"
+    "http-server": "^14.1.1"
   }
 }
