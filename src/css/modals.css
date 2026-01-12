@@ -345,3 +345,8 @@
     margin: 0 0 0.5rem 0;
     color: var(--accent-blue);
 }
+/* Force number input spinners to be visible */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    opacity: 1 !important;
+}
