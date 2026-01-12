@@ -994,7 +994,7 @@ class RosterWizard {
                 }
 
                 // 2. Generate Draft Shifts
-                const draftShifts = RosterLogic.generateShifts(this.config, this.app.settings);
+                const draftShifts = RosterLogic.generateShifts(this.config, this.app.settings, simulatedShifts);
                 const allDraftShifts = [...simulatedShifts, ...draftShifts];
 
                 // 3. Check for Breaches
@@ -1034,7 +1034,7 @@ class RosterWizard {
             // 2. Generation (Actual)
             let shiftsGenerated = 0;
             if (window.RosterLogic) {
-                const newShifts = RosterLogic.generateShifts(this.config, this.app.settings);
+                const newShifts = RosterLogic.generateShifts(this.config, this.app.settings, this.app.shifts);
                 this.app.shifts.push(...newShifts);
                 shiftsGenerated = newShifts.length;
             } else {

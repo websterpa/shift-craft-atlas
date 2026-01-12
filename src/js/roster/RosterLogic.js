@@ -62,13 +62,31 @@ class RosterLogic {
      * Core Algorithm: Generates the list of shift objects based on config.
      * Returns an array of shift objects.
      */
-    static generateShifts(config, settings) {
+    static generateShifts(config, settings, existingShifts = []) {
         const shifts = [];
         const startDateStr = config.startDate;
         const startDate = new Date(startDateStr);
         const totalDays = config.weeks * 7;
         const cycleLen = config.patternSequence.length;
         const selectedStaffIds = config.selectedStaff;
+
+        // Traceability for blocked assignments
+        RosterLogic.shortfalls = [];
+
+        // Map to track the END time of the last shift for each staff member
+        // This ensures we respect rest periods across the generation boundary
+        const lastAssignmentMap = {};
+
+        // Initialize from existing shifts
+        if (Array.isArray(existingShifts)) {
+            existingShifts.forEach(s => {
+                const end = RosterLogic.calculateEndTime(s.date, s.start, s.end);
+                const current = lastAssignmentMap[s.staffId];
+                if (!current || end > current) {
+                    lastAssignmentMap[s.staffId] = end;
+                }
+            });
+        }
 
         for (let dayOffset = 0; dayOffset < totalDays; dayOffset++) {
             const currentObj = new Date(startDate);
@@ -96,9 +114,26 @@ class RosterLogic {
 
                 if (code !== 'R') {
                     const required = dayRequirements[code] || 0;
-                    if (assignedToday[code] < required) {
-                        shifts.push(RosterLogic.createShift(staffId, dateStr, code, patternIdx, config, settings));
+
+                    // Proposed Shift
+                    const tempShift = RosterLogic.createShift(staffId, dateStr, code, patternIdx, config, settings);
+                    const safe = RosterLogic.checkRestSafety(staffId, tempShift, lastAssignmentMap);
+
+                    if (!safe.allowed) {
+                        // Blocked by allocator constraint
+                        RosterLogic.shortfalls.push({
+                            date: dateStr,
+                            staffId: staffId,
+                            targetShift: code,
+                            reason: safe.reason
+                        });
+                        // Add to unassigned to see if they can fill a different safe slot (unlikely if rest is issue, but good practice)
+                        unassignedStaff.push({ staffId, patternIdx });
+                    } else if (assignedToday[code] < required) {
+                        shifts.push(tempShift);
                         assignedToday[code]++;
+                        // Update Map
+                        lastAssignmentMap[staffId] = RosterLogic.calculateEndTime(tempShift.date, tempShift.start, tempShift.end);
                     } else {
                         unassignedStaff.push({ staffId, patternIdx });
                     }
@@ -108,15 +143,74 @@ class RosterLogic {
             // Pass 2: Gap Filling (FIFO for Fairness)
             Object.keys(dayRequirements).forEach(code => {
                 const required = dayRequirements[code];
-                while (assignedToday[code] < required && unassignedStaff.length > 0) {
-                    const candidate = unassignedStaff.shift(); // FIFO Queue
-                    shifts.push(RosterLogic.createShift(candidate.staffId, dateStr, code, candidate.patternIdx, config, settings));
-                    assignedToday[code]++;
+
+                // We need a specific loop here because simple while(unassigned > 0) isn't enough given constraints
+                // We iterate through available candidates, assigning if safe, until quota met or candidates exhausted
+                let attempts = unassignedStaff.length;
+                while (assignedToday[code] < required && unassignedStaff.length > 0 && attempts > 0) {
+                    attempts--;
+                    const candidate = unassignedStaff.shift(); // Pop first
+
+                    const tempShift = RosterLogic.createShift(candidate.staffId, dateStr, code, candidate.patternIdx, config, settings);
+                    const safe = RosterLogic.checkRestSafety(candidate.staffId, tempShift, lastAssignmentMap);
+
+                    if (safe.allowed) {
+                        shifts.push(tempShift);
+                        assignedToday[code]++;
+                        lastAssignmentMap[candidate.staffId] = RosterLogic.calculateEndTime(tempShift.date, tempShift.start, tempShift.end);
+                    } else {
+                        // If unsafe for this specific shift code, they might be safe for a later one?
+                        // For now, put back at end of queue? Or discard for this code?
+                        // If we put back, we risk infinite loop if we don't decrement logic.
+                        // Since 'attempts' limits us, we can safely push back.
+                        unassignedStaff.push(candidate);
+
+                        // Trace
+                        RosterLogic.shortfalls.push({
+                            date: dateStr,
+                            staffId: candidate.staffId,
+                            targetShift: code + ' (GapFill)',
+                            reason: safe.reason
+                        });
+                    }
                 }
             });
         }
 
         return shifts;
+    }
+
+    /**
+     * Helper to calculate accurate end Date object
+     */
+    static calculateEndTime(dateStr, startStr, endStr) {
+        const start = new Date(`${dateStr}T${startStr}`);
+        const end = new Date(`${dateStr}T${endStr}`);
+        if (end <= start) {
+            // Crosses midnight
+            end.setDate(end.getDate() + 1);
+        }
+        return end;
+    }
+
+    /**
+     * Enforce rest constraints (allocator gate)
+     */
+    static checkRestSafety(staffId, newShift, lastAssignmentMap) {
+        const lastEnd = lastAssignmentMap[staffId];
+        if (!lastEnd) return { allowed: true };
+
+        const newStart = new Date(`${newShift.date}T${newShift.start}`);
+
+        // Calculate rest hours
+        const diffMs = newStart - lastEnd;
+        const restHours = diffMs / (1000 * 60 * 60);
+
+        if (restHours < 11) {
+            return { allowed: false, reason: `Insufficient rest (${restHours.toFixed(1)}h < 11h)` };
+        }
+
+        return { allowed: true };
     }
 
     /**
