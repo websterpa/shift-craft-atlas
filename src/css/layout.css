@@ -230,3 +230,12 @@ header {
     font-weight: 800;
     font-size: 1.05em; /* Slight bump for prominence */
 }
+
+/* Light Mode Overrides for Help View */
+[data-theme="light"] #view-help strong {
+    color: var(--primary);
+}
+
+[data-theme="light"] #view-help h3 {
+    color: var(--text-main) !important;
+}
