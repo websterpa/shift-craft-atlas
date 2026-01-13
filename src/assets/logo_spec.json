@@ -1,0 +1,45 @@
+{
+    "name": "ShiftCraft Logo",
+    "version": "1.0",
+    "dimensions": {
+        "width": 300,
+        "height": 80,
+        "aspect_ratio": "3.75:1"
+    },
+    "colors": {
+        "primary_blue": "#1f3a4d",
+        "accent_teal": "#2bb7a3",
+        "background": "transparent"
+    },
+    "typography": {
+        "font_family": "Inter, Roboto, sans-serif",
+        "weight": "Bold (600-700)",
+        "color": "#1f3a4d",
+        "text": "ShiftCraft",
+        "kerning": "-0.5px"
+    },
+    "icon": {
+        "description": "Abstract clock face intertwined with a circular arrow",
+        "elements": [
+            {
+                "type": "clock_face",
+                "color": "#1f3a4d",
+                "stroke_width": 3,
+                "details": "Cardinal markers at 12, 3, 6, 9"
+            },
+            {
+                "type": "clock_hands",
+                "color": "#1f3a4d",
+                "stroke_width": 3,
+                "orientation": "Pointing approximately to 1:50 (10 and 2 positions)"
+            },
+            {
+                "type": "arrow_wrap",
+                "description": "Circular arrow wrapping from 12 o'clock clockwise to 10 o'clock",
+                "color": "Gradient from #2bb7a3 to #3b82f6 (or solid #2bb7a3)",
+                "stroke_width": 5,
+                "gap": "Open at top-left to imply motion"
+            }
+        ]
+    }
+}
