@@ -18,12 +18,8 @@ aside {
 }
 
 .logo {
-    font-size: 1.5rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #818cf8, #6366f1);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: center;
     margin-bottom: 2.5rem;
 }
 
@@ -224,11 +220,13 @@ header {
 .rota-table td.weekend {
     background: color-mix(in srgb, var(--glass-bg), var(--primary) 3%);
 }
+
 /* Help View Styling */
 #view-help strong {
     color: #ffffff;
     font-weight: 800;
-    font-size: 1.05em; /* Slight bump for prominence */
+    font-size: 1.05em;
+    /* Slight bump for prominence */
 }
 
 /* Light Mode Overrides for Help View */
