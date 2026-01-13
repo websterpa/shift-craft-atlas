@@ -129,6 +129,20 @@ class ShiftCraftApp {
             localStorage.setItem('seed_v2_staff_8', 'true');
         }
 
+        // MIGRATION: Rename all staff to 'CCTV Operator X' (User Request)
+        if (!localStorage.getItem('mig_cctv_rename_v1')) {
+            this.staff.forEach((s, idx) => {
+                const num = idx + 1;
+                s.name = `CCTV Operator ${num}`;
+                s.role = 'CCTV Operator';
+                s.email = `operator.${num}@example.com`;
+            });
+            localStorage.setItem('mig_cctv_rename_v1', 'true');
+            this.saveToStorage();
+            console.log('[ShiftCraft] Migrated staff names to CCTV Operator sequence');
+            // Defer toast until UI is ready or rely on subsequent rendering
+        }
+
         this.ensureStaffNumbers();
         if (window.lucide) window.lucide.createIcons();
         this.renderTableHead();
@@ -1555,33 +1569,28 @@ class ShiftCraftApp {
     }
 
     addTestStaff(count = 8) {
-        const roles = ['CCTV Operator', 'Door Supervisor', 'Security Guard', 'Team Leader'];
-        const types = ['FULLTIME', 'PARTTIME', 'ZERO_HOURS'];
-        const names = [
-            'James Bond', 'Sarah Connor', 'Ellen Ripley', 'Marty McFly',
-            'Luke Skywalker', 'Leia Organa', 'Han Solo', 'Tony Stark',
-            'Bruce Wayne', 'Clark Kent'
-        ];
+        // Updated to sequentially name CCTV Operators
+        const currentCount = this.staff.length;
 
         for (let i = 0; i < count; i++) {
-            const role = roles[i % roles.length];
-            const type = types[i % types.length];
-            const name = names[i] || `Staff Member ${this.staff.length + i + 1}`;
+            const num = currentCount + i + 1;
+            const name = `CCTV Operator ${num}`;
 
             this.staff.push({
                 id: crypto.randomUUID(),
                 name: name,
-                role: role,
-                contractType: type,
-                contractHours: type === 'FULLTIME' ? 42 : (type === 'PARTTIME' ? 24 : 0),
+                role: 'CCTV Operator',
+                contractType: 'FULLTIME',
+                contractHours: 42,
                 rate: 12.50,
-                email: `${name.replace(' ', '.').toLowerCase()}@example.com`
+                email: `operator.${num}@example.com`
             });
         }
         this.saveToStorage();
         console.log(`[ShiftCraft] ${count} test staff members added.`);
-        this.showToast(`${count} Test Staff Added`, 'success');
+        this.showToast(`${count} CCTV Operators Added`, 'success');
     }
+
 
     ensureStaffNumbers() {
         let updated = false;
@@ -2109,9 +2118,11 @@ class ShiftCraftApp {
     /**
      * Custom Promise-based Confirmation Modal (Upgraded)
      */
-    confirm({ title, body, icon = 'help-circle', iconColor = 'var(--accent-blue)',
+    confirm({
+        title, body, icon = 'help-circle', iconColor = 'var(--accent-blue)',
         dateInput = false, textInput = false, selectOptions = null, customActions = null,
-        placeholder = '', defaultDate = null }) {
+        placeholder = '', defaultDate = null
+    }) {
         return new Promise((resolve) => {
             const overlay = document.getElementById('confirm-modal-overlay');
             const titleEl = document.getElementById('confirm-modal-title');
