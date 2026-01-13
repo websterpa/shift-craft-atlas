@@ -875,9 +875,19 @@ class RosterWizard {
             };
         }
 
-        const analyzeBtn = document.getElementById('wizard-analyze-btn');
-        if (analyzeBtn) {
-            analyzeBtn.onclick = () => this.showAnalytics();
+        const finishBtn = document.getElementById('wizard-finish-btn');
+        if (finishBtn) {
+            if (isFeasible) {
+                finishBtn.style.backgroundColor = 'var(--accent-emerald)';
+                finishBtn.style.borderColor = 'var(--accent-emerald)';
+                finishBtn.innerHTML = '<i data-lucide="wand-2" style="width:16px; margin-right:6px;"></i> Generate Roster';
+                finishBtn.title = "Ready to generate";
+            } else {
+                finishBtn.style.backgroundColor = 'var(--accent-rose)';
+                finishBtn.style.borderColor = 'var(--accent-rose)';
+                finishBtn.innerHTML = '<i data-lucide="alert-triangle" style="width:16px; margin-right:6px;"></i> Generate Roster';
+                finishBtn.title = "Warning: Inadequate Staffing";
+            }
         }
     }
 
@@ -1154,7 +1164,8 @@ class RosterWizard {
                 if (window.RosterLogic && window.RosterLogic.shortfalls && window.RosterLogic.shortfalls.length > 0) {
                     this.showShortfallsModal(window.RosterLogic.shortfalls);
                 } else {
-                    this.app.showToast('No shifts generated. Check staff/pattern settings.', 'alert-triangle');
+                    // No specific shortfalls but zero shifts - Likely a crash or Logic refusal
+                    this.showFailureModal();
                 }
             } else {
                 this.app.showToast(`Success! Generated ${shiftsGenerated} shifts.`, 'check-circle');
@@ -1162,10 +1173,55 @@ class RosterWizard {
 
             this.close();
 
-        } catch (error) {
-            console.error('[RosterWizard] Error in finish():', error);
-            this.app.showToast('Wizard Error: ' + error.message, 'alert-circle');
+        } catch (err) {
+            console.error('[RosterWizard] Error in finish():', err);
+            this.showFailureModal(err.message);
         }
+    }
+
+    showFailureModal(errorMessage) {
+        const modalId = 'gen-fail-modal';
+        let modal = document.getElementById(modalId);
+        if (modal) modal.remove();
+
+        modal = document.createElement('div');
+        modal.id = modalId;
+        modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:flex; justify-content:center; align-items:center; backdrop-filter: blur(4px);';
+
+        const staffNeeded = this.calculateRequiredStaff();
+        const staffSelected = this.config.selectedStaff.length;
+
+        modal.innerHTML = `
+            <div style="background: #1e1e2e; border: 2px solid var(--accent-rose); width: 90%; max-width: 500px; padding: 2rem; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                <div style="display:flex; gap:1rem; align-items:center; margin-bottom:1.5rem; color:var(--accent-rose);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <h2 style="margin:0; font-size:1.5rem; font-weight:700;">Generation Failed</h2>
+                </div>
+                
+                <p style="margin-bottom:1.5rem; line-height:1.6; color:#e2e8f0; font-size:1.05rem;">
+                    The system could not generate any safe shifts.
+                </p>
+
+                ${errorMessage ? `<div style="background:rgba(255,0,0,0.1); padding:0.75rem; border-radius:6px; color:#fca5a5; margin-bottom:1rem; font-family:monospace; font-size:0.9rem;">${errorMessage}</div>` : ''}
+
+                <div style="background:rgba(255,255,255,0.05); padding:1rem; border-radius:8px; margin-bottom:2rem;">
+                    <strong style="color:var(--text-main); display:block; margin-bottom:0.5rem;">Possible Causes:</strong>
+                    <ul style="margin:0; padding-left:1.5rem; color:#cbd5e1; font-size:0.95rem;">
+                        <li style="${staffSelected < staffNeeded ? 'color:var(--accent-rose); font-weight:700;' : ''}">Insufficient Staff (Selected: ${staffSelected}, Needed: ${staffNeeded})</li>
+                        <li>Strict compliance rules preventing assignment</li>
+                        <li>Invalid pattern configuration</li>
+                    </ul>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end;">
+                    <button id="fail-back-btn" style="padding:0.75rem 1.5rem; border-radius:6px; background:var(--glass-bg); border:1px solid var(--glass-border); color:var(--text-main); cursor:pointer; font-weight:600;">
+                        Back to Wizard
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        document.getElementById('fail-back-btn').onclick = () => modal.remove();
     }
 
     savePatternToLibrary() {
