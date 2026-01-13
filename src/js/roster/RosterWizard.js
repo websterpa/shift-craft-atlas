@@ -1063,14 +1063,28 @@ class RosterWizard {
             `;
 
         // Direct binding with safeguards
+        // Direct binding with safeguards
         const fixBtn = document.getElementById('gate-fix-btn');
         const overBtn = document.getElementById('gate-override-btn');
 
-        if (fixBtn) fixBtn.onclick = () => modal.remove();
-        if (overBtn) overBtn.onclick = () => {
-            modal.remove();
-            this.finish(true);
-        };
+        if (fixBtn) {
+            fixBtn.onclick = (e) => {
+                if (e) e.preventDefault();
+                const m = document.getElementById(modalId);
+                if (m) m.remove();
+                else if (modal) modal.remove();
+            };
+        }
+
+        if (overBtn) {
+            overBtn.onclick = (e) => {
+                if (e) e.preventDefault();
+                const m = document.getElementById(modalId);
+                if (m) m.remove();
+                else if (modal) modal.remove();
+                this.finish(true);
+            };
+        }
     }
 
     finish(override = false) {
