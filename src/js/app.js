@@ -2294,6 +2294,9 @@ class ShiftCraftApp {
             if (rosterHeader) rosterHeader.style.display = 'flex';
             if (monthlyContainer) monthlyContainer.style.display = 'none';
             if (statsGrid) statsGrid.style.display = 'grid';
+
+            const title = document.getElementById('main-roster-title');
+            if (title) title.textContent = 'Weekly Roster';
         };
 
         monthlyBtn.onclick = () => {
@@ -2305,6 +2308,9 @@ class ShiftCraftApp {
             if (rosterHeader) rosterHeader.style.display = 'none';
             if (monthlyContainer) monthlyContainer.style.display = 'block';
             if (statsGrid) statsGrid.style.display = 'none';
+
+            const title = document.getElementById('main-roster-title');
+            if (title) title.textContent = 'Monthly Roster';
             this.initInlineMonthlyView();
         };
 
