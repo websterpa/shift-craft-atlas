@@ -780,7 +780,7 @@ class RosterWizard {
         const defaultDate = this.config.startDate;
 
         container.innerHTML = `
-            < div style = "display:grid; grid-template-columns: 1fr 1fr; gap: 2rem;" >
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                 <div>
                     <h4 style="margin-bottom:1rem; color:var(--accent-blue)">Configuration</h4>
                     <div class="form-group">
@@ -853,7 +853,7 @@ class RosterWizard {
                         </li>
                     </ul>
                 </div>
-            </div >
+            </div>
             `;
 
         if (window.lucide) window.lucide.createIcons();
@@ -951,7 +951,7 @@ class RosterWizard {
         if (breaches.length > 3) staffNames += ` + ${breaches.length - 3} others`;
 
         modal.innerHTML = `
-            < div style = "background: #1e1e2e; border: 2px solid var(--accent-rose); width: 90%; max-width: 550px; padding: 2rem; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);" >
+            <div style="background: #1e1e2e; border: 2px solid var(--accent-rose); width: 90%; max-width: 550px; padding: 2rem; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
                 <div style="display:flex; gap:1rem; align-items:center; margin-bottom:1.5rem; color:var(--accent-rose);">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-octagon"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/></svg>
                     <h2 style="margin:0; font-size:1.5rem; font-weight:700;">Compliance Alert</h2>
@@ -975,7 +975,7 @@ class RosterWizard {
                         Generate Anyway
                     </button>
                 </div>
-            </div >
+            </div>
             `;
 
         // Direct binding with safeguards
