@@ -399,8 +399,13 @@ class RosterWizard {
                         <div class="insight-title">${pattern.name}</div>
                         <div class="insight-desc">${pattern.description || 'No description available'}</div>
                     </div>
-                    <div style="background:var(--accent-blue); color:white; padding: 4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">
-                        ${pattern.cycleDays} Day Cycle
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.5rem;">
+                        <div style="background:var(--accent-blue); color:white; padding: 4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; white-space:nowrap;">
+                            ${pattern.cycleDays} Day Cycle
+                        </div>
+                        <div style="background:rgba(255,255,255,0.05); color:var(--text-main); padding: 3px 8px; border-radius:4px; font-size:0.75rem; border:1px solid var(--glass-border); white-space:nowrap;">
+                            ${(pattern.shifts && Math.max(...pattern.shifts.map(s => s.duration || 0)) > 10) ? '12h Shifts' : '8h Shifts'}
+                        </div>
                     </div>
                 </div>
                 
@@ -436,6 +441,40 @@ class RosterWizard {
         if (window.lucide) window.lucide.createIcons();
     }
 
+    getDurationDisplay(code, idx) {
+        if (code === 'R') return '';
+
+        let start, end;
+        // 1. Custom Override
+        if (this.config.customShifts && this.config.customShifts[idx]) {
+            const parts = this.config.customShifts[idx].split('-');
+            if (parts.length === 2) [start, end] = parts;
+        }
+        // 2. Pattern Override
+        else if (this.config.shiftDefinitions && this.config.shiftDefinitions[code]) {
+            start = this.config.shiftDefinitions[code].start;
+            end = this.config.shiftDefinitions[code].end;
+        }
+        // 3. System Defaults
+        else {
+            const s = this.app.settings.standards || {};
+            if (code === 'E') { start = s.early8 || '06:00'; end = s.late8 || '14:00'; }
+            else if (code === 'L') { start = s.late8 || '14:00'; end = s.night8 || '22:00'; }
+            else if (code === 'N') { start = s.night8 || '22:00'; end = '06:00'; }
+            else if (code === 'D') { start = s.day12 || '07:00'; end = s.night12 || '19:00'; }
+        }
+
+        if (!start || !end) return '';
+
+        // Calculate hours
+        const dStart = new Date(`2000-01-01T${start}`);
+        let dEnd = new Date(`2000-01-01T${end}`);
+        if (dEnd <= dStart) dEnd.setDate(dEnd.getDate() + 1);
+
+        const hours = (dEnd - dStart) / (1000 * 60 * 60);
+        return `${hours.toFixed(1).replace('.0', '')}h`;
+    }
+
     updateDesignerUI() {
         const container = document.getElementById('wizard-pattern-grid');
         if (!container) return;
@@ -456,6 +495,8 @@ class RosterWizard {
 
         container.innerHTML = this.config.patternSequence.map((code, idx) => {
             const label = this.config.mode === 'calendar' ? days[idx % 7] : `Day ${idx + 1}`;
+            const duration = this.getDurationDisplay(code, idx);
+
             return `
             <div class="pattern-cell" data-index="${idx}" style="
                 border: 1px solid var(--glass-border);
@@ -466,15 +507,18 @@ class RosterWizard {
                 background: ${this.getShiftColor(code)};
                 color: ${this.getContrastColor(code)};
                 position: relative;
-                min-height: 50px;
+                min-height: 60px;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
                 align-items: center;
             ">
                 <div style="font-size:0.7rem; text-transform: uppercase; margin-bottom:2px; opacity: 0.8;">${label}</div>
-                <div style="font-weight:800; font-size:1.2rem;">${code}</div>
-                ${this.config.customShifts[idx] ? `<div style="font-size:0.6rem; margin-top:2px;">${this.config.customShifts[idx]}</div>` : ''}
+                <div style="font-weight:800; font-size:1.4rem; line-height:1;">${code}</div>
+                ${this.config.customShifts[idx]
+                    ? `<div style="font-size:0.6rem; margin-top:2px;">${this.config.customShifts[idx]}</div>`
+                    : (duration ? `<div style="font-size:0.7rem; margin-top:0px; opacity:0.9; font-weight:500;">${duration}</div>` : '')
+                }
             </div>
             `;
         }).join('');
@@ -571,13 +615,20 @@ class RosterWizard {
         }
 
         const patterns = this.patternEngine.getAllPatterns();
-        return patterns.map(p => ({
-            id: p.id,
-            name: p.name,
-            description: p.description,
-            cycleDays: p.cycleDays,
-            rosterPattern: p.rosterPattern
-        }));
+        return patterns.map(p => {
+            let durationLabel = '';
+            if (p.shifts && p.shifts.length > 0) {
+                const maxDur = Math.max(...p.shifts.map(s => s.duration || 0));
+                durationLabel = maxDur > 10 ? '[12h]' : '[8h]';
+            }
+            return {
+                id: p.id,
+                name: `${durationLabel} ${p.name}`,
+                description: p.description,
+                cycleDays: p.cycleDays,
+                rosterPattern: p.rosterPattern
+            };
+        });
     }
 
     restoreLastSession() {
