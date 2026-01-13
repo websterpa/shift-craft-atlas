@@ -257,8 +257,12 @@ class RosterLogic {
                 start = parts[0];
                 end = parts[1];
             }
+        } else if (config.shiftDefinitions && config.shiftDefinitions[code]) {
+            // Pattern-Specific Overrides (e.g. Pitman N = 19:00-07:00)
+            start = config.shiftDefinitions[code].start;
+            end = config.shiftDefinitions[code].end;
         } else {
-            // Standard Times
+            // Standard Times (Defaults)
             const s = settings.standards || {};
             if (code === 'E') { start = s.early8 || '06:00'; end = s.late8 || '14:00'; }
             if (code === 'L') { start = s.late8 || '14:00'; end = s.night8 || '22:00'; }

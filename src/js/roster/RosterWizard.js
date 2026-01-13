@@ -647,6 +647,22 @@ class RosterWizard {
         this.config.cycleLength = sequence.length;
         this.config.mode = 'cyclic'; // Library patterns are cyclic
 
+        // Extract and Map Shift Definitions to override defaults
+        this.config.shiftDefinitions = {};
+        if (pattern.shifts && Array.isArray(pattern.shifts)) {
+            pattern.shifts.forEach(def => {
+                // Map the pattern code (e.g. 'LD') to the Wizard code (e.g. 'D')
+                const wizardCode = codeMap[def.code] || def.code;
+                if (wizardCode !== 'R' && def.start && def.end) {
+                    this.config.shiftDefinitions[wizardCode] = {
+                        start: def.start,
+                        end: def.end
+                    };
+                }
+            });
+            console.log('[RosterWizard] Applied Shift Definitions:', this.config.shiftDefinitions);
+        }
+
         this.syncRequirements();
         this.config.sourcePatternName = pattern.name;
         this.updateHeaderBadge();
