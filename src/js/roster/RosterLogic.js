@@ -135,7 +135,7 @@ class RosterLogic {
                     } else if (assignedToday[code] < required) {
                         shifts.push(tempShift);
                         assignedToday[code]++;
-                        lastAssignmentMap[staffId] = RosterLogic.calculateEndTime(tempShift.date, tempShift.start, tempShift.end);
+                        lastAssignmentMap[String(staffId)] = RosterLogic.calculateEndTime(tempShift.date, tempShift.start, tempShift.end);
                         if (code === 'N') nightAssignmentsCount[staffId]++;
                     } else {
                         unassignedStaff.push({ staffId, patternIdx });
@@ -188,7 +188,7 @@ class RosterLogic {
 
                     shifts.push(best.tempShift);
                     assignedToday[code]++;
-                    lastAssignmentMap[best.staffId] = RosterLogic.calculateEndTime(best.tempShift.date, best.tempShift.start, best.tempShift.end);
+                    lastAssignmentMap[String(best.staffId)] = RosterLogic.calculateEndTime(best.tempShift.date, best.tempShift.start, best.tempShift.end);
 
                     // Update Counters
                     forcedAssignmentsCount[best.staffId] = (forcedAssignmentsCount[best.staffId] || 0) + 1;
@@ -206,12 +206,17 @@ class RosterLogic {
 
     /**
      * Helper to calculate accurate end Date object
+     * Uses integer comparison to strictly detect midnight crossings
      */
     static calculateEndTime(dateStr, startStr, endStr) {
-        const start = new Date(`${dateStr}T${startStr}`);
+        const [sh, sm] = startStr.split(':').map(Number);
+        const [eh, em] = endStr.split(':').map(Number);
+
         const end = new Date(`${dateStr}T${endStr}`);
-        if (end <= start) {
-            // Crosses midnight
+
+        // Strict Integer Check: If End Hour is less than Start Hour, it crossed midnight.
+        // Or if hours equal and end minute is less/equal (e.g. 24h shift).
+        if (eh < sh || (eh === sh && em <= sm)) {
             end.setDate(end.getDate() + 1);
         }
         return end;
@@ -221,7 +226,7 @@ class RosterLogic {
      * Enforce rest constraints (allocator gate)
      */
     static checkRestSafety(staffId, newShift, lastAssignmentMap) {
-        const lastEnd = lastAssignmentMap[staffId];
+        const lastEnd = lastAssignmentMap[String(staffId)]; // Force String Key
         if (!lastEnd) return { allowed: true };
 
         const newStart = new Date(`${newShift.date}T${newShift.start}`);
@@ -230,7 +235,9 @@ class RosterLogic {
         const diffMs = newStart - lastEnd;
         const restHours = diffMs / (1000 * 60 * 60);
 
+        // Debug Logging for tricky transitions
         if (restHours < 11) {
+            console.warn(`[RosterLogic] Safety Violation for ${staffId} on ${newShift.date}: Gap ${restHours.toFixed(1)}h`);
             return { allowed: false, reason: `Insufficient rest (${restHours.toFixed(1)}h < 11h)` };
         }
 
