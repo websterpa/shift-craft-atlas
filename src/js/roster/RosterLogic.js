@@ -84,12 +84,16 @@ class RosterLogic {
         const lastAssignmentMap = {};
 
         // Initialize from existing shifts
+        // Fix: Only strictly past shifts should seed the 'last assignment' to prevent negative rest calculation
         if (Array.isArray(existingShifts)) {
             existingShifts.forEach(s => {
-                const end = RosterLogic.calculateEndTime(s.date, s.start, s.end);
-                const current = lastAssignmentMap[s.staffId];
-                if (!current || end > current) {
-                    lastAssignmentMap[s.staffId] = end;
+                // Ensure we don't pick up future shifts if the user didn't clear them
+                if (s.date < startDateStr) {
+                    const end = RosterLogic.calculateEndTime(s.date, s.start, s.end);
+                    const current = lastAssignmentMap[s.staffId];
+                    if (!current || end > current) {
+                        lastAssignmentMap[s.staffId] = end;
+                    }
                 }
             });
         }
