@@ -1274,20 +1274,40 @@ class ShiftCraftApp {
         if (!logList) return;
         logList.innerHTML = '';
 
-        const weekDates = this.getWeekDates();
-        this.staff.forEach(p => {
-            const weekShifts = this.shifts.filter(s => s.staffId === p.id && weekDates.includes(s.date));
-            weekShifts.forEach(s => {
-                const warnings = this.checkCompliance(s, p);
-                if (warnings.includes('48h Avg Risk')) risk48h++;
-                if (warnings.some(w => w.includes('Rest'))) breachRest++;
+        // SEARCH RANGE: Scan from Week Start up to 12 weeks into future for audits
+        const startDate = new Date(this.weekStart);
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + (12 * 7)); // 12 weeks
+        const startStr = startDate.toISOString().split('T')[0];
+        const endStr = endDate.toISOString().split('T')[0];
 
-                warnings.forEach(w => {
-                    const li = document.createElement('li');
-                    li.style.cssText = 'padding: 0.75rem; border-bottom: 1px solid var(--glass-border); font-size: 0.85rem;';
-                    li.innerHTML = `<span style="color: var(--accent-rose); font-weight: 700;">[RISK]</span> ${p.name}: ${w} on <strong>${s.date}</strong>`;
-                    logList.appendChild(li);
-                });
+        // Filter shifts in range
+        const relevantShifts = this.shifts.filter(s => s.date >= startStr && s.date <= endStr).sort((a, b) => a.date.localeCompare(b.date));
+
+        const risks = [];
+
+        relevantShifts.forEach(s => {
+            const p = this.staff.find(st => st.id === s.staffId);
+            if (p) {
+                const warnings = this.checkCompliance(s, p);
+                if (warnings.length > 0) {
+                    risks.push({ shift: s, person: p, warnings });
+                    if (warnings.some(w => w.includes('48h'))) risk48h++;
+                    if (warnings.some(w => w.includes('Rest') || w.includes('Daily') || w.includes('11h'))) breachRest++;
+                }
+            }
+        });
+
+        risks.forEach(item => {
+            item.warnings.forEach(w => {
+                const li = document.createElement('li');
+                li.style.cssText = 'padding: 0.75rem; border-bottom: 1px solid var(--glass-border); font-size: 0.85rem;';
+
+                // Highlight Override
+                const isOverride = item.shift.complianceBreach ? '<span style="color:var(--accent-rose); border:1px solid var(--accent-rose); padding:0 4px; border-radius:4px; font-size:0.75em; margin-right:6px; font-weight:700;">OVERRIDE</span>' : '';
+
+                li.innerHTML = `${isOverride}<span style="color: var(--accent-rose); font-weight: 700;">[RISK]</span> ${item.person.name}: ${w} on <strong>${item.shift.date}</strong>`;
+                logList.appendChild(li);
             });
         });
 
@@ -1295,7 +1315,16 @@ class ShiftCraftApp {
         const compRestEl = document.getElementById('comp-rest-count');
         if (comp48hEl) comp48hEl.textContent = risk48h;
         if (compRestEl) compRestEl.textContent = breachRest;
-        if (logList.innerHTML === '') logList.innerHTML = '<li style="color: var(--text-muted); padding: 1rem;">No compliance risks detected for this week.</li>';
+
+        if (risks.length === 0) {
+            logList.innerHTML = '<li style="color: var(--text-muted); padding: 1rem;">No compliance risks detected for the next 12 weeks.</li>';
+        } else {
+            // Add note about range
+            const header = document.createElement('li');
+            header.style.cssText = "padding:0.5rem; background:rgba(255,255,255,0.05); font-size:0.8rem; color:var(--text-muted); text-align:center; font-style:italic;";
+            header.textContent = `Scanning for risks from ${startStr} to ${endStr}`;
+            logList.prepend(header);
+        }
     }
 
 
@@ -1321,13 +1350,19 @@ class ShiftCraftApp {
         if (!this.complianceEngine) return [];
         const warnings = [];
 
+        // 0. Manual Override Tag (Highest Priority)
+        // If the Wizard tagged this shift as a breach, we must report it regardless of live calculation
+        if (shift.complianceBreach) {
+            warnings.push(shift.complianceBreach);
+        }
+
         // Use pre-filtered shifts if provided, otherwise filter now
         const staffShifts = preFilteredStaffShifts || this.shifts.filter(s => s.staffId === person.id);
 
         // 1. Daily Rest check (11h Rule)
         const violations = this.complianceEngine.checkDailyRest(person.id, this.shifts, staffShifts);
         const myViolation = violations.find(v => v.shiftId === shift.id);
-        if (myViolation) warnings.push(myViolation.message);
+        if (myViolation && !warnings.includes(myViolation.message)) warnings.push(myViolation.message);
 
         // 2. Break check (Statutory: 20 mins if > 6h)
         // Hidden at user request to reduce visual noise
