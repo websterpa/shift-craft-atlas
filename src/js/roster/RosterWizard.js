@@ -242,6 +242,7 @@ class RosterWizard {
                             // Reset to default when "Custom Pattern" is selected
                             this.config.patternSequence = Array(7).fill('R');
                             this.config.cycleLength = 7;
+                            this.config.shiftDefinitions = {}; // Clear any library overrides
                             this.renderInsightCard(null);
                             this.updateDesignerUI();
                         }
