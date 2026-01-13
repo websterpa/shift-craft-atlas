@@ -23,6 +23,8 @@ class ShiftCraftApp {
         // 1. Load Data
         this.staff = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.STAFF)) || [];
         this.shifts = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.SHIFTS)) || [];
+        this.rosterName = localStorage.getItem('shiftcraft_roster_name') || 'New Roster';
+        this.patternName = localStorage.getItem('shiftcraft_pattern_name') || '';
         this.settings = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS)) || {
             restPeriod: 11,
             theme: 'dark',
@@ -151,6 +153,7 @@ class ShiftCraftApp {
         this.updateHeader();
         this.updateStats();
         this.displayRosterName();
+        this.updateHeaderTitle();
         this.renderRoleFilter();
         this.updateRoleDatalist();
 
@@ -3291,6 +3294,37 @@ class ShiftCraftApp {
         this.rosterName = name;
         localStorage.setItem('shiftcraft_roster_name', name);
         this.displayRosterName();
+    }
+
+    setPatternName(name) {
+        this.patternName = name;
+        localStorage.setItem('shiftcraft_pattern_name', name);
+        this.updateHeaderTitle();
+    }
+
+    updateHeaderTitle() {
+        // Safe selector for the H1 or Header Title container
+        // Based on index.html: <div class="roster-header-title"><h1>Weekly Roster</h1>...
+        const container = document.querySelector('.roster-header-title h1');
+        if (!container) return;
+
+        let badge = document.getElementById('header-pattern-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.id = 'header-pattern-badge';
+            // Styling to match look and feel
+            badge.style.cssText = 'font-size: 0.9rem; color: var(--accent-blue); background: rgba(59, 130, 246, 0.1); padding: 2px 10px; border-radius: 20px; vertical-align: middle; margin-left: 1rem; border: 1px solid rgba(59, 130, 246, 0.2); font-weight: 500; display:none;';
+            container.appendChild(badge);
+        }
+
+        if (this.patternName && this.patternName !== 'Custom Pattern') {
+            badge.innerHTML = `<i data-lucide="layout-template" style="display:inline-block; width:14px; height:14px; vertical-align:text-bottom; margin-right:4px;"></i>${this.patternName}`;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+
+        if (window.lucide) window.lucide.createIcons();
     }
 }
 

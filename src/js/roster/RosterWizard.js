@@ -1115,6 +1115,9 @@ class RosterWizard {
             if (this.app.setRosterName) {
                 this.app.setRosterName(this.config.rosterName);
             }
+            if (this.app.setPatternName) {
+                this.app.setPatternName(this.config.sourcePatternName || 'Custom Pattern');
+            }
 
             const totalDays = this.config.weeks * 7;
             const endDate = new Date(startDate);
