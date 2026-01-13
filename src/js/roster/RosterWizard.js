@@ -396,16 +396,16 @@ class RosterWizard {
             <div class="insight-card">
                 <div class="insight-header">
                     <div>
-                        <div class="insight-title">${pattern.name}</div>
+                        <div class="insight-title" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            ${pattern.name}
+                            <span style="font-size:0.75rem; color:var(--text-muted); background:var(--glass-light); padding:2px 6px; border-radius:4px; font-weight:normal; border:1px solid var(--glass-border); line-height:1.2;">
+                                ${(pattern.shifts && Math.max(...pattern.shifts.map(s => s.duration || 0)) > 10) ? '12h Shifts' : '8h Shifts'}
+                            </span>
+                        </div>
                         <div class="insight-desc">${pattern.description || 'No description available'}</div>
                     </div>
-                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.5rem;">
-                        <div style="background:var(--accent-blue); color:white; padding: 4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; white-space:nowrap;">
-                            ${pattern.cycleDays} Day Cycle
-                        </div>
-                        <div style="background:rgba(255,255,255,0.05); color:var(--text-main); padding: 3px 8px; border-radius:4px; font-size:0.75rem; border:1px solid var(--glass-border); white-space:nowrap;">
-                            ${(pattern.shifts && Math.max(...pattern.shifts.map(s => s.duration || 0)) > 10) ? '12h Shifts' : '8h Shifts'}
-                        </div>
+                    <div style="background:var(--accent-blue); color:white; padding: 4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; white-space:nowrap; align-self:flex-start;">
+                        ${pattern.cycleDays} Day Cycle
                     </div>
                 </div>
                 
