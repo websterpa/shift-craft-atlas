@@ -238,8 +238,22 @@ class MonthlyRosterView {
                 // Add shift type label and times
                 let html = `<span class="shift-type-badge">${shiftInfo.code}</span> ${shift.start} - ${shift.end}`;
 
-                // Visual Indicator for Forced/Gap-Fill Assignments
-                if (shift.isForced) {
+                // Visual Indicator for Compliance Breaches (Priority High)
+                if (shift.complianceBreach) {
+                    pill.style.border = '2px solid var(--accent-rose)';
+                    pill.style.background = 'rgba(225, 29, 72, 0.15)'; // Rose tint
+                    pill.style.padding = '2px 4px';
+
+                    const breachMsg = shift.complianceBreach;
+                    // Add Alert Icon
+                    html += `<span title="Breach: ${breachMsg}" style="color:var(--accent-rose); margin-left:6px; cursor:help; vertical-align:middle; display:inline-flex;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg></span>`;
+
+                    // Enhanced Tooltip
+                    const duration = this.calculateDuration(shift.start, shift.end).toFixed(1);
+                    pill.title = `⚠️ COMPLIANCE VIOLATION: ${breachMsg}\n${shiftInfo.label}: ${shift.start} - ${shift.end} (${duration}h)`;
+
+                } else if (shift.isForced) {
+                    // Visual Indicator for Forced/Gap-Fill Assignments
                     pill.classList.add('forced-shift-pill'); // Hook for custom CSS if needed
                     pill.style.borderLeft = '3px solid #f59e0b';
                     pill.style.paddingLeft = '4px';
@@ -253,6 +267,7 @@ class MonthlyRosterView {
                     const duration = this.calculateDuration(shift.start, shift.end).toFixed(1);
                     pill.title = `${shiftInfo.label}: ${shift.start} - ${shift.end} (${duration}h)`;
                 }
+
 
                 pill.innerHTML = html;
                 cell.appendChild(pill);

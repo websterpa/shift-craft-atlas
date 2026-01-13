@@ -1094,6 +1094,26 @@ class RosterWizard {
             let shiftsGenerated = 0;
             if (window.RosterLogic) {
                 const newShifts = RosterLogic.generateShifts(this.config, this.app.settings, this.app.shifts);
+
+                // --- Tag Breaches if Override ---
+                // If the user clicked "Generate Anyway", we must explicitly record WHICH shifts are violations
+                // so they appear RED in the roster and persist in logs.
+                if (override && this.app.complianceEngine) {
+                    const tempAll = [...this.app.shifts, ...newShifts];
+                    this.config.selectedStaff.forEach(staffId => {
+                        const violations = this.app.complianceEngine.checkDailyRest(staffId, tempAll);
+                        violations.forEach(v => {
+                            // Find the shift in newShifts that matches violation ID
+                            const badShift = newShifts.find(s => s.id === v.shiftId);
+                            if (badShift) {
+                                badShift.complianceBreach = v.message;
+                                badShift.isForced = true;
+                                badShift.forcedReason = 'Compliance Override: ' + (v.gap ? v.gap + 'h Rest' : 'Violation');
+                            }
+                        });
+                    });
+                }
+
                 this.app.shifts.push(...newShifts);
                 shiftsGenerated = newShifts.length;
             } else {
