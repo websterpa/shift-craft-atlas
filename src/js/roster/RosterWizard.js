@@ -962,9 +962,15 @@ class RosterWizard {
                     Proceeding without correcting this poses a compliance risk.
                 </p>
                 
-                <div style="background:rgba(226, 88, 88, 0.15); padding:1rem; border-radius:8px; margin-bottom:2rem; border-left:4px solid var(--accent-rose);">
-                    <div style="font-weight:700; color:var(--accent-rose); margin-bottom:0.5rem;">Affects:</div>
-                    <div style="color:#cbd5e1;">${staffNames}</div>
+                <div style="background:rgba(225, 29, 72, 0.1); padding:1rem; border-radius:8px; margin-bottom:1.5rem; border:1px solid rgba(225, 29, 72, 0.3);">
+                    <div style="font-weight:700; color:var(--accent-rose); margin-bottom:0.5rem; font-size:0.9rem; text-transform:uppercase;">Violation Details</div>
+                    <div style="max-height:120px; overflow-y:auto; padding-right:4px;">
+                        ${breaches.map(b => b.violations.map(v =>
+            `<div style="font-size:0.9rem; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.05); color:#e2e8f0; display:flex; justify-content:space-between;">
+                                <span><span style="color:#94a3b8;">${b.staff}:</span> ${v.message}</span>
+                            </div>`
+        ).join('')).join('')}
+                    </div>
                 </div>
 
                 <div style="display:flex; justify-content:flex-end; gap:1rem;">
