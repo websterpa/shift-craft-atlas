@@ -39,7 +39,7 @@ class WizardStep2 {
             'E': 'Early',
             'L': 'Late',
             'N': 'Night',
-            'D': 'Day (12h)',
+            'D': 'Day',
             'C': 'Custom'
         };
 
@@ -54,9 +54,29 @@ class WizardStep2 {
             const box = document.createElement('div');
             box.className = 'wizard-box';
 
+            let displayName = shiftNames[type] || type;
+            let is12h = false;
+
+            // 1. Check Shift Definitions (from Pattern)
+            if (this.config.shiftDefinitions && this.config.shiftDefinitions[type]) {
+                const s = this.config.shiftDefinitions[type];
+                const st = parseInt(s.start.split(':')[0]);
+                let et = parseInt(s.end.split(':')[0]);
+                if (s.end.includes(':30')) et += 0.5; // Handle 12.5h etc roughly
+
+                const dur = (et <= st ? (et + 24) - st : et - st);
+                if (dur > 10) is12h = true;
+            }
+            // 2. Default Assumptions (if no definition overrides)
+            else if (type === 'D') {
+                is12h = true; // Day 12h is standard
+            }
+
+            if (is12h) displayName += ' (12h)';
+
             const label = document.createElement('label');
             label.className = 'wizard-label';
-            label.textContent = `${shiftNames[type] || type} Shift Coverage`;
+            label.textContent = `${displayName} Shift Coverage`;
 
             const group = document.createElement('div');
             group.className = 'wizard-input-group';
@@ -90,7 +110,7 @@ class WizardStep2 {
             const span = document.createElement('span');
             span.className = 'wizard-help-text';
             span.style.marginBottom = '0';
-            span.textContent = ` staff members per ${shiftNames[type] || type} shift`;
+            span.textContent = ` staff members per ${displayName} shift`;
 
             group.appendChild(input);
             group.appendChild(span);
