@@ -151,10 +151,26 @@
                                 style="border-color: var(--accent-blue);">
                                 <i data-lucide="sparkles"></i> Smart Fill
                             </button>
-                            <button class="btn btn-outline" id="export-roster-pdf-btn"
-                                style="border-color: var(--accent-emerald); color: var(--accent-emerald);">
-                                <i data-lucide="file-image"></i> Export Roster PDF
-                            </button>
+                            <div class="dropdown" id="export-dropdown"
+                                style="position: relative; display: inline-block;">
+                                <button class="btn btn-outline" id="export-menu-btn"
+                                    style="border-color: var(--accent-emerald); color: var(--accent-emerald);">
+                                    <i data-lucide="download"></i> Export Roster <i data-lucide="chevron-down"
+                                        style="width: 14px; height: 14px; margin-left: 0.25rem;"></i>
+                                </button>
+                                <div class="dropdown-content" id="export-menu"
+                                    style="display: none; position: absolute; background: var(--glass-bg); min-width: 180px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); z-index: 1000; border: 1px solid var(--glass-border); border-radius: 0.5rem; top: 100%; right: 0; margin-top: 0.25rem; backdrop-filter: blur(12px);">
+                                    <a href="#" id="export-pdf-option"
+                                        style="color: var(--text-normal); padding: 0.75rem 1rem; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s;">
+                                        <i data-lucide="file-image" style="width: 16px; height: 16px;"></i> PDF Document
+                                    </a>
+                                    <a href="#" id="export-excel-option"
+                                        style="color: var(--text-normal); padding: 0.75rem 1rem; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s; border-top: 1px solid var(--glass-border);">
+                                        <i data-lucide="sheet" style="width: 16px; height: 16px;"></i> Excel Spreadsheet
+                                    </a>
+                                </div>
+                            </div>
+                            <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
                             <div style="border-right: 1px solid var(--glass-border); height: 24px; margin: 0 0.5rem;">
                             </div>
 
@@ -218,8 +234,8 @@
                                         style="width:16px;height:16px;"></i>
                                     Auto-Fill</button>
                                 <button class="btn btn-outline" id="save-template-btn"
-                                    title="Save current pattern as a template">
-                                    <i data-lucide="save" style="width:16px;height:16px;"></i> Save Template
+                                    title="Save entire roster as a snapshot">
+                                    <i data-lucide="save" style="width:16px;height:16px;"></i> Save Snapshot
                                 </button>
                                 <button class="btn btn-outline" id="apply-template-btn"
                                     title="Apply a saved template to staff">
@@ -501,7 +517,11 @@
                                 rosters.
                             </p>
                         </div>
-                        <div class="header-actions">
+                        <div class="header-actions" style="display:flex; align-items:center;">
+                            <button class="btn btn-primary" id="save-roster-to-library-btn"
+                                style="display: flex; gap: 0.5rem; align-items: center; margin-right: 1rem;">
+                                <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i> Save Current Roster
+                            </button>
                             <span id="saved-rosters-count" class="badge">0 Saved</span>
                         </div>
                     </header>
@@ -1001,6 +1021,8 @@
                                 <li style="margin-bottom:0.5rem"><strong>WTR Compliance:</strong> Automatic checks for
                                     Working
                                     Time Regulations (11h daily rest, 24h/48h weekly rest).</li>
+                                <li style="margin-bottom:0.5rem"><strong>Smart Alerts:</strong> Detailed context for
+                                    breaches (e.g. Quick Changeovers) with advisory guidance.</li>
                                 <li style="margin-bottom:0.5rem"><strong>Real-time Costing:</strong> Payroll estimates
                                     update
                                     instantly. Includes Holiday Accrual (12.07%).</li>
@@ -1718,6 +1740,7 @@
     <script src="src/js/allocation/AllocationEngine.js"></script>
     <script src="src/js/views/MonthlyRosterView.js?v=3"></script>
     <script src="src/js/roster/RosterLogic.js?v=3"></script>
+    <script src="src/js/roster/RosterExport.js"></script>
     <script src="src/js/roster/wizard/WizardStep2.js?v=3"></script>
     <script src="src/js/roster/RosterWizard.js?v=3"></script>
     <script src="src/js/app.js?v=3"></script>

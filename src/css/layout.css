@@ -237,3 +237,27 @@ header {
 [data-theme="light"] #view-help h3 {
     color: var(--text-main) !important;
 }
+
+/* --- High Visibility Week Navigation --- */
+#prev-week,
+#next-week {
+    border: 1.5px solid var(--accent-blue) !important;
+    background: rgba(59, 130, 246, 0.05);
+    transition: all 0.2s ease;
+}
+
+#prev-week:hover,
+#next-week:hover {
+    background: var(--accent-blue);
+    color: white;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Container Border */
+.roster-controls {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.02);
+}

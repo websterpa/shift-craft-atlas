@@ -49,14 +49,22 @@ class ComplianceEngine {
 
             // Flag if rest period is less than statutory minimum (typically 11 hours)
             if (gapHours < this.settings.restPeriod && gapHours >= 0) {
+                let msg = `Rest period of ${gapHours.toFixed(1)}h is below statutory ${this.settings.restPeriod}h`;
+
+                // Advisory for Quick Changeovers (8h-11h) common in standard patterns
+                if (gapHours >= 8 && gapHours < 11) {
+                    msg += `. This is a common 'Quick Changeover' (Late to Early). Statutory rest can be reduced if compensatory rest is provided.`;
+                }
+
                 violations.push({
                     type: 'DAILY_REST',
-                    message: `Rest period of ${gapHours.toFixed(1)}h is below statutory ${this.settings.restPeriod}h`,
+                    message: msg,
                     gap: parseFloat(gapHours.toFixed(1)),
                     date: curr.date,
                     shiftId: curr.id,
                     prevShiftEnd: prev.end,
-                    currShiftStart: curr.start
+                    currShiftStart: curr.start,
+                    severity: (gapHours >= 8 && gapHours < 11) ? 'warning' : 'critical'
                 });
             }
         }

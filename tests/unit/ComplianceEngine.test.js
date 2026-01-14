@@ -80,4 +80,17 @@ test.describe('ComplianceEngine Unit Tests', () => {
         expect(data.totalNightHours).toBe(7);
         expect(data.isNightWorker).toBe(true);
     });
+
+    test('ComplianceEngine should provide advisory for 8h Quick Changeover', async ({ page }) => {
+        const violations = await page.evaluate(() => {
+            const engine = new window.ComplianceEngine({ restPeriod: 11 });
+            const shifts = [
+                { id: '1', staffId: 'p1', date: '2025-12-20', start: '14:00', end: '22:00' }, // Late
+                { id: '2', staffId: 'p1', date: '2025-12-21', start: '06:00', end: '14:00' }  // Early (8h gap)
+            ];
+            return engine.checkDailyRest('p1', shifts);
+        });
+        expect(violations.length).toBe(1);
+        expect(violations[0].message).toContain("This is a common 'Quick Changeover'");
+    });
 });

@@ -331,8 +331,35 @@ class ShiftCraftApp {
         const finalExportEl = document.getElementById('final-export-btn');
         if (finalExportEl) finalExportEl.onclick = () => this.generatePayrollExport();
 
-        const exportRosterPdfEl = document.getElementById('export-roster-pdf-btn');
-        if (exportRosterPdfEl) exportRosterPdfEl.onclick = () => this.exportRosterPDF();
+        // Initialize Export Module
+        this.rosterExport = new RosterExport(this);
+
+        // Export Dropdown Logic
+        const exportMenuBtn = document.getElementById('export-menu-btn');
+        const exportMenu = document.getElementById('export-menu');
+        if (exportMenuBtn && exportMenu) {
+            exportMenuBtn.onclick = (e) => {
+                e.stopPropagation();
+                exportMenu.style.display = exportMenu.style.display === 'block' ? 'none' : 'block';
+            };
+            // Close when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!exportMenuBtn.contains(e.target) && !exportMenu.contains(e.target)) {
+                    exportMenu.style.display = 'none';
+                }
+            });
+        }
+
+        document.getElementById('export-pdf-option').onclick = (e) => {
+            e.preventDefault();
+            this.rosterExport.exportToPDF();
+            exportMenu.style.display = 'none';
+        };
+        document.getElementById('export-excel-option').onclick = (e) => {
+            e.preventDefault();
+            this.rosterExport.exportToExcel();
+            exportMenu.style.display = 'none';
+        };
 
         document.getElementById('autofill-btn').onclick = () => this.handleAutoFill();
         const smartFillEl = document.getElementById('smart-fill-btn');
@@ -512,6 +539,17 @@ class ShiftCraftApp {
 
         const saveSnapshotBtn = document.getElementById('save-snapshot-btn');
         if (saveSnapshotBtn) saveSnapshotBtn.onclick = () => this.saveRosterSnapshot();
+
+        const saveLibraryBtn = document.getElementById('save-roster-to-library-btn');
+        if (saveLibraryBtn) saveLibraryBtn.onclick = async () => {
+            await this.saveRosterSnapshot();
+            // Also refresh the My Rosters view if we are currently on it (which we likely are)
+            if (this.currentView === 'my-rosters') this.renderMyRosters();
+        };
+
+        // User Feedback adjustment: "Save Template" button now triggers "Save Snapshot"
+        const saveTemplateBtn = document.getElementById('save-template-btn');
+        if (saveTemplateBtn) saveTemplateBtn.onclick = () => this.saveRosterSnapshot();
 
         const loadSnapshotBtn = document.getElementById('load-snapshot-btn');
         if (loadSnapshotBtn) loadSnapshotBtn.onclick = () => this.loadRosterSnapshot();
@@ -1812,138 +1850,7 @@ class ShiftCraftApp {
         }
     }
 
-    /**
-     * Export the weekly roster grid as a PDF using jsPDF autoTable
-     * Creates a visual roster grid showing staff and their shifts for each day
-     */
-    async exportRosterPDF() {
-        this.showToast('Generating roster PDF...', 'file-image');
 
-        try {
-            if (typeof window.jspdf === 'undefined') {
-                throw new Error('jsPDF library not loaded');
-            }
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('landscape', 'mm', 'a4');
-
-            // Week date range
-            const weekStart = new Date(this.weekStart);
-            const weekEnd = new Date(weekStart);
-            weekEnd.setDate(weekEnd.getDate() + 6);
-            const startStr = weekStart.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-            const endStr = weekEnd.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-            const filename = `Shift_Roster_${weekStart.toISOString().split('T')[0]}.pdf`;
-
-            // Day names for headers
-            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            const dayDates = days.map((_, i) => {
-                const d = new Date(weekStart);
-                d.setDate(d.getDate() + i);
-                return d.toISOString().split('T')[0];
-            });
-
-            // Build header row with dates
-            const headers = ['Employee', ...days.map((day, i) => {
-                const d = new Date(dayDates[i]);
-                return `${day} ${d.getDate()}/${d.getMonth() + 1}`;
-            })];
-
-            // Build data rows from staff and shifts
-            const tableData = this.staff.map(person => {
-                const row = [`[${person.staffNumber || '---'}] ${person.name}`];
-                dayDates.forEach(dateStr => {
-                    const shiftsOnDay = this.shifts.filter(s =>
-                        s.staffId === person.id && s.date === dateStr
-                    );
-                    if (shiftsOnDay.length > 0) {
-                        row.push(shiftsOnDay.map(s => `${s.start}-${s.end}`).join('\n'));
-                    } else {
-                        row.push('-');
-                    }
-                });
-                return row;
-            });
-
-            // Header
-            doc.setFontSize(18);
-            doc.setTextColor(99, 102, 241);
-            doc.text('Shift Craft - Weekly Roster', 14, 15);
-
-            doc.setFontSize(12);
-            doc.setTextColor(80);
-            doc.text(`Week: ${startStr} - ${endStr}`, 14, 23);
-
-            const weekShifts = this.shifts.filter(s => dayDates.includes(s.date));
-            doc.text(`Staff: ${this.staff.length} | Total Shifts: ${weekShifts.length}`, 14, 30);
-
-            // Create table
-            doc.autoTable({
-                startY: 38,
-                head: [headers],
-                body: tableData.length > 0 ? tableData : [['No staff', '-', '-', '-', '-', '-', '-', '-']],
-                theme: 'grid',
-                headStyles: {
-                    fillColor: [99, 102, 241],
-                    textColor: 255,
-                    fontSize: 9,
-                    fontStyle: 'bold',
-                    halign: 'center'
-                },
-                columnStyles: {
-                    0: { cellWidth: 50, fontStyle: 'bold' }, // Employee column wider
-                    1: { halign: 'center', cellWidth: 30 },
-                    2: { halign: 'center', cellWidth: 30 },
-                    3: { halign: 'center', cellWidth: 30 },
-                    4: { halign: 'center', cellWidth: 30 },
-                    5: { halign: 'center', cellWidth: 30 },
-                    6: { halign: 'center', cellWidth: 30, fillColor: [245, 245, 245] }, // Saturday
-                    7: { halign: 'center', cellWidth: 30, fillColor: [245, 245, 245] }  // Sunday
-                },
-                styles: {
-                    fontSize: 8,
-                    cellPadding: 3,
-                    overflow: 'linebreak'
-                },
-                alternateRowStyles: {
-                    fillColor: [250, 250, 250]
-                }
-            });
-
-            // Footer
-            const pageHeight = doc.internal.pageSize.height;
-            doc.setFontSize(8);
-            doc.setTextColor(150);
-            doc.text(`Generated: ${new Date().toLocaleString()}`, 14, pageHeight - 5);
-
-            // Save with native dialog if available
-            if ('showSaveFilePicker' in window) {
-                try {
-                    const handle = await window.showSaveFilePicker({
-                        suggestedName: filename,
-                        types: [{ description: 'PDF File', accept: { 'application/pdf': ['.pdf'] } }]
-                    });
-                    const writable = await handle.createWritable();
-                    await writable.write(doc.output('blob'));
-                    await writable.close();
-                    this.showToast(`Saved ${handle.name}`, 'check-circle');
-                } catch (err) {
-                    if (err.name === 'AbortError') {
-                        this.showToast('Export cancelled', 'x');
-                    } else {
-                        throw err;
-                    }
-                }
-            } else {
-                // Fallback: direct download
-                doc.save(filename);
-                this.showToast(`Downloaded ${filename}`, 'check-circle');
-            }
-        } catch (error) {
-            console.error('Roster PDF export failed:', error);
-            this.showToast('Export failed: ' + error.message, 'alert-triangle');
-        }
-    }
 
     changeWeek(days) {
         this.weekStart.setDate(this.weekStart.getDate() + days);
@@ -1996,8 +1903,13 @@ class ShiftCraftApp {
         }
 
         this.saveToStorage();
+        this.saveToStorage();
         this.renderTableBody();
         this.renderTableHead();
+
+        if (this.currentViewMode === 'monthly') {
+            this.initInlineMonthlyView();
+        }
         this.updateStats();
     }
 
@@ -2356,8 +2268,12 @@ class ShiftCraftApp {
             ).join('');
         }
 
-        // Set to current month
-        this.inlineMonthlyMonth = new Date();
+        // Set to current month based on weekly view focus
+        if (this.weekStart) {
+            this.inlineMonthlyMonth = new Date(this.weekStart);
+        } else {
+            this.inlineMonthlyMonth = new Date();
+        }
 
         // Render calendar
         this.renderInlineMonthlyCalendar();

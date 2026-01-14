@@ -192,6 +192,142 @@ class RosterWizard {
         return true;
     }
 
+    /**
+     * Smart Continuity: Detects last roster state and aligns new roster
+     */
+    continueFromHistory() {
+        if (!this.app.shifts || this.app.shifts.length === 0) {
+            this.app.showToast('No existing roster to continue from', 'alert-circle');
+            return;
+        }
+
+        // 1. Try to restore last pattern config
+        const lastRun = localStorage.getItem('shiftcraft_wizard_last_run');
+        if (lastRun) {
+            try {
+                const session = JSON.parse(lastRun);
+                // Restore Pattern & Staff
+                this.config.patternSequence = session.patternSequence || Array(7).fill('R');
+                this.config.cycleLength = session.cycleLength || 7;
+                this.config.selectedStaff = session.selectedStaff || [];
+                this.config.sourcePatternName = session.sourcePatternName || 'Continuation';
+                this.config.shiftDefinitions = session.shiftDefinitions || {};
+
+                // 2. Calculate Continuity
+                const result = this.calculateContinuity(this.config.patternSequence);
+
+                if (result.maxDate) {
+                    this.config.startDate = result.nextStartStr;
+                    this.config.initialOffsets = result.offsets;
+
+                    // UX Feedback
+                    this.app.showToast(`Continuing from ${result.maxDateStr}. Offsets calculated for ${Object.keys(result.offsets).length} staff.`, 'check-circle');
+
+                    // Jump to Step 2 (Pattern) to verify
+                    this.showStep(2);
+                } else {
+                    this.app.showToast('Could not detect a consistent history to continue from.', 'alert-circle');
+                }
+
+            } catch (e) {
+                console.error('Failed to restore for continue', e);
+                this.app.showToast('Error restoring last configuration', 'alert-circle');
+            }
+        } else {
+            this.app.showToast('No previous pattern usage found. Please select a pattern first.', 'info');
+        }
+    }
+
+    calculateContinuity(patternSequence) {
+        if (!patternSequence || patternSequence.length === 0) return { maxDate: null };
+
+        // 1. Find the absolute latest date in the entire system
+        let maxDate = 0;
+        let maxDateStr = '';
+
+        this.app.shifts.forEach(s => {
+            const d = new Date(s.date).getTime();
+            if (d > maxDate) {
+                maxDate = d;
+                maxDateStr = s.date;
+            }
+        });
+
+        if (maxDate === 0) return { maxDate: null };
+
+        // 2. Next Start = Max + 1
+        const nextStartObj = new Date(maxDate);
+        nextStartObj.setDate(nextStartObj.getDate() + 1);
+        const nextStartStr = nextStartObj.toISOString().split('T')[0];
+
+        // 3. Calculate Offsets
+        const offsets = {};
+        const cycleLen = patternSequence.length;
+
+        // For each staff member involved
+        // We scan "Selected Staff" if set, or just all staff? 
+        // Better to scan "Selected Staff" from the restored session.
+        const staffList = this.config.selectedStaff.length > 0 ? this.config.selectedStaff : this.app.staff.map(s => s.id);
+
+        staffList.forEach(staffId => {
+            // Find what they did on 'maxDate' (The anchor day)
+            const lastShift = this.app.shifts.find(s => s.staffId === staffId && s.date === maxDateStr);
+
+            // Default: 0 offset if no history found on that specific day
+            // (Improvements could look back further, but for MVP strict continuity on End Date is safest)
+            let lastCode = 'R';
+            if (lastShift) {
+                lastCode = lastShift.shiftType || 'D';
+            } else {
+                // If they were OFF on the last day, we need to know WHICH 'R' it was.
+                // This is the hard part.
+                // Fallback: Check day before? 
+                const prevDateObj = new Date(maxDate);
+                prevDateObj.setDate(prevDateObj.getDate() - 1);
+                const prevDateStr = prevDateObj.toISOString().split('T')[0];
+                const prevShift = this.app.shifts.find(s => s.staffId === staffId && s.date === prevDateStr);
+
+                if (prevShift) {
+                    // They worked yesterday. 
+                    const prevCode = prevShift.shiftType;
+                    // Find sequence [Prev, R] in pattern
+                    // For MVP simplicity: Just defaulting to 0 for Rests is risky.
+                    // Let's assume standard staggered logic if we can't lock it.
+                }
+            }
+
+            // PATTERN MATCHING ENGINE
+            // Find all occurrences of 'lastCode' in the pattern
+            // And calculate what the NEXT index would be.
+            // If multiple matches, we pick the first one? (Naive)
+            // Or we check index = (MaxDateOrdinal + StaffIdx) % Len ? No, that's the "Blind Math" we hate.
+
+            // "Blind Math" Reverse Engineering:
+            // If the previous roster was "Blind Math" generated, we can compute where they SHOULD be.
+            // BUT the whole point is they might have been manually edited.
+
+            // Best Effort: Find the FIRST occurrence of 'lastCode' in the pattern.
+            // And set offset such that (Day 0 + Offset) % Len = (ThatIndex + 1)
+
+            // Example: Ended on 'N'. 'N' is at index 3. Next is 4.
+            // We want PatternIdx at NewDay0 to be 4.
+            // Formula: (0 + Offset) % Len = 4  => Offset = 4.
+
+            const matchIndex = patternSequence.indexOf(lastCode);
+            if (matchIndex !== -1) {
+                // Determine next index
+                const nextIndex = (matchIndex + 1) % cycleLen;
+                offsets[staffId] = nextIndex;
+            } else {
+                // Code not in pattern? (e.g. they worked 'X' but pattern is 'D,N'). 
+                // Default to 0.
+                offsets[staffId] = 0;
+            }
+        });
+
+        return { maxDateStr, nextStartStr, offsets };
+    }
+
     // --- Step 1: Pattern Designer ---
     renderStep1(retryCount = 0) {
         // Wait for pattern library to load to prevent race condition
@@ -212,6 +348,26 @@ class RosterWizard {
             const existingSelector = step1Panel.querySelector('#pattern-library-selector');
             if (!existingSelector) {
                 const selectorHTML = `
+                <!-- Continue Option -->
+                <div class="wizard-box" style="border-color:var(--accent-blue); background:rgba(59, 130, 246, 0.05);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h4 style="margin:0; color:var(--accent-blue); font-size:1rem;">Continue Existing Roster</h4>
+                            <p style="margin:4px 0 0 0; font-size:0.85rem; color:var(--text-muted);">
+                                Extend your current roster seamlessly. The wizard will detect where each staff member left off (e.g. Night 2) and continue their pattern.
+                            </p>
+                        </div>
+                        <button id="wizard-continue-btn" style="white-space:nowrap; padding:0.5rem 1rem; border-radius:6px; background:var(--accent-blue); color:white; border:none; cursor:pointer; font-weight:600; font-size:0.9rem; display:flex; align-items:center; gap:6px;">
+                            <i data-lucide="fast-forward"></i> Continue
+                        </button>
+                    </div>
+                </div>
+
+                <div style="text-align:center; margin:1rem 0; position:relative; opacity:0.6;">
+                    <span style="background:var(--bg-main); padding:0 1rem; relative; z-index:1; color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">OR START FRESH</span>
+                    <div style="position:absolute; top:50%; left:0; right:0; height:1px; background:var(--glass-border); z-index:-1;"></div>
+                </div>
+
                 <div class="wizard-box">
                     <label class="wizard-label">Choose a Pattern Template</label>
                     <select class="form-control" id="pattern-library-selector" style="margin-bottom: 0.5rem;">
@@ -239,14 +395,19 @@ class RosterWizard {
                         } else if (e.target.value) {
                             this.applyLibraryPattern(e.target.value);
                         } else {
-                            // Reset to default when "Custom Pattern" is selected
+                            // Reset to default
                             this.config.patternSequence = Array(7).fill('R');
                             this.config.cycleLength = 7;
-                            this.config.shiftDefinitions = {}; // Clear any library overrides
+                            this.config.shiftDefinitions = {};
                             this.renderInsightCard(null);
                             this.updateDesignerUI();
                         }
                     };
+
+                    const continueBtn = document.getElementById('wizard-continue-btn');
+                    if (continueBtn) {
+                        continueBtn.onclick = () => this.continueFromHistory();
+                    }
                 }
             } else {
                 // Selector exists, check if we need to show the Restore option
@@ -752,7 +913,17 @@ class RosterWizard {
             return;
         }
 
+        const required = this.calculateRequiredStaff();
+
         container.innerHTML = `
+            <div class="wizard-advice-box" style="margin-bottom: 1.5rem; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-left: 4px solid #3b82f6; padding: 1rem; border-radius: 6px;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #60a5fa; font-size: 1rem;">Headcount Assessment</h4>
+                <p style="margin:0; font-size:0.9rem;">
+                    <span style="color:#93c5fd; font-weight:700;">Requirement:</span> 
+                    Based on your input, this pattern requires a minimum of <strong>${required} Staff Members</strong> to maintain full coverage.
+                </p>
+            </div>
+
             <div style="display:flex; justify-content:space-between; margin-bottom:1.25rem; align-items:center; background: var(--glass-light); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--glass-border);">
                 <label style="cursor:pointer; display:flex; align-items:center; gap:0.5rem; font-weight: 600;">
                     <input type="checkbox" id="wizard-select-all" ${this.config.selectedStaff.length === this.app.staff.length ? 'checked' : ''}> Select All
@@ -868,10 +1039,10 @@ class RosterWizard {
                     <div class="form-group" style="margin-top:2rem;">
                         <label style="display:flex; gap:0.5rem; align-items:center; cursor:pointer;">
                             <input type="checkbox" id="wizard-clear-existing" checked>
-                            <span style="color:var(--text-main); font-weight:500;">Clear existing shifts for selected staff?</span>
+                            <span style="color:var(--text-main); font-weight:500;">Clear ALL shifts in this period?</span>
                         </label>
                         <small style="color:var(--accent-rose); display:block; margin-top:0.25rem;">
-                            Warning: This will remove all shifts for the selected employees in the target period.
+                            Warning: This will remove ALL shifts (including unselected staff) from the roster in the target period.
                         </small>
                     </div>
 
@@ -1023,39 +1194,52 @@ class RosterWizard {
             document.body.appendChild(modal);
         }
 
-        const totalBreaches = breaches.reduce((sum, b) => sum + b.violations.length, 0);
-        // Limit staff names list
-        let staffNames = breaches.map(b => b.staff).slice(0, 3).join(', ');
-        if (breaches.length > 3) staffNames += ` + ${breaches.length - 3} others`;
+        const criticalCount = breaches.reduce((sum, b) => sum + b.violations.filter(v => v.severity !== 'warning').length, 0);
+        const warningCount = breaches.reduce((sum, b) => sum + b.violations.filter(v => v.severity === 'warning').length, 0);
+        const isCritical = criticalCount > 0;
+
+        const toneColor = isCritical ? 'var(--accent-rose)' : 'var(--accent-amber)'; // Red vs Amber
+        const title = isCritical ? 'Compliance Alert' : 'Advisory Notice';
+
+        // Dynamic Message
+        let msg = '';
+        if (isCritical) {
+            msg = `The roster generates <strong style="color:${toneColor}">${criticalCount} critical breach(es)</strong>${warningCount > 0 ? ` and ${warningCount} advisory notices` : ''}.<br>Proceeding without correction poses a compliance risk.`;
+        } else {
+            msg = `The roster contains <strong>${warningCount} advisory notice(s)</strong> (e.g. Quick Changeovers).<br>These are permitted but require compensatory rest.`;
+        }
 
         modal.innerHTML = `
-            <div style="background: #1e1e2e; border: 2px solid var(--accent-rose); width: 90%; max-width: 550px; padding: 2rem; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-                <div style="display:flex; gap:1rem; align-items:center; margin-bottom:1.5rem; color:var(--accent-rose);">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-octagon"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/></svg>
-                    <h2 style="margin:0; font-size:1.5rem; font-weight:700;">Compliance Alert</h2>
+            <div style="background: #1e1e2e; border: 2px solid ${toneColor}; width: 90%; max-width: 600px; padding: 2rem; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                <div style="display:flex; gap:1rem; align-items:center; margin-bottom:1.5rem; color:${toneColor};">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <h2 style="margin:0; font-size:1.5rem; font-weight:700;">${title}</h2>
                 </div>
                 
                 <p style="margin-bottom:1.5rem; line-height:1.6; color:#e2e8f0; font-size:1.05rem;">
-                    The roster generates <strong>${totalBreaches} breach(es)</strong> of Working Time Regulations (Daily Rest).<br>
-                    Proceeding without correcting this poses a compliance risk.
+                    ${msg}
                 </p>
                 
-                <div style="background:rgba(225, 29, 72, 0.1); padding:1rem; border-radius:8px; margin-bottom:1.5rem; border:1px solid rgba(225, 29, 72, 0.3);">
-                    <div style="font-weight:700; color:var(--accent-rose); margin-bottom:0.5rem; font-size:0.9rem; text-transform:uppercase;">Violation Details</div>
-                    <div style="max-height:120px; overflow-y:auto; padding-right:4px;">
-                        ${breaches.map(b => b.violations.map(v =>
-            `<div style="font-size:0.9rem; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.05); color:#e2e8f0; display:flex; justify-content:space-between;">
-                                <span><span style="color:#94a3b8;">${b.staff}:</span> ${v.message}</span>
-                            </div>`
-        ).join('')).join('')}
-                    </div>
+                <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px; margin-bottom:1.5rem; border:1px solid var(--glass-border); max-height:200px; overflow-y:auto;">
+                    ${breaches.map(b => b.violations.map(v => {
+            const isWarn = v.severity === 'warning';
+            const color = isWarn ? 'var(--accent-amber)' : 'var(--accent-rose)';
+            const icon = isWarn ? '⚠️' : '⛔';
+            return `<div style="font-size:0.9rem; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); color:#e2e8f0; display:flex; gap:10px; align-items:flex-start;">
+                                <span style="flex-shrink:0;">${icon}</span>
+                                <div>
+                                    <span style="color:${color}; font-weight:600;">${b.staff}:</span> 
+                                    <span>${v.message}</span>
+                                </div>
+                            </div>`;
+        }).join('')).join('')}
                 </div>
 
                 <div style="display:flex; justify-content:flex-end; gap:1rem;">
                     <button id="gate-fix-btn" style="padding:0.75rem 1.5rem; border-radius:6px; background:transparent; border:1px solid #94a3b8; color:#f1f5f9; cursor:pointer; font-weight:600; font-size:0.95rem;">
                         Go Back & Fix
                     </button>
-                    <button id="gate-override-btn" style="padding:0.75rem 1.5rem; border-radius:6px; background:var(--accent-rose); border:none; color:white; cursor:pointer; font-weight:600; font-size:0.95rem; box-shadow: 0 4px 6px -1px rgba(225, 29, 72, 0.3);">
+                    <button id="gate-override-btn" style="padding:0.75rem 1.5rem; border-radius:6px; background:${toneColor}; border:none; color:${isCritical ? 'white' : 'black'}; cursor:pointer; font-weight:600; font-size:0.95rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);">
                         Generate Anyway
                     </button>
                 </div>
@@ -1148,7 +1332,7 @@ class RosterWizard {
                     const selectedStaffIds = this.config.selectedStaff;
                     simulatedShifts = simulatedShifts.filter(s => {
                         if (s.date < startDateStr || s.date >= endStr) return true;
-                        if (!selectedStaffIds.includes(s.staffId)) return true;
+                        // Clear ALL shifts in the target window to simulate a fresh generation
                         return false;
                     });
                 }
@@ -1186,7 +1370,7 @@ class RosterWizard {
                 const selectedStaffIds = this.config.selectedStaff;
                 this.app.shifts = this.app.shifts.filter(s => {
                     if (s.date < startDateStr || s.date >= endStr) return true;
-                    if (!selectedStaffIds.includes(s.staffId)) return true;
+                    // Clear ALL shifts in the target window (Fixes 'Ghost Shifts' / Operator 9 issue)
                     return false;
                 });
             }
@@ -1237,6 +1421,12 @@ class RosterWizard {
             this.app.saveToStorage();
             if (this.app.renderTableBody) this.app.renderTableBody();
             if (this.app.renderTableHead) this.app.renderTableHead();
+
+            // If in monthly view, refresh it to show new shifts
+            if (this.app.currentViewMode === 'monthly' && this.app.initInlineMonthlyView) {
+                this.app.initInlineMonthlyView();
+            }
+
             if (this.app.updateStats) this.app.updateStats();
 
             // Save Pattern

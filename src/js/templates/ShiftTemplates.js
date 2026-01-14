@@ -19,8 +19,9 @@ class ShiftTemplates {
 
     bindEvents() {
         // Save Template Button
-        const saveBtn = document.getElementById('save-template-btn');
-        if (saveBtn) saveBtn.onclick = () => this.showSaveModal();
+        // Save Template Button
+        // const saveBtn = document.getElementById('save-template-btn');
+        // if (saveBtn) saveBtn.onclick = () => this.showSaveModal();
 
         // Apply Template Button
         const applyBtn = document.getElementById('apply-template-btn');

@@ -87,8 +87,8 @@ class RosterLogic {
         // Fix: Only strictly past shifts should seed the 'last assignment' to prevent negative rest calculation
         if (Array.isArray(existingShifts)) {
             existingShifts.forEach(s => {
-                // Ensure we don't pick up future shifts if the user didn't clear them
-                if (s.date < startDateStr) {
+                // Ensure we include shifts up to AND including the start date so we don't duplicate/overlap
+                if (s.date <= startDateStr) {
                     const end = RosterLogic.calculateEndTime(s.date, s.start, s.end);
                     const current = lastAssignmentMap[s.staffId];
                     if (!current || end > current) {
@@ -119,8 +119,39 @@ class RosterLogic {
 
             // Pass 1: Natural Pattern Rotation
             selectedStaffIds.forEach((staffId, staffIdx) => {
-                const patternIdx = (dayOffset + staffIdx) % cycleLen;
+                // Feature: Smart Continuity (Initial Offsets)
+                // If an offset is provided for this staff, use it as the "Base Start Index". 
+                // Otherwise default to staffIdx (Staggered start).
+                let baseOffset = staffIdx;
+                if (config.initialOffsets && typeof config.initialOffsets[staffId] === 'number') {
+                    baseOffset = config.initialOffsets[staffId];
+                }
+
+                const patternIdx = (dayOffset + baseOffset) % cycleLen;
                 const code = config.patternSequence[patternIdx];
+
+                // FIX: Check for EXISTING shift on this day (Duplicate Prevention)
+                // This handles cases where 'Clear Existing' is unchecked or filters fail
+                if (Array.isArray(existingShifts)) {
+                    const existingOnDay = existingShifts.find(s =>
+                        String(s.staffId) === String(staffId) &&
+                        s.date === dateStr
+                    );
+
+                    if (existingOnDay) {
+                        // Mark as assigned (if it matches a requirement code)
+                        const type = existingOnDay.shiftType || existingOnDay.type || 'Custom';
+                        if (dayRequirements[type] !== undefined) {
+                            assignedToday[type] = (assignedToday[type] || 0) + 1;
+                        }
+
+                        // Update safety map
+                        lastAssignmentMap[String(staffId)] = RosterLogic.calculateEndTime(existingOnDay.date, existingOnDay.start, existingOnDay.end);
+
+                        // SKIP generation for this staff on this day
+                        return;
+                    }
+                }
 
                 if (code !== 'R') {
                     const required = dayRequirements[code] || 0;
@@ -282,4 +313,10 @@ class RosterLogic {
         };
     }
 }
-window.RosterLogic = RosterLogic;
+
+if (typeof module !== 'undefined') {
+    module.exports = { RosterLogic };
+}
+if (typeof window !== 'undefined') {
+    window.RosterLogic = RosterLogic;
+}
