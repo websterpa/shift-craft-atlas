@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repo Fingerprint</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1e1e2e;
+            color: #cdd6f4;
+            padding: 2rem;
+        }
+
+        h1 {
+            color: #f38ba8;
+        }
+
+        pre {
+            background: #11111b;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #45475a;
+        }
+
+        .key {
+            color: #89b4fa;
+        }
+
+        .string {
+            color: #a6e3a1;
+        }
+
+        .number {
+            color: #fab387;
+        }
+
+        .boolean {
+            color: #f9e2af;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Repo Fingerprint</h1>
+    <div id="output">Loading...</div>
+
+    <script>
+        async function load() {
+            try {
+                const res = await fetch('/repo-fingerprint.json');
+                if (!res.ok) throw new Error('Failed to load JSON');
+                const data = await res.json();
+
+                // Pretty print with syntax highlighting
+                const jsonStr = JSON.stringify(data, null, 4);
+                const html = jsonStr.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                    let cls = 'number';
+                    if (/^"/.test(match)) {
+                        if (/:$/.test(match)) {
+                            cls = 'key';
+                        } else {
+                            cls = 'string';
+                        }
+                    } else if (/true|false/.test(match)) {
+                        cls = 'boolean';
+                    } else if (/null/.test(match)) {
+                        cls = 'null';
+                    }
+                    return '<span class="' + cls + '">' + match + '</span>';
+                });
+
+                document.getElementById('output').innerHTML = '<pre>' + html + '</pre>';
+            } catch (e) {
+                document.getElementById('output').textContent = 'Error: ' + e.message;
+            }
+        }
+        load();
+    </script>
+</body>
+
+</html>

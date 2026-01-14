@@ -216,6 +216,28 @@ class MonthlyRosterView {
         if (isOtherMonth) cell.classList.add('other-month');
         if (dateStr === todayStr) cell.classList.add('today');
 
+        // 1. ABSENCE OVERLAY
+        // Check if selected staff has approved absence on this day
+        if (this.selectedStaffId && this.app.absenceStore) {
+            // Caching absences could optimize but for MVP calling store is fine
+            // We need to check if dateStr falls within any approved absence
+            const absences = this.app.absenceStore.getAbsencesForStaff(this.selectedStaffId);
+            // Simple check: Is this DATE overlapping the absence range?
+            const cellDateStart = new Date(dateStr + 'T00:00:00').getTime();
+            const cellDateEnd = new Date(dateStr + 'T23:59:59').getTime();
+
+            const hasAbsence = absences.some(abs => {
+                const absStart = new Date(abs.start_ts).getTime();
+                const absEnd = new Date(abs.end_ts).getTime();
+                return (absStart <= cellDateEnd && absEnd >= cellDateStart);
+            });
+
+            if (hasAbsence) {
+                cell.classList.add('absence-day');
+                cell.title = "Approved Absence";
+            }
+        }
+
         // Day number
         const dayLabel = document.createElement('div');
         dayLabel.className = 'monthly-day-number';
@@ -230,6 +252,16 @@ class MonthlyRosterView {
             dayShifts.forEach(shift => {
                 const pill = document.createElement('div');
                 pill.className = 'monthly-shift-pill';
+
+                // 2. VACANCY MARKER
+                if (shift.vacant) {
+                    pill.classList.add('vacant');
+                    let html = `<span class="vacant-badge">VAC</span> ${shift.start} - ${shift.end}`;
+                    pill.innerHTML = html;
+                    pill.title = `Vacant Shift: ${shift.start} - ${shift.end}`;
+                    cell.appendChild(pill);
+                    return; // Skip normal rendering
+                }
 
                 // Determine shift type for styling
                 const shiftInfo = this.classifyShift(shift);
@@ -267,7 +299,6 @@ class MonthlyRosterView {
                     const duration = this.calculateDuration(shift.start, shift.end).toFixed(1);
                     pill.title = `${shiftInfo.label}: ${shift.start} - ${shift.end} (${duration}h)`;
                 }
-
 
                 pill.innerHTML = html;
                 cell.appendChild(pill);

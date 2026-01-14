@@ -743,3 +743,25 @@
         padding: 0.5rem;
     }
 }
+
+/* Absence & Vacancy Overlays */
+.monthly-calendar-day.absence-day {
+    position: relative;
+    border-top: 4px solid var(--accent-rose) !important;
+    background: linear-gradient(to bottom, rgba(225, 29, 72, 0.05), transparent 40px);
+}
+
+.monthly-shift-pill.vacant {
+    border: 1px dashed var(--accent-rose);
+    background: transparent;
+    color: var(--accent-rose);
+}
+
+.vacant-badge {
+    background: var(--accent-rose);
+    color: white;
+    font-size: 0.6rem;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 800;
+}

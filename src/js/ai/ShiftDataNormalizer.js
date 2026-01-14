@@ -4,19 +4,7 @@
  */
 class ShiftDataNormalizer {
     constructor() {
-        this.shiftMap = {
-            // Early Shifts
-            'E': 'E', 'EARLY': 'E', 'MORNING': 'E', 'M': 'E', 'AM': 'E',
-            // Late Shifts
-            'L': 'L', 'LATE': 'L', 'AFTERNOON': 'L', 'A': 'L', 'PM': 'L',
-            // Night Shifts
-            'N': 'N', 'NIGHT': 'N', 'NIGHTS': 'N',
-            // Off / Rest
-            'R': 'R', 'OFF': 'R', 'REST': 'R', '-': 'R', '': 'R',
-            'X': 'R', // Map legacy X to R
-            // Long Days (Common in UK Healthcare)
-            'LD': 'LD', 'LONG DAY': 'LD'
-        };
+        // No local map needed, relies on window.ShiftMapping
     }
 
     /**
@@ -24,8 +12,15 @@ class ShiftDataNormalizer {
      */
     normalizeShiftCode(rawCode) {
         if (rawCode === null || rawCode === undefined) return 'R';
-        const cleaned = String(rawCode).trim().toUpperCase();
-        return this.shiftMap[cleaned] || cleaned;
+
+        // Use Single Source of Truth
+        if (typeof window !== 'undefined' && window.ShiftMapping) {
+            return window.ShiftMapping.toCode(String(rawCode));
+        }
+
+        // Fallback for Node/Tests without global window.ShiftMapping
+        // Ideally tests should mock window.ShiftMapping
+        return String(rawCode).trim().toUpperCase();
     }
 
     /**

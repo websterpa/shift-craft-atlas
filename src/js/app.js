@@ -113,6 +113,15 @@ class ShiftCraftApp {
 
         // 3. Start Application
         this.applyCustomTheme();
+        // Initialize Absence Store
+        this.absenceStore = new window.AbsenceStore(this);
+        // Initialize Absence Service
+        this.absenceService = new window.AbsenceService(this);
+        // Initialize Absence UI
+        this.absenceUI = new window.AbsenceUI(this);
+        const recordAbsBtn = document.getElementById('record-absence-btn');
+        if (recordAbsBtn) recordAbsBtn.onclick = () => this.absenceUI.open();
+
         this.init();
 
         // Ensure defaults exist for standards if settings were already present

@@ -188,6 +188,10 @@
                             <div style="border-right: 1px solid var(--glass-border); height: 24px; margin: 0 0.5rem;">
                             </div>
 
+                            <button class="btn btn-outline" id="record-absence-btn"
+                                style="border-color: var(--accent-amber); color: var(--accent-amber); margin-right: 0.5rem;">
+                                <i data-lucide="calendar-off"></i> Record Absence
+                            </button>
                             <button class="btn btn-primary" id="add-shift-btn">
                                 <i data-lucide="plus"></i> New Shift
                             </button>
@@ -1727,6 +1731,12 @@
     <!-- AI Modules -->
     <script src="src/js/core/ErrorBoundary.js"></script>
     <script src="src/js/core/ServiceRegistry.js"></script>
+    <!-- Features -->
+    <script src="src/features/roster/shiftMapping.js"></script>
+    <script src="src/features/roster/timeRange.js"></script>
+    <script src="src/features/absence/AbsenceService.js"></script>
+    <script src="src/js/absence/AbsenceUI.js"></script>
+
     <script src="src/js/ai/DocumentParser.js"></script>
     <script src="src/js/ai/ShiftDataNormalizer.js"></script>
     <script src="src/js/ai/PatternDetectionEngine.js"></script>
@@ -1737,6 +1747,7 @@
     <script src="src/js/patterns/PatternEngine.js"></script>
     <script src="src/js/patterns/PatternLibraryUI.js"></script>
     <script src="src/js/templates/ShiftTemplates.js"></script>
+    <script src="src/js/absence/AbsenceStore.js"></script>
     <script src="src/js/allocation/AllocationEngine.js"></script>
     <script src="src/js/views/MonthlyRosterView.js?v=3"></script>
     <script src="src/js/roster/RosterLogic.js?v=3"></script>

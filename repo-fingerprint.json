@@ -1,0 +1,8 @@
+{
+  "framework": "vanilla",
+  "persistence": "localstorage",
+  "calendar": "src/js/app.js",
+  "assignments_loader": "src/js/roster/RosterLogic.js",
+  "mapping_module": "src/js/roster/RosterExport.js",
+  "has_tests": true
+}
