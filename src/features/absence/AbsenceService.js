@@ -98,6 +98,14 @@ class AbsenceService {
             this.app.renderTableBody();
         }
 
+        // 5. Audit Log
+        if (this.app.auditLog) {
+            this.app.auditLog.log(
+                'ABSENCE_APPROVED',
+                `Approved absence for staff ${absence.staff_id} (${affectedShifts.length} shifts vacated)`
+            );
+        }
+
         return { success: true, affected: affectedShifts.length };
     }
 }

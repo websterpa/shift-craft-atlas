@@ -122,7 +122,24 @@ class ShiftCraftApp {
         const recordAbsBtn = document.getElementById('record-absence-btn');
         if (recordAbsBtn) recordAbsBtn.onclick = () => this.absenceUI.open();
 
-        this.init();
+        // Initialize Vacancy Panel
+        this.vacancyPanel = new window.VacancyPanel(this);
+        const vacBtn = document.getElementById('vacancy-panel-btn');
+        if (vacBtn) vacBtn.onclick = () => this.vacancyPanel.open();
+
+        // Initialize Diagnostics
+        this.diagnostics = new window.DiagnosticsBanner(this);
+
+        // Initialize Admin Tools
+        this.auditLog = new window.AuditLog(this);
+        this.publishManager = new window.PublishManager(this);
+
+        // Bind Admin Button
+        const adminBtn = document.getElementById('nav-admin');
+        if (adminBtn) adminBtn.onclick = (e) => {
+            e.preventDefault();
+            this.auditLog.showModal();
+        };
 
         // Ensure defaults exist for standards if settings were already present
         if (!this.settings.standards) {
@@ -131,6 +148,8 @@ class ShiftCraftApp {
                 day12: '07:00', night12: '19:00'
             };
         }
+
+        this.init();
     }
 
     init() {
@@ -864,6 +883,9 @@ class ShiftCraftApp {
 
             // Refresh Lucide icons for rest day indicators
             if (window.lucide) window.lucide.createIcons();
+
+            // Run Diagnostics (Asynchronously)
+            if (this.diagnostics) setTimeout(() => this.diagnostics.runCheck(), 50);
         } catch (e) {
             console.error('[ShiftCraft] Render Error:', e);
             this.showToast('Render Error: ' + e.message, 'alert-circle');
@@ -875,6 +897,14 @@ class ShiftCraftApp {
         const shiftId = e.dataTransfer.getData('shiftId');
         const targetDate = e.currentTarget.dataset.date;
         const targetStaffId = e.currentTarget.dataset.staffId;
+
+        // GUARD RAIL
+        if (this.publishManager && this.publishManager.isPublished(targetDate)) {
+            if (!confirm(`⚠️ SAFETY RAIL\n\nThis month is PUBLISHED. Changes should be made with caution.\n\nDo you want to proceed with this edit?`)) {
+                return;
+            }
+            this.auditLog?.log('EDIT_PUBLISHED', `Move Shift ${shiftId} to ${targetDate} (Override)`);
+        }
 
         const shiftIndex = this.shifts.findIndex(s => s.id === shiftId);
         if (shiftIndex !== -1) {

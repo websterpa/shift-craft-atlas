@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>In-App Tests</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            padding: 2rem;
+            background: #111;
+            color: #eee;
+        }
+
+        .pass {
+            color: #4ade80;
+        }
+
+        .fail {
+            color: #f87171;
+        }
+
+        .suite {
+            margin-bottom: 2rem;
+        }
+
+        .test {
+            margin-left: 1rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Unit Tests</h1>
+    <div id="results">Running tests...</div>
+
+    <!-- MOCK APP CONTEXT -->
+    <script>
+        window.CONFIG = {
+            STORAGE_KEYS: { STAFF: 'test_staff', SHIFTS: 'test_shifts', SETTINGS: 'test_settings', ABSENCES: 'test_absences' },
+            WTR: { NIGHT_SHIFT_START: 22, NIGHT_SHIFT_END: 6 }
+        };
+        // Mock App
+        window.app = {
+            shifts: [],
+            staff: [],
+            settings: {},
+            showToast: () => { },
+            renderTableBody: () => { },
+            saveToStorage: () => { },
+            allocationEngine: {
+                findBestCandidate: () => null // Mock
+            }
+        };
+    </script>
+
+    <!-- LOAD MODULES -->
+    <script src="../../src/features/roster/timeRange.js"></script>
+    <script src="../../src/features/roster/shiftMapping.js"></script>
+    <script src="../../src/js/ai/ShiftDataNormalizer.js"></script>
+    <script src="../../src/js/absence/AbsenceStore.js"></script>
+    <script src="../../src/features/absence/AbsenceService.js"></script>
+
+    <!-- TEST RUNNER -->
+    <script>
+        const results = document.getElementById('results');
+        let html = '';
+        let passCount = 0;
+        let failCount = 0;
+
+        async function runTests() {
+            html = '';
+
+            // --- SUITE 1: SHIFT MAPPING ---
+            html += '<div class="suite"><h3>Suite: Shift Mapping</h3>';
+            try {
+                // Test 1
+                expect('Night -> N', window.ShiftMapping.toCode('Night'), 'N');
+                expect('Early -> E', window.ShiftMapping.toCode('Early'), 'E');
+                expect('Late -> L', window.ShiftMapping.toCode('Late'), 'L');
+                expect('Day -> D', window.ShiftMapping.toCode('Day'), 'D');
+            } catch (e) { logError(e); }
+            html += '</div>';
+
+            // --- SUITE 2: ABSENCE OVERLAP ---
+            html += '<div class="suite"><h3>Suite: Absence Overlap</h3>';
+            try {
+                // Setup
+                window.app.shifts = [];
+                window.app.absenceStore = new window.AbsenceStore();
+                // Clear store for test
+                localStorage.removeItem('test_absences_data');
+
+                const service = new window.AbsenceService(window.app);
+
+                // 1. Seed Night Shift
+                const nightShift = {
+                    id: 'shift_1',
+                    staffId: 'staff_1',
+                    date: '2026-01-01',
+                    start: '22:00',
+                    end: '07:00', // Overnight
+                    shiftType: 'N'
+                };
+                window.app.shifts.push(nightShift);
+
+                // 2. Create Absence
+                const record = window.app.absenceStore.addAbsence(
+                    'staff_1',
+                    'TYPE_HOLIDAY',
+                    '2026-01-01T00:00:00',
+                    '2026-01-02T23:59:59'
+                );
+
+                // 3. Approve Absence (Should vacate shift)
+                service.approveAbsence(record.id);
+
+                // 4. Assert
+                const updatedShift = window.app.shifts.find(s => s.id === 'shift_1');
+                if (updatedShift.vacant === true) {
+                    logPass('Night Shift successfully vacated on absence approval');
+                } else {
+                    logFail('Night Shift was NOT vacated', 'true', updatedShift.vacant);
+                }
+
+                // Test 2: Partial Overlap (Detailed Check)
+                // If I have a shift 09:00-17:00 and absence starts 13:00? 
+                // MVP Logic usually vacates if ANY overlap.
+
+            } catch (e) { logError(e); }
+            html += '</div>';
+
+            // Summary
+            html += `<h2 style="color:${failCount === 0 ? '#4ade80' : '#f87171'}">Done. Passed: ${passCount}, Failed: ${failCount}</h2>`;
+            results.innerHTML = html;
+        }
+
+        function expect(label, actual, expected) {
+            if (actual === expected) {
+                logPass(label);
+            } else {
+                logFail(label, expected, actual);
+            }
+        }
+
+        function logPass(msg) {
+            passCount++;
+            html += `<div class="test pass">✅ ${msg}</div>`;
+        }
+
+        function logFail(msg, expected, actual) {
+            failCount++;
+            html += `<div class="test fail">❌ ${msg} (Expected: ${expected}, Got: ${actual})</div>`;
+        }
+
+        function logError(e) {
+            failCount++;
+            html += `<div class="test fail">🔥 EXCEPTION: ${e.message}</div>`;
+            console.error(e);
+        }
+
+        setTimeout(runTests, 500);
+    </script>
+</body>
+
+</html>
