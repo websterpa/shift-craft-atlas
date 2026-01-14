@@ -158,7 +158,7 @@ class RosterLogic {
 
                     // Proposed Shift (Pass 1 - Natural)
                     const tempShift = RosterLogic.createShift(staffId, dateStr, code, patternIdx, config, settings, { isForced: false });
-                    const safe = RosterLogic.checkRestSafety(staffId, tempShift, lastAssignmentMap);
+                    const safe = RosterLogic.checkRestSafety(staffId, tempShift, lastAssignmentMap, settings);
 
                     if (!safe.allowed) {
                         RosterLogic.shortfalls.push({ date: dateStr, staffId, targetShift: code, reason: safe.reason });
@@ -186,7 +186,7 @@ class RosterLogic {
                     // Map to carry check result, then filter
                     const candidates = unassignedStaff.map(c => {
                         const tempShift = RosterLogic.createShift(c.staffId, dateStr, code, c.patternIdx, config, settings, { isForced: true, forcedReason: 'Gap Fill' });
-                        const result = RosterLogic.checkRestSafety(c.staffId, tempShift, lastAssignmentMap);
+                        const result = RosterLogic.checkRestSafety(c.staffId, tempShift, lastAssignmentMap, settings);
                         return { ...c, tempShift, allowed: result.allowed, reason: result.reason };
                     }).filter(c => c.allowed);
 
@@ -256,7 +256,7 @@ class RosterLogic {
     /**
      * Enforce rest constraints (allocator gate)
      */
-    static checkRestSafety(staffId, newShift, lastAssignmentMap) {
+    static checkRestSafety(staffId, newShift, lastAssignmentMap, settings = {}) {
         const lastEnd = lastAssignmentMap[String(staffId)]; // Force String Key
         if (!lastEnd) return { allowed: true };
 
@@ -266,10 +266,14 @@ class RosterLogic {
         const diffMs = newStart - lastEnd;
         const restHours = diffMs / (1000 * 60 * 60);
 
+        // Use configured rest period or default to 11h
+        const limit = settings.restPeriod || 11;
+
         // Debug Logging for tricky transitions
-        if (restHours < 11) {
-            console.warn(`[RosterLogic] Safety Violation for ${staffId} on ${newShift.date}: Gap ${restHours.toFixed(1)}h`);
-            return { allowed: false, reason: `Insufficient rest (${restHours.toFixed(1)}h < 11h)` };
+        if (restHours < limit) {
+            // Allow if overrides are enabled? No, logic core should be strict.
+            // console.warn(`[RosterLogic] Safety Violation for ${staffId} on ${newShift.date}: Gap ${restHours.toFixed(1)}h < ${limit}h`);
+            return { allowed: false, reason: `Insufficient rest (${restHours.toFixed(1)}h < ${limit}h)` };
         }
 
         return { allowed: true };

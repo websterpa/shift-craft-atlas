@@ -18,6 +18,7 @@ class RosterWizard {
         this._controlsBound = false;
 
         this.currentStep = 1;
+        this.totalSteps = 4; // Design, Coverage, Staffing, Confirm
         this.config = {
             mode: 'cyclic', // 'cyclic' | 'calendar'
             patternSequence: Array(7).fill('R'),
@@ -47,42 +48,68 @@ class RosterWizard {
 
     open() {
         console.log('[RosterWizard] Opening modal...');
-        this.bindControls(); // Ensure controls are bound
-
         const modal = document.getElementById('roster-wizard-modal');
         if (modal) {
             modal.classList.add('active');
-            this.updateHeaderBadge();
-            this.showStep(1);
+
+            // Bind after activation in case the DOM is injected late
+            if (typeof this.bindControls === 'function') this.bindControls();
+
+            if (typeof this.updateHeaderBadge === 'function') this.updateHeaderBadge();
+
+            // Land on step 1 unless we have state to restore
+            if (!this.currentStep && typeof this.showStep === 'function') {
+                this.showStep(1, { bypassValidation: true });
+            } else if (typeof this.showStep === 'function') {
+                this.showStep(this.currentStep || 1, { bypassValidation: true });
+            }
         } else {
             console.error('Roster Wizard Modal not found in DOM');
-            this.app.showToast('Error: Wizard modal missing', 'alert-circle');
+            if (this.app?.showToast) this.app.showToast('Error: Wizard modal missing', 'alert-circle');
         }
     }
 
     bindControls() {
-        if (this._controlsBound) return;
+        // Idempotent binder for individual buttons - prevents form submission
+        const bind = (id, fn) => {
+            const btn = document.getElementById(id);
+            if (!btn || btn.dataset.bound) return;
+            btn.setAttribute('type', 'button'); // stop form submit
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fn();
+            });
+            btn.dataset.bound = '1';
+        };
 
-        // Close Button
-        const closeBtn = document.getElementById('wizard-close-btn');
-        if (closeBtn) {
-            closeBtn.onclick = () => this.close();
+        // Main Controls (ID based) - prev uses force:true to bypass validation
+        bind('wizard-prev-btn', () => this.prev({ force: true }));
+        bind('wizard-close-btn', () => this.close?.());
+        bind('wizard-next-btn', () => this.next?.());
+        bind('wizard-finish-btn', () => this.finish?.());
+
+        // Delegate for card actions (data-wizard-action)
+        // This ensures buttons inside dynamic cards or alternate layouts work too
+        const modal = document.getElementById('roster-wizard-modal');
+        if (modal && !modal.dataset.delegated) {
+            modal.addEventListener('click', (e) => {
+                const actionBtn = e.target.closest('[data-wizard-action]');
+                if (actionBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const action = actionBtn.dataset.wizardAction;
+                    if (action === 'close') this.close?.();
+                    if (action === 'prev' || action === 'back') this.prev?.({ force: true });
+                    if (action === 'next') this.next?.();
+                    if (action === 'finish') this.finish?.();
+                }
+            });
+            modal.dataset.delegated = '1';
         }
 
-        // Footer Buttons
-        const prevBtn = document.getElementById('wizard-prev-btn');
-        if (prevBtn) prevBtn.onclick = () => this.prev();
-
-        const nextBtn = document.getElementById('wizard-next-btn');
-        if (nextBtn) nextBtn.onclick = () => this.next();
-
-        const finishBtn = document.getElementById('wizard-finish-btn');
-        if (finishBtn) finishBtn.onclick = () => this.finish();
-
-        if (closeBtn && prevBtn && nextBtn) {
-            this._controlsBound = true;
-            console.log('[RosterWizard] Controls successfully bound');
-        }
+        this._controlsBound = true;
+        console.log('[RosterWizard] Controls explicitly bound (Safe Mode)');
     }
 
     close() {
@@ -121,7 +148,20 @@ class RosterWizard {
         if (dropdown) dropdown.value = '';
     }
 
-    showStep(step) {
+    showStep(step, opts = {}) {
+        const { bypassValidation = false } = opts;
+        const from = Number(this.currentStep || 1);
+        const goingBack = step < from;
+
+        // Validate only when going forward and bypassValidation is false
+        if (!bypassValidation && !goingBack && typeof this.validateStep === 'function') {
+            const ok = this.validateStep(from);
+            if (!ok) {
+                // do not advance if validation fails
+                return false;
+            }
+        }
+
         this.currentStep = step;
 
         // Update Step Indicators
@@ -162,18 +202,26 @@ class RosterWizard {
         if (step === 2) this.renderStep2();
         if (step === 3) this.renderStep3();
         if (step === 4) this.renderStep4();
+
+        if (typeof this.updateHeaderBadge === 'function') this.updateHeaderBadge(step);
+        return true;
     }
 
-    prev() {
-        if (this.currentStep > 1) {
-            this.showStep(this.currentStep - 1);
-        }
+    // Back should always navigate, even if current step is "invalid"
+    prev(opts = {}) {
+        const { force = true } = opts;
+        const from = Number(this.currentStep || 1);
+        const to = Math.max(1, from - 1);
+        this._lastNav = 'back';
+        return this.showStep(to, { bypassValidation: force !== false });
     }
 
+    // Forward validates via showStep
     next() {
-        if (this.validateStep(this.currentStep)) {
-            this.showStep(this.currentStep + 1);
-        }
+        const from = Number(this.currentStep || 1);
+        const to = Math.min(this.totalSteps || 4, from + 1);
+        this._lastNav = 'next';
+        return this.showStep(to, { bypassValidation: false });
     }
 
     validateStep(step) {
@@ -1568,3 +1616,45 @@ class RosterWizard {
 }
 
 window.RosterWizard = RosterWizard;
+
+// Global delegate to catch any wizard action in modal or card UIs
+(function installWizardDelegateOnce() {
+    if (window.__wizardDelegateInstalled) return;
+    window.__wizardDelegateInstalled = true;
+
+    document.addEventListener('click', (e) => {
+        const el = e.target.closest('[data-wizard-action]');
+        if (!el) return;
+
+        // Stop default submit/nav before anything else
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Try to find the active wizard instance
+        const wizard =
+            (window.app && (window.app.rosterWizard || window.app.wizard)) ||
+            window.rosterWizard ||
+            window.shiftPatternWizard ||
+            null;
+
+        if (!wizard || typeof wizard !== 'object') return;
+
+        const act = (el.getAttribute('data-wizard-action') || '').toLowerCase();
+        if (act === 'back' || act === 'prev' || act === 'previous') {
+            if (typeof wizard.prev === 'function') wizard.prev({ force: true });
+            return;
+        }
+        if (act === 'close' || act === 'dismiss' || act === 'x') {
+            if (typeof wizard.close === 'function') wizard.close();
+            return;
+        }
+        if (act === 'next') {
+            if (typeof wizard.next === 'function') wizard.next();
+            return;
+        }
+        if (act === 'finish' || act === 'done') {
+            if (typeof wizard.finish === 'function') wizard.finish();
+            return;
+        }
+    }, true); // CAPTURE PHASE to beat form/default handlers
+})();
