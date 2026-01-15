@@ -1614,14 +1614,14 @@ class ShiftCraftApp {
             const isSelected = p.selected || false;
 
             tr.innerHTML = `
-                <td><input type="checkbox" class="staff-checkbox" value="${p.id}" ${isSelected ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer;"></td>
-                <td>${p.staffNumber || '---'}</td>
+                <td style="justify-content:center;"><input type="checkbox" class="staff-checkbox" value="${p.id}" ${isSelected ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer;"></td>
+                <td style="color:var(--text-muted); font-family:monospace;">${p.staffNumber || '---'}</td>
                 <td><strong>${p.name}</strong></td>
-                <td>${p.role || 'N/A'}</td>
+                <td><span class="badge" style="background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px; font-size:0.8rem;">${p.role || 'N/A'}</span></td>
                 <td>£${(p.rate || p.hourlyRate || 0).toFixed(2)}</td>
                 <td>${p.contractedHours || 40}h</td>
-                <td>${p.optOut48h ? '✅' : '❌'}</td>
-                <td style="text-align: right;">
+                <td style="justify-content:center;">${p.optOut48h ? '<i data-lucide="check" style="color:var(--accent-emerald); width:16px;"></i>' : '<i data-lucide="x" style="color:var(--text-muted); width:16px;"></i>'}</td>
+                <td style="justify-content: flex-end;">
                     <button class="btn btn-outline btn-icon" style="color: var(--accent-purple); margin-right: 0.5rem;" onclick="window.app.openMonthlyRoster('${p.id}')" title="View Monthly Roster">
                         <i data-lucide="calendar-days" style="width:16px;height:16px"></i>
                     </button>

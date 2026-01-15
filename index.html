@@ -437,19 +437,64 @@
                         <table class="roster-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 40px;"><input type="checkbox" id="select-all-staff"></th>
+                                    <th style="width: 40px; justify-content:center;"><input type="checkbox"
+                                            id="select-all-staff"></th>
                                     <th>Staff #</th>
                                     <th>Name</th>
                                     <th>Role</th>
                                     <th>Rate (£)</th>
                                     <th>Contr. Hours</th>
-                                    <th>48h Opt-Out</th>
+                                    <th style="text-align:center;">48h Opt-Out</th>
                                     <th style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="staff-list-tbody"></tbody>
+                            <tbody id="staff-list-tbody" style="display:block;"></tbody>
                         </table>
                     </div>
+                    <style>
+                        /* Staff Table alignment fix */
+                        #view-staff .roster-table thead,
+                        #view-staff .roster-table tbody tr {
+                            display: grid;
+                            grid-template-columns: 50px 0.8fr 1.5fr 1fr 0.8fr 0.8fr 0.8fr 1fr;
+                            align-items: center;
+                            gap: 1rem;
+                        }
+
+                        #view-staff .roster-table tbody {
+                            display: block;
+                        }
+
+                        #view-staff .roster-table td,
+                        #view-staff .roster-table th {
+                            display: flex;
+                            align-items: center;
+                            border: none;
+                            /* Remove default borders as grid handles spacing */
+                            padding: 0.75rem 0.5rem;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                        }
+
+                        #view-staff .roster-table th {
+                            font-size: 0.75rem;
+                            font-weight: 700;
+                            color: var(--text-muted);
+                            text-transform: uppercase;
+                            letter-spacing: 0.05em;
+                            border-bottom: 1px solid var(--glass-border) !important;
+                        }
+
+                        #view-staff .roster-table tbody tr {
+                            border-bottom: 1px solid var(--glass-border);
+                            transition: background 0.2s;
+                        }
+
+                        #view-staff .roster-table tbody tr:hover {
+                            background: rgba(255, 255, 255, 0.02);
+                        }
+                    </style>
                 </section>
 
 
