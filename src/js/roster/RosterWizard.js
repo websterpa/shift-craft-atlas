@@ -1459,6 +1459,13 @@ class RosterWizard {
 
                 this.app.shifts.push(...newShifts);
                 shiftsGenerated = newShifts.length;
+
+                // UX: Ensure the staff we just rostered are visible in the main view
+                this.app.staff.forEach(s => {
+                    if (this.config.selectedStaff.includes(s.id)) {
+                        s.selected = true;
+                    }
+                });
             } else {
                 console.error("RosterLogic module missing");
             }

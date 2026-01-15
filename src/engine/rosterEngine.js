@@ -259,10 +259,16 @@ const RosterEngine = {
             start: start,
             end: end,
             shift_code: requirementCode,
-            shiftType: requirementCode, // Legacy
-            staffId: staffId,           // Legacy
-            isForced: isForced,         // Legacy
-            forced_reason: isForced ? 'Gap Fill' : null
+            staff_id: staffId,
+            status: 'assigned',
+            is_forced: isForced,
+            forced_reason: isForced ? 'Gap Fill' : null,
+
+            // Legacy Support
+            shiftType: requirementCode,
+            staffId: staffId,
+            isForced: isForced,
+            forcedReason: isForced ? 'Gap Fill' : null
         };
     },
 
