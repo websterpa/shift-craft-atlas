@@ -1349,6 +1349,18 @@ class RosterWizard {
                 return;
             }
 
+            // Fix: Sort selectedStaff to ensure deterministic staggering (Operator 1 = Offset 0)
+            this.config.selectedStaff.sort((aId, bId) => {
+                const a = this.app.staff.find(s => s.id === aId);
+                const b = this.app.staff.find(s => s.id === bId);
+                if (!a) return 1;
+                if (!b) return -1;
+                // specific check for "Operator X" pattern to sort numerically
+                const nameA = a.name.toLowerCase();
+                const nameB = b.name.toLowerCase();
+                return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: 'base' });
+            });
+
             console.log(`[RosterWizard] Generating ${this.config.weeks} weeks from ${startDateStr} for ${this.config.selectedStaff.length} staff`);
 
             // Save session for restoration
@@ -1432,18 +1444,54 @@ class RosterWizard {
 
             // 2. Generation (Actual)
             let shiftsGenerated = 0;
-            if (window.RosterLogic) {
-                const newShifts = RosterLogic.generateShifts(this.config, this.app.settings, this.app.shifts);
+            if (window.RosterEngine && window.ShiftMapping && this.app.repo) {
+                const config = this.config;
+                // Generate Assignments via Engine
+                const result = window.RosterEngine.generateAssignments({
+                    startDate: config.startDate,
+                    weeks: config.weeks,
+                    requirements: config.requirements,
+                    staff: config.selectedStaff.map(id => ({ id })), // Minimal staff objects (ID only needed)
+                    constraints: this.app.settings,
+                    existingShifts: this.app.shifts || [],
+                    patternSequence: config.patternSequence,
+                    initialOffsets: config.initialOffsets,
+                    shiftDefinitions: config.shiftDefinitions,
+                    helpers: {
+                        TimeRange: window.TimeRange,
+                        ShiftMapping: window.ShiftMapping
+                    }
+                });
+
+                let newShifts = result.assignments.map(a => ({
+                    id: 'sh-wiz-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
+                    version_id: a.version_id,
+                    date: a.shift_date || a.date,
+                    start: a.shift_start || a.start,
+                    end: a.shift_end || a.end,
+                    shift_code: a.shift_code,
+                    staff_id: a.staff_id,
+                    status: 'assigned',
+                    is_forced: a.is_forced,
+                    forced_reason: a.forced_reason,
+
+                    // Legacy/Hybrid (Consumed by UI until View is fully migrated)
+                    shiftType: a.shift_code,
+                    staffId: a.staff_id,
+                    isForced: a.is_forced,
+                    forcedReason: a.forced_reason,
+                    complianceBreach: null // Init
+                }));
 
                 // --- Tag Breaches if Override ---
-                // If the user clicked "Generate Anyway", we must explicitly record WHICH shifts are violations
-                // so they appear RED in the roster and persist in logs.
                 if (override && this.app.complianceEngine) {
+                    // Check against the proposed set + existing
                     const tempAll = [...this.app.shifts, ...newShifts];
                     this.config.selectedStaff.forEach(staffId => {
                         const violations = this.app.complianceEngine.checkDailyRest(staffId, tempAll);
                         violations.forEach(v => {
-                            // Find the shift in newShifts that matches violation ID
+                            // Match back to our newShifts.
+                            // The compliance engine returns ID based on the input shifts.
                             const badShift = newShifts.find(s => s.id === v.shiftId);
                             if (badShift) {
                                 badShift.complianceBreach = v.message;
@@ -1457,8 +1505,12 @@ class RosterWizard {
                     });
                 }
 
+                // Add to main store
                 this.app.shifts.push(...newShifts);
                 shiftsGenerated = newShifts.length;
+
+                // Persist via Repo
+                await this.app.repo.saveAssignments(this.app.shifts);
 
                 // UX: Ensure the staff we just rostered are visible in the main view
                 this.app.staff.forEach(s => {
@@ -1466,8 +1518,11 @@ class RosterWizard {
                         s.selected = true;
                     }
                 });
+
             } else {
-                console.error("RosterLogic module missing");
+                console.error("RosterEngine or Repo missing");
+                this.app.showToast('Engine Error: Components missing', 'alert-triangle');
+                return;
             }
 
             // 3. Navigation (Robust)

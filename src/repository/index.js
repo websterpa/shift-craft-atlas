@@ -9,21 +9,43 @@ class LocalRepository {
     }
 
     // Assignments
+    normaliseAssignmentIn(row) {
+        return {
+            ...row,
+            version_id: row.version_id || row.versionId,
+            shift_code: row.shift_code || row.shiftType,
+            staff_id: row.staff_id || row.staffId
+        };
+    }
+
+    normaliseAssignmentOut(row) {
+        // Ensure unified shape on save, remove legacy keys
+        // eslint-disable-next-line no-unused-vars
+        const { versionId, shiftType, staffId, ...others } = row;
+        return {
+            ...others,
+            version_id: row.version_id || versionId,
+            shift_code: row.shift_code || shiftType,
+            staff_id: row.staff_id || staffId,
+        };
+    }
+
     async loadAssignments({ month, versionId }) {
-        const allShifts = JSON.parse(localStorage.getItem(this.keys.SHIFTS) || '[]');
+        const raw = JSON.parse(localStorage.getItem(this.keys.SHIFTS) || '[]');
+        const allShifts = raw.map(r => this.normaliseAssignmentIn(r));
+
         if (versionId) {
-            return allShifts.filter(s => s.versionId === versionId);
+            return allShifts.filter(s => s.version_id === versionId);
         }
         if (month) {
-            return allShifts.filter(s => s.date.startsWith(month));
+            return allShifts.filter(s => String(s.date).startsWith(month));
         }
         return allShifts;
     }
 
     async saveAssignments(rows) {
-        // In local mode, we usually overwrite the whole set or merge
-        // For simplicity in this MVP, we'll follow the existing app.js behavior (save all)
-        localStorage.setItem(this.keys.SHIFTS, JSON.stringify(rows));
+        const normalised = rows.map(r => this.normaliseAssignmentOut(r));
+        localStorage.setItem(this.keys.SHIFTS, JSON.stringify(normalised));
     }
 
     // Staff

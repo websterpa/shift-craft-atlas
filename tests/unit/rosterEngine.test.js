@@ -81,4 +81,20 @@ const scoreLargeGap = RosterEngine.scoreCandidate({
 });
 assert.ok(scoreLargeGap < 10000, 'Should allow with sufficient rest (13h > 11h)');
 
+console.log('Testing Night Shift Generation...');
+const nightResult = RosterEngine.generateAssignments({
+    startDate: '2025-01-01',
+    weeks: 1,
+    requirements: { night: 1 },
+    staff: [{ id: 'S1' }],
+    patternSequence: ['N', 'R', 'R'],
+    initialOffsets: { 'S1': 0 },
+    constraints: {},
+    helpers
+});
+
+const nightShifts = nightResult.assignments.filter(a => a.shift_code === 'N');
+assert.ok(nightShifts.length > 0, 'Should generate at least one Night shift');
+console.log(`Verified ${nightShifts.length} Night shifts generated.`);
+
 console.log('✅ RosterEngine Tests Passed');

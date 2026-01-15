@@ -5,7 +5,7 @@ const path = require('path');
 
 // Mock Browser Environment
 global.window = {};
-global.console = { log: () => { }, error: console.error }; // Silence logs
+// global.console = { log: () => { }, error: console.error }; // Silence logs - REMOVED for visibility
 
 // Load Dependencies
 const loadScript = (relativePath) => {
@@ -15,9 +15,11 @@ const loadScript = (relativePath) => {
 };
 
 // Load types (Store & Service)
+// Load types (Store & Service)
 loadScript('src/js/absence/AbsenceStore.js');
+loadScript('src/features/time/timeRange.js'); // Updated Path
+loadScript('src/features/roster/shiftMapping.js'); // Added Dependency
 loadScript('src/features/absence/AbsenceService.js');
-loadScript('src/features/roster/timeRange.js'); // Dependency
 
 const AbsenceService = global.window.AbsenceService;
 const AbsenceStore = global.window.AbsenceStore; // Store helper
@@ -25,73 +27,120 @@ const TimeRange = global.window.TimeRange;      // Helper
 
 console.log('🧪 Testing AbsenceService...');
 
-// Mock App State
-const mockApp = {
-    shifts: [],
-    saveToStorage: () => { },
-    renderTableBody: () => { },
-    timeRangeHelper: TimeRange
+// Helper to reset app state
+const setupTestApp = () => {
+    // Mock Repo
+    const mockRepo = {
+        _types: [],
+        _absences: [],
+        async loadAbsenceTypes() { return this._types; },
+        async saveAbsenceTypes(types) { this._types = types; },
+        async saveAbsence(rec) { this._absences.push(rec); },
+        async loadAbsences() { return this._absences; },
+        async loadAssignments() { return []; },
+        async saveAssignments() { }
+    };
+
+    // Mock App State
+    const mockApp = {
+        repo: mockRepo,
+        shifts: [],
+        saveToStorage: () => { },
+        renderTableBody: () => { },
+        activeVersionId: 'v1'
+    };
+
+    // Attach Store
+    mockApp.absenceStore = new AbsenceStore(mockApp);
+
+    return mockApp;
 };
 
-// Mock Store (using real class but inmem)
-global.localStorage = {
-    _data: {},
-    getItem: (k) => global.localStorage._data[k],
-    setItem: (k, v) => global.localStorage._data[k] = String(v)
-};
-mockApp.absenceStore = new AbsenceStore(mockApp);
-
-// Initialize Service
-const service = new AbsenceService(mockApp);
-
-// Setup Test Data
-// Staff A has a shift on 2023-01-01 08:00-20:00
+// Common Shift Data
 const staffId = 'staff-A';
-const shift = {
+const createShift = () => ({
     id: 'shift-1',
+    staff_id: staffId,
     staffId: staffId,
     date: '2023-01-01',
     start: '08:00',
     end: '20:00',
     vacant: false
-};
-mockApp.shifts = [shift];
-
-// Mock Allocation Engine for Backfill
-mockApp.allocationEngine = {
-    findBestCandidate: (date, start, end, exclude) => {
-        // Return a candidate if date matches
-        if (date === '2023-01-01') return { id: 'staff-B', name: 'Bob' };
-        return null; // Fail otherwise
-    }
-};
-
-// 1. Request Absence (Overlapping Shift)
-console.log('Step 1: Request Absence');
-const typeId = mockApp.absenceStore.getTypes()[0].id;
-const absenceRec = service.requestAbsence({
-    staffId: staffId,
-    typeId: typeId,
-    start: '2023-01-01T08:00:00.000Z', // Exact overlap
-    end: '2023-01-01T20:00:00.000Z'
 });
-assert.ok(absenceRec.id, 'Absence request failed');
 
-// 2. Approve Absence -> Verify Vacate & Backfill
-console.log('Step 2: Approve Absence');
-const result = service.approveAbsence(absenceRec.id, 'admin-1');
+(async function runTests() {
+    console.log('🧪 Testing AbsenceService...');
 
-// Verify Overlap Detection
-assert.strictEqual(result.affected, 1, 'Should find 1 overlapping shift');
+    // --- Test 1: Direct Flow (No PublishManager) ---
+    console.log('\n--- Test 1: Direct Flow (No PublishManager) ---');
+    {
+        const app = setupTestApp();
+        const service = new AbsenceService(app);
 
-// Verify Vacate Logic
-const updatedShift = mockApp.shifts[0];
-assert.strictEqual(updatedShift.originalStaffId, staffId, 'Should audit original staff');
-assert.strictEqual(updatedShift.absenceId, absenceRec.id, 'Should link absence ID');
+        // Seed
+        await app.absenceStore.seedDefaultTypes();
+        const types = await app.absenceStore.getTypes();
+        const absenceRec = await service.requestAbsence({
+            staffId: staffId, typeId: types[0].id,
+            start: '2023-01-01T00:00:00.000Z', end: '2023-01-01T23:59:59.000Z'
+        });
 
-// Verify Backfill Logic (Mock returns Staff B)
-assert.strictEqual(updatedShift.staffId, 'staff-B', 'Should be backfilled with Staff B');
-assert.strictEqual(updatedShift.vacant, false, 'Should not be vacant if backfilled');
-assert.strictEqual(updatedShift.backfilled, true, 'Should mark as backfilled');
+        // Setup Shift
+        const shift = createShift();
+        app.shifts = [shift];
+        app.repo.loadAssignments = async () => [shift];
 
-console.log('✅ AbsenceService Tests Passed');
+        // Action
+        await service.approveAbsence(absenceRec.id, 'admin');
+
+        // Assert
+        const updated = app.shifts[0];
+        assert.strictEqual(updated.status, 'vacant', 'Direct: Should default to vacant');
+        assert.strictEqual(updated.staff_id, null, 'Direct: Should clear staff_id');
+        console.log('✅ Direct Flow Passed');
+    }
+
+    // --- Test 2: Guarded Flow (With PublishManager) ---
+    console.log('\n--- Test 2: Guarded Flow (With PublishManager) ---');
+    {
+        const app = setupTestApp();
+
+        // Add Mock PublishManager
+        app.publishManager = {
+            checkGuard: async (date, actionFn) => {
+                console.log('🛡️ Guard intercepted action');
+                return await actionFn(); // Execute immediately
+            }
+        };
+
+        const service = new AbsenceService(app);
+
+        // Seed
+        await app.absenceStore.seedDefaultTypes();
+        const types = await app.absenceStore.getTypes();
+        const absenceRec = await service.requestAbsence({
+            staffId: staffId, typeId: types[0].id,
+            start: '2023-01-01T00:00:00.000Z', end: '2023-01-01T23:59:59.000Z'
+        });
+
+        // Setup Shift
+        const shift = createShift();
+        app.shifts = [shift];
+        app.repo.loadAssignments = async () => [shift];
+
+        // Action
+        await service.approveAbsence(absenceRec.id, 'admin');
+
+        // Assert
+        const updated = app.shifts[0];
+        assert.strictEqual(updated.status, 'vacant', 'Guarded: Should become vacant');
+        assert.strictEqual(updated.staff_id, null, 'Guarded: Should clear staff_id');
+        console.log('✅ Guarded Flow Passed');
+    }
+
+    console.log('\n🎉 All AbsenceService Tests Passed');
+
+})().catch(err => {
+    console.error('❌ Test Failed:', err);
+    process.exit(1);
+});

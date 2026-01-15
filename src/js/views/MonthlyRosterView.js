@@ -160,7 +160,7 @@ class MonthlyRosterView {
         const daysInMonth = lastDay.getDate();
 
         // Data Fetching
-        const staffShifts = this.getStaffShiftsForMonth(year, month);
+        const staffShifts = await this.getStaffShiftsForMonth(year, month);
 
         // Fetch absences for range
         const rangeStart = new Date(year, month - 1, 1).toISOString().split('T')[0];
@@ -394,16 +394,20 @@ class MonthlyRosterView {
         return cell;
     }
 
-    getStaffShiftsForMonth(year, month) {
-        if (!this.selectedStaffId) return [];
+    async getStaffShiftsForMonth(year, month) {
+        if (!this.selectedStaffId || !this.app.repo) return [];
 
-        const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0];
-        const endDate = new Date(year, month + 2, 0).toISOString().split('T')[0];
+        const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
+        // Load assignments from repo (Unified Mode)
+        const allShifts = await this.app.repo.loadAssignments({
+            month: monthStr,
+            versionId: this.app.activeVersionId // Optional: if we support versions
+        });
 
-        return this.app.shifts.filter(s =>
-            (s.staff_id === this.selectedStaffId || s.staffId === this.selectedStaffId) &&
-            s.date >= startDate &&
-            s.date <= endDate
+        // Repo returns unified shape (version_id, shift_code, staff_id)
+        // We filter additionally if the repo didn't catch specific day ranges or strict matching
+        return allShifts.filter(s =>
+            s.staff_id === this.selectedStaffId || s.staffId === this.selectedStaffId // Hybrid check
         );
     }
 
