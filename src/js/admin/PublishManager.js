@@ -47,22 +47,38 @@ class PublishManager {
      * Wraps an action with a check. If published, confirms with user first.
      * @param {string|Date} dateContext - The date being modified
      * @param {Function} action - Helper to execute if safe
+     * @returns {Promise<boolean>} - True if action executed
      */
-    checkGuard(dateContext, action) {
+    async checkGuard(dateContext, action) {
         let dateStr = dateContext;
         if (dateContext instanceof Date) {
             dateStr = dateContext.toISOString().split('T')[0];
         }
 
         if (this.isPublished(dateStr)) {
-            // Simple confirm for MVP. Could be a nice modal.
-            if (confirm(`⚠️ SAFETY RAIL\n\nThis month is PUBLISHED. Changes should be made with caution.\n\nDo you want to proceed with this edit?`)) {
-                action();
-                // Optionally log the override
-                this.app.auditLog.log('EDIT_PUBLISHED', `User overrode guard for ${dateStr}`);
+            // Prompt 10: Strict Override Requirement
+            // We use a simple prompt for the MVP as requested, but this could be a modal
+            const reason = prompt(`⚠️ LOCKED MONTH\n\nThis roster is PUBLISHED.\nYou must provide a reason to override this lock:`);
+
+            if (reason && reason.trim().length > 0) {
+                // Log the override
+                this.app.auditLog.log('OVERRIDE_PUBLISH', `User overrode lock for ${dateStr}`, 'User', {
+                    entityType: 'publish_lock',
+                    entityId: dateStr,
+                    reason: reason.trim()
+                });
+
+                // Execute Action
+                await action();
+                return true;
+            } else {
+                // Block Action
+                this.app.showToast('Action cancelled: Override reason required.', 'slash');
+                return false;
             }
         } else {
-            action();
+            await action();
+            return true;
         }
     }
 }

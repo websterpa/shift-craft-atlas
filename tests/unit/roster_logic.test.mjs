@@ -9,6 +9,18 @@ import vm from 'node:vm';
 const fixturesPath = path.join(process.cwd(), 'tests/fixtures/roster_wizard/scenarios.json');
 const fixtures = JSON.parse(fs.readFileSync(fixturesPath, 'utf8'));
 
+// Load TimeRange
+const timePath = path.join(process.cwd(), 'src/features/time/timeRange.js');
+const timeCode = fs.readFileSync(timePath, 'utf8');
+
+// Load ShiftMapping
+const mappingPath = path.join(process.cwd(), 'src/features/roster/shiftMapping.js');
+const mappingCode = fs.readFileSync(mappingPath, 'utf8');
+
+// Load RosterEngine
+const enginePath = path.join(process.cwd(), 'src/engine/rosterEngine.js');
+const engineCode = fs.readFileSync(enginePath, 'utf8');
+
 // Load RosterLogic
 const logicPath = path.join(process.cwd(), 'src/js/roster/RosterLogic.js');
 const logicCode = fs.readFileSync(logicPath, 'utf8');
@@ -16,7 +28,15 @@ const logicCode = fs.readFileSync(logicPath, 'utf8');
 // Shim Window environment
 const sandbox = { window: {}, console: console };
 vm.createContext(sandbox);
+
+// 1. Load Helpers
+vm.runInContext(mappingCode, sandbox);
+vm.runInContext(timeCode, sandbox);
+// 2. Load Engine
+vm.runInContext(engineCode, sandbox);
+// 3. Load Logic
 vm.runInContext(logicCode, sandbox);
+
 const RosterLogic = sandbox.window.RosterLogic;
 
 describe('Allocator Logic Verification', () => {

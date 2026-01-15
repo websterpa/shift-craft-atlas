@@ -7,18 +7,16 @@
 class AbsenceStore {
     constructor(app) {
         this.app = app;
-        this.STORAGE_KEY_TYPES = 'shiftcraft_absence_types';
-        this.STORAGE_KEY_ABSENCES = 'shiftcraft_absences';
-        this.init();
     }
 
-    init() {
-        if (!localStorage.getItem(this.STORAGE_KEY_TYPES)) {
-            this.seedDefaultTypes();
+    async init() {
+        const types = await this.app.repo.loadAbsenceTypes({ siteId: 'default' });
+        if (!types || types.length === 0) {
+            await this.seedDefaultTypes();
         }
     }
 
-    seedDefaultTypes() {
+    async seedDefaultTypes() {
         // Schema: id, site_id, code, label, paid, deducts_entitlement, allow_partial, active, created_at
         const defaultTypes = [
             {
@@ -66,25 +64,21 @@ class AbsenceStore {
                 created_at: new Date().toISOString()
             }
         ];
-        localStorage.setItem(this.STORAGE_KEY_TYPES, JSON.stringify(defaultTypes));
+        await this.app.repo.saveAbsenceTypes(defaultTypes);
         console.log('[AbsenceStore] Seeded default absence types.');
     }
 
-    getTypes() {
-        try {
-            return JSON.parse(localStorage.getItem(this.STORAGE_KEY_TYPES) || '[]');
-        } catch (e) {
-            console.error('Failed to parse absence types', e);
-            return [];
-        }
+    async getTypes() {
+        return await this.app.repo.loadAbsenceTypes({ siteId: 'default' });
     }
 
-    getActiveTypes() {
-        return this.getTypes().filter(t => t.active);
+    async getActiveTypes() {
+        const types = await this.getTypes();
+        return types.filter(t => t.active);
     }
 
     // Schema: id, site_id, staff_id, type_id, start_ts, end_ts
-    addAbsence(staffId, typeId, startTs, endTs) {
+    async addAbsence(staffId, typeId, startTs, endTs) {
         if (!staffId || !typeId || !startTs || !endTs) {
             throw new Error('Missing required fields for absence');
         }
@@ -99,44 +93,36 @@ class AbsenceStore {
             created_at: new Date().toISOString()
         };
 
-        const absences = this.getAllAbsences();
-        absences.push(record);
-        this.saveAbsences(absences);
+        await this.app.repo.saveAbsence(record);
         return record;
     }
 
-    getAllAbsences() {
-        try {
-            return JSON.parse(localStorage.getItem(this.STORAGE_KEY_ABSENCES) || '[]');
-        } catch (e) {
-            console.error('Failed to parse absences', e);
-            return [];
+    async getAllAbsences() {
+        return await this.app.repo.loadAbsences({ siteId: 'default' });
+    }
+
+    async getAbsencesForStaff(staffId) {
+        const all = await this.getAllAbsences();
+        return all.filter(a => a.staff_id === staffId);
+    }
+
+    async getAbsencesInRange(startIso, endIso) {
+        return await this.app.repo.loadAbsences({ siteId: 'default', range: { start: startIso, end: endIso } });
+    }
+
+    async saveAbsences(absences) {
+        // Migration note: Supabase uses upsert for individual records, 
+        // while local might overwrite the whole array.
+        // For simplicity, we delegate to saveAbsence in a loop if needed, 
+        // but typically we save individual records via addAbsence.
+        for (const a of absences) {
+            await this.app.repo.saveAbsence(a);
         }
     }
 
-    getAbsencesForStaff(staffId) {
-        return this.getAllAbsences().filter(a => a.staff_id === staffId);
-    }
-
-    getAbsencesInRange(startIso, endIso) {
-        const start = new Date(startIso).getTime();
-        const end = new Date(endIso).getTime();
-
-        return this.getAllAbsences().filter(a => {
-            const aStart = new Date(a.start_ts).getTime();
-            const aEnd = new Date(a.end_ts).getTime();
-            // Check overlap
-            return (aStart < end && aEnd > start);
-        });
-    }
-
-    saveAbsences(absences) {
-        localStorage.setItem(this.STORAGE_KEY_ABSENCES, JSON.stringify(absences));
-    }
-
     // Helper to get type details for an absence
-    populateAbsence(absence) {
-        const types = this.getTypes();
+    async populateAbsence(absence) {
+        const types = await this.getTypes();
         const typeDef = types.find(t => t.id === absence.type_id);
         return { ...absence, type: typeDef };
     }

@@ -20,12 +20,17 @@ const CONFIG = {
 class ShiftCraftApp {
     constructor() {
         this.migrateStorage();
-        // 1. Load Data
-        this.staff = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.STAFF)) || [];
-        this.shifts = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.SHIFTS)) || [];
-        this.rosterName = localStorage.getItem('shiftcraft_roster_name') || 'New Roster';
-        this.patternName = localStorage.getItem('shiftcraft_pattern_name') || '';
-        this.settings = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS)) || {
+
+        // 1. Initialize Repository
+        const mode = localStorage.getItem('shiftcraft_persistence') || 'local';
+        this.repo = window.Repository.create(mode, { keys: CONFIG.STORAGE_KEYS });
+
+        // 2. Initial state (will be populated by async load)
+        this.staff = [];
+        this.shifts = [];
+        this.rosterName = 'New Roster';
+        this.patternName = '';
+        this.settings = {
             restPeriod: 11,
             theme: 'dark',
             standards: {
@@ -140,6 +145,9 @@ class ShiftCraftApp {
             e.preventDefault();
             this.auditLog.showModal();
         };
+
+        // 4. Initial Data Load
+        this.initData();
 
         // Ensure defaults exist for standards if settings were already present
         if (!this.settings.standards) {
@@ -297,11 +305,49 @@ class ShiftCraftApp {
 
 
 
-    saveToStorage() {
-        localStorage.setItem(CONFIG.STORAGE_KEYS.STAFF, JSON.stringify(this.staff));
-        localStorage.setItem(CONFIG.STORAGE_KEYS.SHIFTS, JSON.stringify(this.shifts));
+    async initData() {
+        try {
+            console.log('[ShiftCraftApp] Loading data via Repository...');
+            const [staff, shifts, config] = await Promise.all([
+                this.repo.loadStaff({ siteId: 'default' }),
+                this.repo.loadAssignments({}),
+                this.repo.loadConfig({})
+            ]);
 
-        localStorage.setItem(CONFIG.STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
+            this.staff = staff;
+            this.shifts = shifts;
+            if (config && Object.keys(config).length > 0) {
+                this.settings = { ...this.settings, ...config };
+            }
+
+            this.rosterName = localStorage.getItem('shiftcraft_roster_name') || 'Main Roster';
+            this.patternName = localStorage.getItem('shiftcraft_pattern_name') || '';
+
+            console.log('[ShiftCraftApp] Data loaded successfully.');
+
+            // Re-render UI after data load
+            if (this.currentView === 'roster') {
+                if (this.renderTableBody) this.renderTableBody();
+                if (this.renderTableHead) this.renderTableHead();
+            }
+        } catch (error) {
+            console.error('[ShiftCraftApp] Failed to load initial data:', error);
+            if (this.showToast) this.showToast('Failed to load data', 'alert-triangle');
+        }
+    }
+
+    async saveToStorage() {
+        try {
+            await Promise.all([
+                this.repo.saveAssignments(this.shifts),
+                this.repo.saveConfig(this.settings)
+            ]);
+            // Staff saving still handled manually in some views for now, 
+            // but Repository is ready if we migrate those too.
+            localStorage.setItem(CONFIG.STORAGE_KEYS.STAFF, JSON.stringify(this.staff));
+        } catch (error) {
+            console.error('[ShiftCraftApp] Failed to save data:', error);
+        }
     }
 
     setupEventListeners() {
@@ -386,6 +432,11 @@ class ShiftCraftApp {
         document.getElementById('export-excel-option').onclick = (e) => {
             e.preventDefault();
             this.rosterExport.exportToExcel();
+            exportMenu.style.display = 'none';
+        };
+        document.getElementById('export-csv-option').onclick = (e) => {
+            e.preventDefault();
+            this.rosterExport.exportToCSV();
             exportMenu.style.display = 'none';
         };
 
@@ -741,10 +792,10 @@ class ShiftCraftApp {
 
             // Build coverage badges HTML
             const types = [
-                { key: 'early', label: 'E', color: 'var(--shift-early)' },
-                { key: 'late', label: 'L', color: 'var(--shift-late)' },
-                { key: 'night', label: 'N', color: 'var(--shift-night)' },
-                { key: 'day12', label: 'D', color: 'var(--shift-day)' }
+                { key: 'early', label: window.ShiftMapping.toCode('Early'), color: 'var(--shift-early)' },
+                { key: 'late', label: window.ShiftMapping.toCode('Late'), color: 'var(--shift-late)' },
+                { key: 'night', label: window.ShiftMapping.toCode('Night'), color: 'var(--shift-night)' },
+                { key: 'day12', label: window.ShiftMapping.toCode('Day'), color: 'var(--shift-day)' }
             ];
 
             const coverageBadges = types.map(t => {
@@ -1009,22 +1060,20 @@ class ShiftCraftApp {
      */
     classifyShiftType(shift) {
         const duration = parseFloat(this.calculateDuration(shift.start, shift.end));
-        const startHour = parseInt(shift.start.split(':')[0]);
+        const startMins = window.TimeRange.hhmmToMinutes(shift.start);
 
         // First, check if shiftType is stored on the shift (from pattern application)
         if (shift.shiftType) {
-            const type = shift.shiftType.toLowerCase();
-            if (type.includes('early') || type === 'e') {
-                return { code: 'E', label: 'Early', cssClass: 'early' };
-            }
-            if (type.includes('late') || type === 'l') {
-                return { code: 'L', label: 'Late', cssClass: 'late' };
-            }
-            if (type.includes('night') || type === 'n') {
-                return { code: 'N', label: 'Night', cssClass: 'night' };
-            }
-            if (type.includes('day') || type === 'd' || type.includes('long day')) {
-                return { code: 'D', label: 'Day (12h)', cssClass: 'day12' };
+            const code = window.ShiftMapping.toCode(shift.shiftType);
+            const logical = window.ShiftMapping.toLogical(code);
+            const cssMap = { 'E': 'early', 'L': 'late', 'N': 'night', 'D': 'day12', 'R': 'rest', 'S': 'sick' };
+
+            if (window.ShiftMapping.isValidCode(code)) {
+                return {
+                    code: code,
+                    label: logical + (code === 'D' ? ' (12h)' : ''),
+                    cssClass: cssMap[code] || ''
+                };
             }
         }
 
@@ -1033,7 +1082,7 @@ class ShiftCraftApp {
 
         // 12-hour pattern detection
         if (is12Hour) {
-            if (startHour >= 19 || startHour < 7) {
+            if (startMins >= 1140 || startMins < 420) { // 19:00 or < 07:00
                 return { code: 'N', label: 'Night (12h)', cssClass: 'night' };
             } else {
                 return { code: 'D', label: 'Day (12h)', cssClass: 'day12' };
@@ -1041,13 +1090,14 @@ class ShiftCraftApp {
         }
 
         // 8-hour pattern detection
-        if (startHour >= 19 || startHour < 6) {
+        if (startMins >= 1140 || startMins < 360) { // 19:00 or < 06:00
             return { code: 'N', label: 'Night', cssClass: 'night' };
-        } else if (startHour >= 5 && startHour < 10) {
+        } else if (startMins >= 300 && startMins < 600) { // 05:00 - 10:00
             return { code: 'E', label: 'Early', cssClass: 'early' };
-        } else if (startHour >= 12 && startHour < 19) {
+        } else if (startMins >= 720 && startMins < 1140) { // 12:00 - 19:00
             return { code: 'L', label: 'Late', cssClass: 'late' };
         }
+        const is8Hour = duration >= 7 && duration <= 9.5;
 
         // Default fallback
         return { code: '?', label: 'Shift', cssClass: '' };
@@ -1420,10 +1470,7 @@ class ShiftCraftApp {
     }
 
     calculateDuration(start, end) {
-        const [sh, sm] = start.split(':').map(Number);
-        let [eh, em] = end.split(':').map(Number);
-        if (eh < sh || (eh === sh && em < sm)) eh += 24;
-        return (((eh * 60 + em) - (sh * 60 + sm)) / 60).toFixed(1);
+        return (window.TimeRange.getDurationMinutes(start, end) / 60).toFixed(1);
     }
 
     checkCompliance(shift, person, preFilteredStaffShifts = null) {
@@ -1782,38 +1829,115 @@ class ShiftCraftApp {
         }
     }
 
-    handleShiftSubmit() {
+    async handleShiftSubmit() {
+        const id = document.getElementById('form-shift-id').value;
+        const staffId = document.getElementById('form-staff').value;
         const dayIdx = parseInt(document.getElementById('form-day').value);
+        const start = document.getElementById('form-start').value;
+        const end = document.getElementById('form-end').value;
+        const typeSelect = document.getElementById('form-shift-type');
+        const type = typeSelect ? typeSelect.value : '';
+
         const d = new Date(this.weekStart);
         d.setDate(d.getDate() + dayIdx);
         const dateStr = d.toISOString().split('T')[0];
-        const start = document.getElementById('form-start').value;
-        const end = document.getElementById('form-end').value;
-        const staffId = document.getElementById('form-staff').value;
 
-        // Check for overlaps (Truth Protocol: Do not allow physical impossibility)
-        const overlap = this.shifts.find(s =>
-            s.staffId === staffId &&
-            s.date === dateStr &&
-            ((start >= s.start && start < s.end) || (end > s.start && end <= s.end) || (start <= s.start && end >= s.end))
-        );
+        // Prompt 10: Guard Rail
+        if (this.publishManager) {
+            const allowed = await this.publishManager.checkGuard(dateStr, async () => {
+                const isNight = start > end || (start >= '22:00' || end <= '06:00') || type === 'N' || type === 'N12';
 
-        if (overlap) {
-            return this.showToast('Double-booking detected! Shift overlaps.', 'alert-triangle');
+                if (id) {
+                    const idx = this.shifts.findIndex(s => s.id === id);
+                    if (idx >= 0) {
+                        // Audit Log for Edit
+                        const before = this.shifts[idx];
+                        this.shifts[idx] = { ...this.shifts[idx], staffId, date: dateStr, start, end, shiftType: type };
+                        this.auditLog.log('EDIT_SHIFT', `Edited shift for ${dateStr}`, 'User', {
+                            entityType: 'shift',
+                            entityId: id,
+                            before: before,
+                            after: this.shifts[idx]
+                        });
+                    }
+                } else {
+                    const newShift = {
+                        id: crypto.randomUUID(),
+                        staffId,
+                        date: dateStr,
+                        start,
+                        end,
+                        shiftType: type,
+                        versionId: 'manual'
+                    };
+                    this.shifts.push(newShift);
+                    // Audit Log for Create
+                    this.auditLog.log('CREATE_SHIFT', `Created shift for ${dateStr}`, 'User', {
+                        entityType: 'shift',
+                        entityId: newShift.id,
+                        after: newShift
+                    });
+                }
+
+                // Night shift rollover handling (simplified for manual add)
+                if (isNight) {
+                    // Logic to ensure next day continuity if needed (not implemented in this simplified handler, 
+                    // relying on RosterEngine for complex flows, but for manual entry we usually just store the single shift object)
+                }
+
+                this.saveToStorage();
+                this.toggleModal('modal-overlay', false);
+                this.renderTableBody();
+                this.updateStats();
+
+                // Show Success
+                this.showToast('Shift saved successfully', 'check');
+            });
+
+            if (!allowed) return; // Guard blocked action logic is inside checkGuard
+        } else {
+            // Fallback if PublishManager missing
+            const isNight = start > end || (start >= '22:00' || end <= '06:00') || type === 'N' || type === 'N12';
+
+            if (id) {
+                const idx = this.shifts.findIndex(s => s.id === id);
+                if (idx >= 0) {
+                    const before = this.shifts[idx];
+                    this.shifts[idx] = { ...this.shifts[idx], staffId, date: dateStr, start, end, shiftType: type };
+                    if (this.auditLog) {
+                        this.auditLog.log('EDIT_SHIFT', `Edited shift for ${dateStr}`, 'User', {
+                            entityType: 'shift',
+                            entityId: id,
+                            before: before,
+                            after: this.shifts[idx]
+                        });
+                    }
+                }
+            } else {
+                const newShift = {
+                    id: crypto.randomUUID(),
+                    staffId,
+                    date: dateStr,
+                    start,
+                    end,
+                    shiftType: type,
+                    versionId: 'manual'
+                };
+                this.shifts.push(newShift);
+                if (this.auditLog) {
+                    this.auditLog.log('CREATE_SHIFT', `Created shift for ${dateStr}`, 'User', {
+                        entityType: 'shift',
+                        entityId: newShift.id,
+                        after: newShift
+                    });
+                }
+            }
+            this.saveToStorage();
+            this.toggleModal('modal-overlay', false);
+            this.renderTableBody();
+            this.updateStats();
+            this.showToast('Shift saved successfully', 'check');
         }
-
-        this.shifts.push({
-            id: 'sh-' + Date.now(),
-            staffId: staffId,
-            date: dateStr,
-            start: start,
-            end: end
-        });
-        this.saveToStorage();
-        this.toggleModal('modal-overlay', false);
-        this.renderTableBody();
-        this.updateStats();
-        this.showToast('Shift added', 'plus-circle');
     }
 
     handleAutoFill() {
@@ -3009,21 +3133,16 @@ class ShiftCraftApp {
     }
 
     checkShiftOverlap(staffId, date, start, end, excludeShiftId = null) {
-        const [sh, sm] = start.split(':').map(Number);
-        const [eh, em] = end.split(':').map(Number);
-        const startMins = sh * 60 + sm;
-        const endMins = (eh * 60 + em) < startMins ? (eh + 24) * 60 + em : eh * 60 + em;
+        const { start: checkStart, end: checkEnd } = window.TimeRange.rangeFromDateAndHm(date, start, end);
 
-        const staffShifts = this.shifts.filter(s => s.staffId === staffId && s.date === date && s.id !== excludeShiftId);
+        // Filter shifts for this person. To be fully safe, we should check shifts on surrounding dates too,
+        // but for now we follow the existing behavior of checking same-day filter and just use precise ranges.
+        const staffShifts = this.shifts.filter(s => s.staffId === staffId && s.id !== excludeShiftId);
 
         return staffShifts.some(existing => {
-            const [esh, esm] = existing.start.split(':').map(Number);
-            const [eeh, eem] = existing.end.split(':').map(Number);
-            const eStartMins = esh * 60 + esm;
-            const eEndMins = (eeh * 60 + eem) < eStartMins ? (eeh + 24) * 60 + eem : eeh * 60 + eem;
-
-            // Overlap condition: (StartA < EndB) && (StartB < EndA)
-            return (startMins < eEndMins) && (eStartMins < endMins);
+            const { start: sStart, end: sEnd } = window.TimeRange.rangeFromDateAndHm(existing.date, existing.start, existing.end);
+            // Overlap condition: Max(StartA, StartB) < Min(EndA, EndB)
+            return Math.max(checkStart.getTime(), sStart.getTime()) < Math.min(checkEnd.getTime(), sEnd.getTime());
         });
     }
 

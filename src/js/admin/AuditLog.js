@@ -9,13 +9,32 @@ class AuditLog {
         this.STORAGE_KEY = 'shiftcraft_audit_log';
     }
 
-    log(action, details, user = 'System') {
+    /**
+     * Log an event
+     * @param {string} action - Event type (e.g. 'PUBLISH', 'EDIT_SHIFT')
+     * @param {string|object} details - Description or details object
+     * @param {string} user - User/Actor ID
+     * @param {object} meta - Structured metadata (entityType, entityId, before, after, reason)
+     */
+    log(action, details, user = 'System', meta = {}) {
+        // Handle legacy call signature: log(action, details, user)
+        let logDetails = details;
+        if (typeof details === 'object') {
+            logDetails = JSON.stringify(details);
+        }
+
         const entry = {
             id: crypto.randomUUID(),
             timestamp: new Date().toISOString(),
             action,
-            details,
-            user
+            details: logDetails,
+            user,
+            // Prompt 10 Structured Data
+            entityType: meta.entityType || null,
+            entityId: meta.entityId || null,
+            reason: meta.reason || null,
+            before: meta.before || null,
+            after: meta.after || null
         };
 
         const logs = this.getLogs();
@@ -25,7 +44,7 @@ class AuditLog {
         if (logs.length > 500) logs.pop();
 
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(logs));
-        console.log('[Audit]', action, details);
+        console.log('[Audit]', action, logDetails, meta);
     }
 
     getLogs() {
@@ -52,15 +71,27 @@ class AuditLog {
         if (logs.length === 0) {
             html += `<div style="text-align:center; padding:2rem; color:var(--text-muted)">No events recorded.</div>`;
         } else {
-            html += '<table class="audit-table"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead><tbody>';
+            html += '<table class="audit-table"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th><th>Reason</th></tr></thead><tbody>';
             logs.forEach(log => {
                 const date = new Date(log.timestamp).toLocaleString();
+                const reason = log.reason ? `<span class="audit-reason-badge">${log.reason}</span>` : '-';
+
+                // Show structured diff if available
+                let displayDetails = log.details;
+                if (log.before && log.after) {
+                    displayDetails += ` <span class="diff-indicator" title="Data changed">📝</span>`;
+                }
+
                 html += `
                     <tr>
                         <td style="white-space:nowrap; font-size:0.85rem; color:var(--text-muted)">${date}</td>
                         <td style="font-weight:600">${log.user}</td>
                         <td style="color:var(--accent-blue)">${log.action}</td>
-                        <td style="font-family:monospace; font-size:rem;">${log.details}</td>
+                        <td style="font-family:monospace; font-size:0.9rem;">
+                            ${displayDetails}
+                            ${log.entityType ? `<div style="font-size:0.75rem;color:var(--text-muted)">ID: ${log.entityType}:${log.entityId}</div>` : ''}
+                        </td>
+                         <td>${reason}</td>
                     </tr>
                 `;
             });

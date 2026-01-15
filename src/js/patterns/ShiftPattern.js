@@ -159,12 +159,18 @@ class ShiftPattern {
                         }
 
                         if (overrideStart && overrideStart !== start) {
-                            const duration = shiftDef.duration;
                             start = overrideStart;
                             // Calculate new end time to respect Truth Protocol (Maintain Duration)
-                            const [h, m] = start.split(':').map(Number);
-                            let eh = (h + duration) % 24;
-                            end = `${eh.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                            // We use a dummy date for calculation then extract HH:MM
+                            const dummyDate = '2000-01-01';
+                            const { start: sDate, end: eDate } = window.TimeRange.rangeFromDateAndHm(dummyDate, start, '00:00');
+                            // Wait, rangeFromDateAndHm rolls to next day if end <= start.
+                            // We want to add 'duration' hours to 'start'.
+                            const totalMins = window.TimeRange.hhmmToMinutes(start) + (shiftDef.duration * 60);
+                            const finalMins = totalMins % 1440;
+                            const h = Math.floor(finalMins / 60);
+                            const m = finalMins % 60;
+                            end = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
                         }
                     }
 

@@ -243,17 +243,16 @@ class RosterWizard {
     /**
      * Smart Continuity: Detects last roster state and aligns new roster
      */
-    continueFromHistory() {
+    async continueFromHistory() {
         if (!this.app.shifts || this.app.shifts.length === 0) {
             this.app.showToast('No existing roster to continue from', 'alert-circle');
             return;
         }
 
         // 1. Try to restore last pattern config
-        const lastRun = localStorage.getItem('shiftcraft_wizard_last_run');
-        if (lastRun) {
+        const session = await this.app.repo.loadWizardSession();
+        if (session) {
             try {
-                const session = JSON.parse(lastRun);
                 // Restore Pattern & Staff
                 this.config.patternSequence = session.patternSequence || Array(7).fill('R');
                 this.config.cycleLength = session.cycleLength || 7;
@@ -377,7 +376,7 @@ class RosterWizard {
     }
 
     // --- Step 1: Pattern Designer ---
-    renderStep1(retryCount = 0) {
+    async renderStep1(retryCount = 0) {
         // Wait for pattern library to load to prevent race condition
         if (this.patternEngine && !this.patternEngine.loaded) {
             if (retryCount > 10) {
@@ -395,6 +394,7 @@ class RosterWizard {
         if (step1Panel) {
             const existingSelector = step1Panel.querySelector('#pattern-library-selector');
             if (!existingSelector) {
+                const lastSession = await this.app.repo.loadWizardSession();
                 const selectorHTML = `
                 <!-- Continue Option -->
                 <div class="wizard-box" style="border-color:var(--accent-blue); background:rgba(59, 130, 246, 0.05);">
@@ -420,7 +420,7 @@ class RosterWizard {
                     <label class="wizard-label">Choose a Pattern Template</label>
                     <select class="form-control" id="pattern-library-selector" style="margin-bottom: 0.5rem;">
                         <option value="">Custom Pattern (Design Your Own)</option>
-                        ${localStorage.getItem('shiftcraft_wizard_last_run') ? '<option value="LAST_RUN">Restore Last Session (Auto-Saved)</option>' : ''}
+                        ${lastSession ? '<option value="LAST_RUN">Restore Last Session (Auto-Saved)</option>' : ''}
                         ${this.loadPatternLibraryOptions().map(p =>
                     `<option value="${p.id}">${p.name} - ${p.description}</option>`
                 ).join('')}
@@ -460,9 +460,9 @@ class RosterWizard {
             } else {
                 // Selector exists, check if we need to show the Restore option
                 const hasLastRunOption = existingSelector.querySelector('option[value="LAST_RUN"]');
-                const hasData = !!localStorage.getItem('shiftcraft_wizard_last_run');
+                const lastSession = await this.app.repo.loadWizardSession();
 
-                if (hasData && !hasLastRunOption) {
+                if (lastSession && !hasLastRunOption) {
                     const opt = document.createElement('option');
                     opt.value = 'LAST_RUN';
                     opt.textContent = 'Restore Last Session (Auto-Saved)';
@@ -1319,7 +1319,7 @@ class RosterWizard {
         }
     }
 
-    finish(override = false) {
+    async finish(override = false) {
         try {
             console.log('[RosterWizard] finish() called');
 
@@ -1406,6 +1406,13 @@ class RosterWizard {
             }
 
             // --- Commit Roster Changes ---
+            await this.app.repo.saveWizardSession({
+                patternSequence: this.config.patternSequence,
+                cycleLength: this.config.cycleLength,
+                selectedStaff: this.config.selectedStaff,
+                sourcePatternName: this.config.sourcePatternName,
+                shiftDefinitions: this.config.shiftDefinitions
+            });
 
             // Mark Override if chosen
             if (override) {
@@ -1440,8 +1447,11 @@ class RosterWizard {
                             const badShift = newShifts.find(s => s.id === v.shiftId);
                             if (badShift) {
                                 badShift.complianceBreach = v.message;
+                                badShift.is_forced = true;
+                                badShift.forced_reason = 'Compliance Override: ' + (v.gap ? v.gap + 'h Rest' : 'Violation');
+                                // Keep legacy props for safety
                                 badShift.isForced = true;
-                                badShift.forcedReason = 'Compliance Override: ' + (v.gap ? v.gap + 'h Rest' : 'Violation');
+                                badShift.forcedReason = badShift.forced_reason;
                             }
                         });
                     });
@@ -1466,7 +1476,7 @@ class RosterWizard {
                 }
             }
 
-            this.app.saveToStorage();
+            await this.app.saveToStorage();
             if (this.app.renderTableBody) this.app.renderTableBody();
             if (this.app.renderTableHead) this.app.renderTableHead();
 
@@ -1547,8 +1557,8 @@ class RosterWizard {
         document.getElementById('fail-back-btn').onclick = () => modal.remove();
     }
 
-    savePatternToLibrary() {
-        const myPatterns = JSON.parse(localStorage.getItem('shiftcraft_my_patterns')) || [];
+    async savePatternToLibrary() {
+        const myPatterns = await this.app.repo.loadMyPatterns();
         const newPattern = {
             id: 'p-' + Date.now(),
             name: this.config.patternName,
@@ -1559,7 +1569,7 @@ class RosterWizard {
             created: new Date().toISOString()
         };
         myPatterns.push(newPattern);
-        localStorage.setItem('shiftcraft_my_patterns', JSON.stringify(myPatterns));
+        await this.app.repo.saveMyPatterns(myPatterns);
         console.log('[RosterWizard] Saved pattern to My Patterns:', this.config.patternName);
     }
 

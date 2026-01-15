@@ -14,7 +14,7 @@ const loadScript = (relativePath) => {
 };
 
 loadScript('src/features/roster/shiftMapping.js');
-loadScript('src/features/roster/timeRange.js');
+loadScript('src/features/time/timeRange.js');
 
 const ShiftMapping = global.window.ShiftMapping;
 const TimeRange = global.window.TimeRange;

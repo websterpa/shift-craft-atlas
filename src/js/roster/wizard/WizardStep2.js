@@ -35,37 +35,19 @@ class WizardStep2 {
             return;
         }
 
-        const shiftNames = {
-            'E': 'Early',
-            'L': 'Late',
-            'N': 'Night',
-            'D': 'Day',
-            'C': 'Custom'
-        };
-
-        // Header
-        const helpText = document.createElement('p');
-        helpText.className = 'wizard-help-text';
-        helpText.textContent = 'Define how many staff members should work each shift type for proper coverage.';
-        this.container.appendChild(helpText);
-
         // Inputs for each shift type
         types.forEach(type => {
             const box = document.createElement('div');
             box.className = 'wizard-box';
 
-            let displayName = shiftNames[type] || type;
+            let displayName = window.ShiftMapping.toLogical(type);
             let is12h = false;
 
             // 1. Check Shift Definitions (from Pattern)
             if (this.config.shiftDefinitions && this.config.shiftDefinitions[type]) {
                 const s = this.config.shiftDefinitions[type];
-                const st = parseInt(s.start.split(':')[0]);
-                let et = parseInt(s.end.split(':')[0]);
-                if (s.end.includes(':30')) et += 0.5; // Handle 12.5h etc roughly
-
-                const dur = (et <= st ? (et + 24) - st : et - st);
-                if (dur > 10) is12h = true;
+                const durMins = window.TimeRange.getDurationMinutes(s.start, s.end);
+                if (durMins > 600) is12h = true; // 10h+
             }
             // 2. Default Assumptions (if no definition overrides)
             else if (type === 'D') {
@@ -128,6 +110,12 @@ class WizardStep2 {
 
             this.container.appendChild(box);
         });
+
+        // Headers (Missing after previous wipe)
+        const helpText = document.createElement('p');
+        helpText.className = 'wizard-help-text';
+        helpText.textContent = 'Define how many staff members should work each shift type for proper coverage.';
+        this.container.insertBefore(helpText, this.container.firstChild);
 
         // Headcount Advice Section
         this.adviceBox = document.createElement('div');

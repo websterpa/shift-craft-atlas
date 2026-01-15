@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shift Craft | Diagnostics & Audit</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-amber: #f59e0b;
+            --border: #334155;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .btn {
+            background: var(--accent-amber);
+            color: #000;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .section h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .test-group {
+            margin-bottom: 1rem;
+        }
+
+        .test-group-title {
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .test-item:first-child {
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .test-item:last-child {
+            border-bottom: none;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-weight: 700;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .status-pending {
+            background: var(--border);
+            color: var(--text-muted);
+        }
+
+        .status-pass {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+        }
+
+        .status-fail {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+        }
+
+        .status-warn {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-amber);
+            border: 1px solid var(--accent-amber);
+        }
+
+        .console-log {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: #000;
+            padding: 1rem;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Roster Diagnostics & Audit</h1>
+            <button class="btn" id="run-btn">Run Diagnostics</button>
+        </header>
+
+        <div class="section">
+            <h2>Unit Tests</h2>
+            <div id="unit-tests-container">
+                <div style="text-align:center; color:var(--text-muted);">Ready to start...</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Roster Health Audit</h2>
+            <div id="roster-audit-container">
+                <div style="text-align:center; color:var(--text-muted);">Ready to audit...</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Test Log</h2>
+            <div id="test-console" class="console-log"></div>
+        </div>
+    </div>
+
+    <!-- Core Logic Dependencies -->
+    <script src="../../src/features/time/timeRange.js"></script>
+    <script src="../../src/features/roster/shiftMapping.js"></script>
+    <script src="../../src/engine/rosterEngine.js"></script>
+    <script src="../../src/js/patterns/PatternEngine.js"></script>
+    <script src="../../src/repository/index.js"></script>
+
+    <!-- Test Suites -->
+    <script src="../../src/tests/unit/mapping.test.js"></script>
+    <script src="../../src/tests/unit/engine.test.js"></script>
+
+    <!-- Audit Runner -->
+    <script src="../../src/dev/audit.js"></script>
+</body>
+
+</html>

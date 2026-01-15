@@ -381,10 +381,9 @@ class AIPatternUI {
                 if (shiftCode === 'R') return;
 
                 // Check Quota
-                const reqKey = shiftCode === 'E' ? 'early' :
-                    (shiftCode === 'L' ? 'late' :
-                        (shiftCode === 'N' ? 'night' :
-                            (shiftCode === 'LD' || shiftCode === 'D' ? 'day12' : 'other')));
+                const code = window.ShiftMapping.toCode(shiftCode);
+                const reqKeyMap = { 'E': 'early', 'L': 'late', 'N': 'night', 'D': 'day12' };
+                const reqKey = reqKeyMap[code] || 'other';
 
                 const requiredCount = requirements[reqKey] || 1;
                 const alreadyAssigned = assignedToday[shiftCode] || 0;
@@ -397,10 +396,11 @@ class AIPatternUI {
                 // Look up shift times
                 let start = '09:00', end = '17:00';
                 const s = this.app.settings.standards || {};
-                if (shiftCode === 'E') { start = s.early8 || '06:00'; end = s.late8 || '14:00'; }
-                if (shiftCode === 'L') { start = s.late8 || '14:00'; end = s.night8 || '22:00'; }
-                if (shiftCode === 'N') { start = s.night8 || '22:00'; end = '06:00'; }
-                if (shiftCode === 'LD' || shiftCode === 'D') { start = s.day12 || '07:00'; end = s.night12 || '19:00'; }
+
+                if (code === 'E') { start = s.early8 || '06:00'; end = s.late8 || '14:00'; }
+                else if (code === 'L') { start = s.late8 || '14:00'; end = s.night8 || '22:00'; }
+                else if (code === 'N') { start = s.night8 || '22:00'; end = '06:00'; }
+                else if (code === 'D') { start = s.day12 || '07:00'; end = s.night12 || '19:00'; }
 
                 // Check for overlap
                 if (this.app.checkShiftOverlap(staff.id, dateStr, start, end)) {

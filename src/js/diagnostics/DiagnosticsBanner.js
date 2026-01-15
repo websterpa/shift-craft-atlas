@@ -39,13 +39,8 @@ class DiagnosticsBanner {
         // 1. Get Requirements
         const requirements = this.app.settings.staffingRequirements || { early: 2, late: 2, night: 1, day12: 1 };
 
-        // 2. Map human keys to codes
-        const keyMap = {
-            'early': 'E',
-            'late': 'L',
-            'night': 'N',
-            'day12': 'D'
-        };
+        // 2. Requirements Keys (standardized in ShiftMapping logic)
+        const checkTypes = ['early', 'late', 'night', 'day12'];
 
         // 3. Determine View Range (Month vs Week)
         // Default to Month view context if available, otherwise fallback to current date context
@@ -74,6 +69,13 @@ class DiagnosticsBanner {
         const shiftsInRange = this.app.shifts.filter(s => s.date >= rangeStart && s.date <= rangeEnd);
 
         const missingCodes = [];
+
+        const keyMap = {
+            early: 'E',
+            late: 'L',
+            night: 'N',
+            day12: 'D'
+        };
 
         Object.keys(requirements).forEach(key => {
             const requiredQty = requirements[key];
@@ -105,26 +107,18 @@ class DiagnosticsBanner {
     }
 
     classifyShiftLocal(shift) {
-        // Fallback classifier if app's one isn't exposed (it is, but safe to duplicate simple logic for robustness)
-        // Actually, let's try to access the MonthlyRosterView static logic or similar
-        // But for diagnostics, simplest is best.
-        const startHour = parseInt(shift.start.split(':')[0]);
-        const startMin = parseInt(shift.start.split(':')[1]);
-        const endHour = parseInt(shift.end.split(':')[0]);
-        const endMin = parseInt(shift.end.split(':')[1]);
+        if (this.app && this.app.classifyShiftType) {
+            return this.app.classifyShiftType(shift);
+        }
 
-        let duration = (endHour * 60 + endMin) - (startHour * 60 + startMin);
-        if (duration < 0) duration += 1440;
-        duration = duration / 60;
-
-        if (duration >= 11) return { code: (startHour >= 19 || startHour < 6) ? 'N' : 'D' }; // 12h
-
-        // 8h
-        if (startHour >= 19 || startHour < 6) return { code: 'N' };
-        if (startHour >= 5 && startHour < 10) return { code: 'E' };
-        if (startHour >= 12 && startHour < 19) return { code: 'L' };
-
-        return { code: '?' };
+        // Final fallback if app.js not available
+        const duration = window.TimeRange.getDurationMinutes(shift.start, shift.end) / 60;
+        const startMins = window.TimeRange.hhmmToMinutes(shift.start);
+        const code = (duration >= 11) ? ((startMins >= 1140 || startMins < 360) ? 'N' : 'D') :
+            ((startMins >= 1140 || startMins < 360) ? 'N' :
+                (startMins >= 300 && startMins < 600) ? 'E' :
+                    (startMins >= 720 && startMins < 1140) ? 'L' : '?');
+        return { code };
     }
 }
 

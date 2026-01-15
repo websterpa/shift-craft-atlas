@@ -34,15 +34,10 @@ class ComplianceEngine {
             const curr = staffShifts[i];
 
             // Calculate when the previous shift actually ended
-            let prevEnd = this._getDateTime(prev.date, prev.end);
-
-            // If shift crosses midnight (e.g., 22:00-06:00), end is next day
-            if (this._isCrossMidnight(prev.start, prev.end)) {
-                prevEnd.setDate(prevEnd.getDate() + 1);
-            }
+            const { end: prevEnd } = window.TimeRange.rangeFromDateAndHm(prev.date, prev.start, prev.end);
 
             // Calculate when the current shift starts
-            const currStart = this._getDateTime(curr.date, curr.start);
+            const currStart = new Date(`${curr.date}T${curr.start}`);
 
             // Calculate gap in hours
             const gapHours = (currStart - prevEnd) / (1000 * 60 * 60);
@@ -147,13 +142,11 @@ class ComplianceEngine {
     }
 
     _calculateOverlap(startText, endText, rangeStartText, rangeEndText) {
-        const s = this._timeToMins(startText);
-        let e = this._timeToMins(endText);
-        if (e < s) e += 1440;
+        const s = window.TimeRange.hhmmToMinutes(startText);
+        let e = s + window.TimeRange.getDurationMinutes(startText, endText);
 
-        const rs = this._timeToMins(rangeStartText);
-        let re = this._timeToMins(rangeEndText);
-        if (re <= rs) re += 1440;
+        const rs = window.TimeRange.hhmmToMinutes(rangeStartText);
+        let re = rs + window.TimeRange.getDurationMinutes(rangeStartText, rangeEndText);
 
         const overlap1 = Math.max(0, Math.min(e, re) - Math.max(s, rs));
         const overlap2 = Math.max(0, Math.min(e, re + 1440) - Math.max(s, rs + 1440));
@@ -163,15 +156,11 @@ class ComplianceEngine {
     }
 
     _timeToMins(timeStr) {
-        const [h, m] = timeStr.split(':').map(Number);
-        return h * 60 + m;
+        return window.TimeRange.hhmmToMinutes(timeStr);
     }
 
     _calculateDuration(start, end) {
-        const startMins = this._timeToMins(start);
-        let endMins = this._timeToMins(end);
-        if (endMins < startMins) endMins += 1440;
-        return (endMins - startMins) / 60;
+        return window.TimeRange.getDurationMinutes(start, end) / 60;
     }
 
     _getDateTime(dateStr, timeStr) {
@@ -179,7 +168,7 @@ class ComplianceEngine {
     }
 
     _isCrossMidnight(start, end) {
-        return this._timeToMins(end) < this._timeToMins(start);
+        return window.TimeRange.hhmmToMinutes(end) <= window.TimeRange.hhmmToMinutes(start);
     }
 
     _calculateAge(dob, refDate) {

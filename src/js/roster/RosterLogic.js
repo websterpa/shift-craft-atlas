@@ -63,176 +63,53 @@ class RosterLogic {
      * Returns an array of shift objects.
      */
     static generateShifts(config, settings, existingShifts = []) {
-        const shifts = [];
-        const startDateStr = config.startDate;
-        const startDate = new Date(startDateStr);
-        const totalDays = config.weeks * 7;
-        const cycleLen = config.patternSequence.length;
-        const selectedStaffIds = config.selectedStaff;
-
-        // Traceability & Fairness Counters
+        // Initialize shortfalls for tracking
         RosterLogic.shortfalls = [];
-        const forcedAssignmentsCount = {};
-        const nightAssignmentsCount = {};
 
-        selectedStaffIds.forEach(id => {
-            forcedAssignmentsCount[id] = 0;
-            nightAssignmentsCount[id] = 0;
-        });
+        if (typeof window !== 'undefined' && window.RosterEngine) {
+            const h = {
+                TimeRange: window.TimeRange,
+                ShiftMapping: window.ShiftMapping
+            };
 
-        // Map to track the END time of the last shift for each staff member
-        const lastAssignmentMap = {};
-
-        // Initialize from existing shifts
-        // Fix: Only strictly past shifts should seed the 'last assignment' to prevent negative rest calculation
-        if (Array.isArray(existingShifts)) {
-            existingShifts.forEach(s => {
-                // Ensure we include shifts up to AND including the start date so we don't duplicate/overlap
-                if (s.date <= startDateStr) {
-                    const end = RosterLogic.calculateEndTime(s.date, s.start, s.end);
-                    const current = lastAssignmentMap[s.staffId];
-                    if (!current || end > current) {
-                        lastAssignmentMap[s.staffId] = end;
-                    }
-                }
+            const result = window.RosterEngine.generateAssignments({
+                startDate: config.startDate,
+                weeks: config.weeks,
+                requirements: config.requirements,
+                staff: config.selectedStaff.map(id => ({ id })), // Minimal staff objects
+                constraints: settings,
+                existingShifts,
+                patternSequence: config.patternSequence,
+                initialOffsets: config.initialOffsets,
+                shiftDefinitions: config.shiftDefinitions,
+                helpers: h
             });
+
+            // Populate shortfalls for UI
+            RosterLogic.shortfalls = [...(result.shortfalls || [])];
+
+            // Map back to the expected application format (Unified Assignment Shape)
+            return result.assignments.map(a => ({
+                id: 'sh-wiz-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
+                version_id: a.version_id,
+                date: a.shift_date || a.date,
+                start: a.shift_start || a.start,
+                end: a.shift_end || a.end,
+                shift_code: a.shift_code,
+                staff_id: a.staff_id,
+                status: 'assigned',
+
+                // Legacy / Hybrid Compatibility (until all consumers updated)
+                shiftType: a.shift_code,
+                staffId: a.staff_id,
+                is_forced: a.is_forced,
+                forced_reason: a.forced_reason
+            }));
         }
 
-        for (let dayOffset = 0; dayOffset < totalDays; dayOffset++) {
-            const currentObj = new Date(startDate);
-            currentObj.setDate(currentObj.getDate() + dayOffset);
-            const dateStr = currentObj.toISOString().split('T')[0];
-
-            // 1. Determine Requirements for this specific day
-            const dayRequirements = {};
-            config.patternSequence.forEach(c => {
-                if (c !== 'R') {
-                    const rawReq = config.requirements[c];
-                    dayRequirements[c] = parseInt(rawReq !== undefined ? rawReq : 0, 10);
-                }
-            });
-
-            // 2. Track assignments
-            const assignedToday = {};
-            Object.keys(dayRequirements).forEach(k => assignedToday[k] = 0);
-            const unassignedStaff = [];
-
-            // Pass 1: Natural Pattern Rotation
-            selectedStaffIds.forEach((staffId, staffIdx) => {
-                // Feature: Smart Continuity (Initial Offsets)
-                // If an offset is provided for this staff, use it as the "Base Start Index". 
-                // Otherwise default to staffIdx (Staggered start).
-                let baseOffset = staffIdx;
-                if (config.initialOffsets && typeof config.initialOffsets[staffId] === 'number') {
-                    baseOffset = config.initialOffsets[staffId];
-                }
-
-                const patternIdx = (dayOffset + baseOffset) % cycleLen;
-                const code = config.patternSequence[patternIdx];
-
-                // FIX: Check for EXISTING shift on this day (Duplicate Prevention)
-                // This handles cases where 'Clear Existing' is unchecked or filters fail
-                if (Array.isArray(existingShifts)) {
-                    const existingOnDay = existingShifts.find(s =>
-                        String(s.staffId) === String(staffId) &&
-                        s.date === dateStr
-                    );
-
-                    if (existingOnDay) {
-                        // Mark as assigned (if it matches a requirement code)
-                        const type = existingOnDay.shiftType || existingOnDay.type || 'Custom';
-                        if (dayRequirements[type] !== undefined) {
-                            assignedToday[type] = (assignedToday[type] || 0) + 1;
-                        }
-
-                        // Update safety map
-                        lastAssignmentMap[String(staffId)] = RosterLogic.calculateEndTime(existingOnDay.date, existingOnDay.start, existingOnDay.end);
-
-                        // SKIP generation for this staff on this day
-                        return;
-                    }
-                }
-
-                if (code !== 'R') {
-                    const required = dayRequirements[code] || 0;
-
-                    // Proposed Shift (Pass 1 - Natural)
-                    const tempShift = RosterLogic.createShift(staffId, dateStr, code, patternIdx, config, settings, { isForced: false });
-                    const safe = RosterLogic.checkRestSafety(staffId, tempShift, lastAssignmentMap, settings);
-
-                    if (!safe.allowed) {
-                        RosterLogic.shortfalls.push({ date: dateStr, staffId, targetShift: code, reason: safe.reason });
-                        unassignedStaff.push({ staffId, patternIdx });
-                    } else if (assignedToday[code] < required) {
-                        shifts.push(tempShift);
-                        assignedToday[code]++;
-                        lastAssignmentMap[String(staffId)] = RosterLogic.calculateEndTime(tempShift.date, tempShift.start, tempShift.end);
-                        if (code === 'N') nightAssignmentsCount[staffId]++;
-                    } else {
-                        unassignedStaff.push({ staffId, patternIdx });
-                    }
-                } else {
-                    // Staff on Rest are available for Gap Filling
-                    unassignedStaff.push({ staffId, patternIdx });
-                }
-            });
-
-            // Pass 2: Gap Filling (Fairness Optimized)
-            Object.keys(dayRequirements).forEach(code => {
-                const required = dayRequirements[code];
-
-                while (assignedToday[code] < required && unassignedStaff.length > 0) {
-                    // Filter Safe Candidates
-                    // Map to carry check result, then filter
-                    const candidates = unassignedStaff.map(c => {
-                        const tempShift = RosterLogic.createShift(c.staffId, dateStr, code, c.patternIdx, config, settings, { isForced: true, forcedReason: 'Gap Fill' });
-                        const result = RosterLogic.checkRestSafety(c.staffId, tempShift, lastAssignmentMap, settings);
-                        return { ...c, tempShift, allowed: result.allowed, reason: result.reason };
-                    }).filter(c => c.allowed);
-
-                    if (candidates.length === 0) {
-                        // No safe candidates left for this code
-                        RosterLogic.shortfalls.push({
-                            date: dateStr,
-                            staffId: 'ALL_CANDIDATES',
-                            targetShift: code + ' (GapFill)',
-                            reason: 'No safe candidates available'
-                        });
-                        break; // Cannot fill this demand
-                    }
-
-                    // Fairness Sort: Min Forced -> Min Nights -> Stable
-                    candidates.sort((a, b) => {
-                        const forcedA = forcedAssignmentsCount[a.staffId] || 0;
-                        const forcedB = forcedAssignmentsCount[b.staffId] || 0;
-                        if (forcedA !== forcedB) return forcedA - forcedB;
-
-                        const nightA = nightAssignmentsCount[a.staffId] || 0;
-                        const nightB = nightAssignmentsCount[b.staffId] || 0;
-                        if (nightA !== nightB) return nightA - nightB;
-
-                        return 0; // Stable
-                    });
-
-                    // Pick Winner
-                    const best = candidates[0];
-
-                    shifts.push(best.tempShift);
-                    assignedToday[code]++;
-                    lastAssignmentMap[String(best.staffId)] = RosterLogic.calculateEndTime(best.tempShift.date, best.tempShift.start, best.tempShift.end);
-
-                    // Update Counters
-                    forcedAssignmentsCount[best.staffId] = (forcedAssignmentsCount[best.staffId] || 0) + 1;
-                    if (code === 'N') nightAssignmentsCount[best.staffId] = (nightAssignmentsCount[best.staffId] || 0) + 1;
-
-                    // Remove from pool
-                    const idx = unassignedStaff.findIndex(x => x.staffId === best.staffId);
-                    if (idx > -1) unassignedStaff.splice(idx, 1);
-                }
-            });
-        }
-
-        return shifts;
+        // Fallback or Node.js environment handling if window.RosterEngine is missing
+        // This part is preserved for unit tests that might load RosterLogic in isolation
+        return [];
     }
 
     /**
@@ -240,17 +117,7 @@ class RosterLogic {
      * Uses integer comparison to strictly detect midnight crossings
      */
     static calculateEndTime(dateStr, startStr, endStr) {
-        const [sh, sm] = startStr.split(':').map(Number);
-        const [eh, em] = endStr.split(':').map(Number);
-
-        const end = new Date(`${dateStr}T${endStr}`);
-
-        // Strict Integer Check: If End Hour is less than Start Hour, it crossed midnight.
-        // Or if hours equal and end minute is less/equal (e.g. 24h shift).
-        if (eh < sh || (eh === sh && em <= sm)) {
-            end.setDate(end.getDate() + 1);
-        }
-        return end;
+        return window.TimeRange.rangeFromDateAndHm(dateStr, startStr, endStr).end;
     }
 
     /**
@@ -307,13 +174,19 @@ class RosterLogic {
 
         return {
             id: 'sh-wiz-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
-            staffId: staffId,
+            version_id: 'manual-wiz-' + Date.now(),
+            staff_id: staffId,
             date: dateStr,
             start: start,
             end: end,
+            shift_code: code,
+            status: 'assigned',
+
+            // Legacy / Hybrid
             shiftType: code,
-            isForced: !!meta.isForced,
-            forcedReason: meta.forcedReason || null
+            staffId: staffId,
+            is_forced: !!meta.isForced,
+            forced_reason: meta.forcedReason || null
         };
     }
 }

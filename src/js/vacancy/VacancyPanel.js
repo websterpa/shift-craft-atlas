@@ -138,29 +138,45 @@ class VacancyPanel {
 
         this.app.showToast('Searching for candidates...', 'search');
 
-        // Use AllocationEngine
-        const candidate = this.app.allocationEngine.findBestCandidate(shift, this.app.shifts);
+        // Use RosterEngine for backfill candidates (Prompt 8)
+        const candidates = window.RosterEngine.selectBackfillCandidates({
+            assignment: { date: shift.date, start: shift.start, end: shift.end },
+            staff: this.app.staff,
+            constraints: this.app.settings,
+            shifts: this.app.shifts,
+            helpers: { TimeRange: window.TimeRange, ShiftMapping: window.ShiftMapping }
+        });
 
-        if (candidate) {
+        if (candidates && candidates.length > 0) {
+            const candidate = candidates[0]; // Top candidate
+
             // Assign
             shift.staffId = candidate.id;
             shift.vacant = false;
             shift.backfilled = true;
 
-            // Save & Render
-            this.app.saveToStorage();
-            this.app.renderTableBody();
-            if (this.app.monthlyRosterView) this.app.monthlyRosterView.renderCalendar();
+            // Save via Repository (Prompt 8)
+            // We save the entire shifts array because our LocalRepository overwrites the key.
+            // In a real DB scenario, we might pass just the modified shift, but our repo contract isn't strict yet.
+            this.app.repo.saveAssignments(this.app.shifts).then(() => {
+                // Update UI after save
+                this.app.renderTableBody();
+                if (this.app.monthlyRosterView) this.app.monthlyRosterView.renderCalendar();
 
-            this.app.showToast(`Assigned to ${candidate.name}`, 'check-circle');
+                this.app.showToast(`Assigned to ${candidate.name}`, 'check-circle');
 
-            // Remove card with animation
-            const card = document.getElementById(`vac-card-${shiftId}`);
-            if (card) {
-                card.style.opacity = '0';
-                card.style.transform = 'translateX(20px)';
-                setTimeout(() => this.renderVacancies(), 300);
-            }
+                // Remove card with animation
+                const card = document.getElementById(`vac-card-${shiftId}`);
+                if (card) {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateX(20px)';
+                    setTimeout(() => this.renderVacancies(), 300);
+                }
+            }).catch(err => {
+                console.error('Failed to save assignment:', err);
+                this.app.showToast('Failed to save assignment', 'alert-triangle');
+            });
+
         } else {
             this.app.showToast('No suitable candidate found.', 'alert-circle');
         }

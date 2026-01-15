@@ -13,29 +13,26 @@ class AllocationEngine {
      * Finds the best candidate for a specific shift slot
      */
     findBestCandidate(date, start, end, excludeStaffIds = [], staffShiftMap = null) {
-        const eligibleStaff = this.app.staff.filter(s => !excludeStaffIds.includes(s.id));
+        if (typeof window !== 'undefined' && window.RosterEngine) {
+            const assignment = { date, start, end };
+            const eligibleStaff = this.app.staff.filter(s => !excludeStaffIds.includes(s.id));
 
-        const candidates = eligibleStaff.map(staff => {
-            const staffShifts = staffShiftMap ? staffShiftMap.get(staff.id) : null;
-            const score = this.calculateSuitability(staff, date, start, end, staffShifts);
-            return { staff, score };
-        });
+            // Build the collective shift list for the engine
+            const shifts = this.app.shifts;
 
-        // Filter out those who are physically/legally unable to work (Infinite score)
-        const viableCandidates = candidates.filter(c => c.score < 10000);
-
-        // Log top candidates for debugging
-        if (date.includes('-12-20') || date.includes('-12-21')) { // Log weekends
-            console.log(`[Allocation] Date: ${date} ${start}-${end}`);
-            viableCandidates.sort((a, b) => a.score - b.score).slice(0, 5).forEach(c => {
-                console.log(`  - ${c.staff.name}: Score ${c.score.toFixed(2)}`);
+            const candidates = window.RosterEngine.selectBackfillCandidates({
+                assignment,
+                staff: eligibleStaff,
+                constraints: this.app.settings,
+                shifts,
+                helpers: { TimeRange: window.TimeRange, ShiftMapping: window.ShiftMapping }
             });
+
+            return candidates.length > 0 ? candidates[0] : null;
         }
 
-        // Sort by score (Lowest score = Best fit)
-        viableCandidates.sort((a, b) => a.score - b.score);
-
-        return viableCandidates.length > 0 ? viableCandidates[0].staff : null;
+        // Fallback or Node context
+        return null;
     }
 
     /**
@@ -44,67 +41,16 @@ class AllocationEngine {
      * Negative values = High Priority (Under contracted hours)
      */
     calculateSuitability(staff, date, start, end, preFilteredStaffShifts = null) {
-        let score = 0;
-
-        // Use provided shifts or filter now if not provided
-        const staffShifts = preFilteredStaffShifts || this.app.shifts.filter(s => s.staffId === staff.id);
-
-        // 0. GLOBAL CONSTRAINTS
-        if (this.app.settings.enableNights === false) {
-            // Check if shift overlaps with night hours (23:00 - 06:00)
-            const nightHours = this.compliance._calculateNightHours(start, end);
-            if (nightHours > 0) return 10000;
+        if (typeof window !== 'undefined' && window.RosterEngine) {
+            return window.RosterEngine.scoreCandidate({
+                candidate: staff,
+                assignment: { date, start, end },
+                shifts: preFilteredStaffShifts || this.app.shifts,
+                constraints: this.app.settings,
+                helpers: { TimeRange: window.TimeRange, ShiftMapping: window.ShiftMapping }
+            });
         }
-
-        if (this.app.settings.enableWeekends === false) {
-            const d = new Date(date);
-            const day = d.getDay(); // 0 is Sunday, 6 is Saturday
-            if (day === 0 || day === 6) return 10000;
-        }
-
-        // Double booking check (Improved for Night Shifts)
-        const checkStart = this._timeToMins(start);
-        let checkEnd = this._timeToMins(end);
-        if (checkEnd <= checkStart) checkEnd += 1440;
-
-        const clash = staffShifts.find(s => {
-            if (s.date !== date) return false;
-            const sStart = this._timeToMins(s.start);
-            let sEnd = this._timeToMins(s.end);
-            if (sEnd <= sStart) sEnd += 1440;
-            return Math.max(checkStart, sStart) < Math.min(checkEnd, sEnd);
-        });
-        if (clash) return 10000;
-
-        // Daily Rest (11h)
-        const restViolations = this.compliance.checkDailyRest(staff.id, this.app.shifts, [...staffShifts, { staffId: staff.id, date, start, end }]);
-        if (restViolations.length > 0) return 10000;
-
-        // 48h Weekly Limit (17-week avg)
-        const weeklyLimit = this.compliance.check17WeekAverage(staff.id, this.app.shifts, staff.optOut48h, date, [...staffShifts, { staffId: staff.id, date, start, end }]);
-        if (weeklyLimit) return 10000;
-
-        // 2. CONTRACTED HOURS PRIORITY (Assess over 17 weeks)
-        const avg = this.compliance.calculateRollingAverage(staff.id, this.app.shifts, date, 17, staffShifts);
-        const contracted = staff.contractedHours || 40;
-        const variance = avg - contracted;
-
-        // If a person is UNDER their hours, they get a negative score (making them more attractive)
-        // If they are OVER, they get a positive score penalty
-        score += variance * 10;
-
-        // 3. FAIRNESS CREDITS (Night, Weekend, PH)
-        const fairnessCredits = this.compliance.calculateFairnessScore(staff.id, this.app.shifts, date, staffShifts);
-        score += fairnessCredits;
-
-        // 4. PREFERENCE: Is this a night shift?
-        const nightHours = this.compliance._calculateNightHours(start, end);
-        if (nightHours > 3) {
-            // Apply extra weight if they've already done lots of nights recently
-            // This is already included in fairnessCredits, but we could add recency bias here if needed
-        }
-
-        return score;
+        return 0;
     }
 
     /**
@@ -251,11 +197,7 @@ class AllocationEngine {
         return profile;
     }
 
-    _timeToMins(t) {
-        if (!t) return 0;
-        const [h, m] = t.split(':').map(Number);
-        return (h * 60) + (m || 0);
-    }
+
 }
 
 window.AllocationEngine = AllocationEngine;

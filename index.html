@@ -172,6 +172,10 @@
                                         style="color: var(--text-normal); padding: 0.75rem 1rem; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s; border-top: 1px solid var(--glass-border);">
                                         <i data-lucide="sheet" style="width: 16px; height: 16px;"></i> Excel Spreadsheet
                                     </a>
+                                    <a href="#" id="export-csv-option"
+                                        style="color: var(--text-normal); padding: 0.75rem 1rem; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s; border-top: 1px solid var(--glass-border);">
+                                        <i data-lucide="file-text" style="width: 16px; height: 16px;"></i> CSV (Simple)
+                                    </a>
                                 </div>
                             </div>
                             <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
@@ -1736,11 +1740,12 @@
     <!-- AI Modules -->
     <script src="src/js/core/ErrorBoundary.js"></script>
     <script src="src/js/core/ServiceRegistry.js"></script>
+    <script src="src/repository/index.js"></script>
     <!-- Features -->
     <script src="src/features/roster/shiftMapping.js"></script>
-    <script src="src/features/roster/timeRange.js"></script>
+    <script src="src/features/time/timeRange.js"></script>
     <script src="src/features/absence/AbsenceService.js"></script>
-    <script src="src/js/absence/AbsenceUI.js"></script>
+    <script src="src/features/absence/ui.js"></script>
     <script src="src/js/vacancy/VacancyPanel.js"></script>
     <script src="src/js/diagnostics/DiagnosticsBanner.js"></script>
     <script src="src/js/admin/AuditLog.js"></script>
@@ -1757,6 +1762,7 @@
     <script src="src/js/patterns/PatternLibraryUI.js"></script>
     <script src="src/js/templates/ShiftTemplates.js"></script>
     <script src="src/js/absence/AbsenceStore.js"></script>
+    <script src="src/engine/rosterEngine.js"></script>
     <script src="src/js/allocation/AllocationEngine.js"></script>
     <script src="src/js/views/MonthlyRosterView.js?v=3"></script>
     <script src="src/js/roster/RosterLogic.js?v=3"></script>
