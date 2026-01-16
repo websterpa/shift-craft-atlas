@@ -74,13 +74,13 @@ describe('Allocator Logic Verification', () => {
         assert.ok(shifts.length > 0, 'Should generate shifts');
 
         // Verify Forced Flags
-        const forcedShifts = shifts.filter(s => s.isForced);
+        const forcedShifts = shifts.filter(s => s.is_forced);
         // In the fixture, we have E, R, R...
         // Day 1: E (Natural) for Staff 1. E (Gap) for Staff 2.
         // Day 2..7: R (Natural). E (Gap) for Staff 1 & 2.
         // So plenty of forced shifts.
         assert.ok(forcedShifts.length > 0, 'Should have forced shifts');
-        assert.equal(forcedShifts[0].forcedReason, 'Gap Fill');
+        assert.equal(forcedShifts[0].forced_reason, 'Gap Fill');
     });
 
     it('Scenario C: Impossible Coverage (Rest Constraints)', () => {

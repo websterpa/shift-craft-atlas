@@ -8,6 +8,7 @@
     <meta name="description"
         content="Premium UK staff shift rostering system with built-in WTR compliance and real-time labor costing.">
     <link rel="stylesheet" href="src/css/index.css">
+    <link rel="stylesheet" href="src/styles/components/toolbar.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -113,96 +114,92 @@
             <main style="flex: 1; overflow-y: auto; padding: 2.5rem;">
                 <!-- Roster View -->
                 <section id="view-roster" class="app-view">
-                    <header>
-                        <div class="header-title">
-                            <h1 id="main-roster-title">Weekly Roster</h1>
-                            <p id="view-subtitle"
-                                style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-                                <span id="header-week-label">Jan 5 - Jan 11, 2026</span>
-                                <span style="opacity: 0.3;">|</span>
-                                <span id="roster-name-display" style="color: var(--accent-blue); font-weight: 600;">Main
-                                    Roster</span>
-                                <span style="opacity: 0.3;">|</span>
-                                <span style="color:var(--accent-emerald)">Holiday Accrual (12.07%): £0.00</span>
-                            </p>
-                        </div>
-                        <div class="header-actions" style="display: flex; gap: 1rem; align-items: center;">
-                            <!-- View Toggle -->
-                            <div class="view-toggle"
-                                style="display: flex; background: var(--glass-bg); border-radius: 8px; border: 1px solid var(--glass-border); overflow: hidden;">
-                                <button class="btn btn-toggle active" id="toggle-weekly-view" title="Weekly View">
-                                    <i data-lucide="calendar" style="width:16px;height:16px;"></i> Weekly
-                                </button>
-                                <button class="btn btn-toggle" id="toggle-monthly-view" title="Monthly View">
-                                    <i data-lucide="calendar-days" style="width:16px;height:16px;"></i> Monthly
-                                </button>
-                            </div>
-                            <button class="btn btn-outline" id="ai-import-btn">
-                                <i data-lucide="zap"></i> AI Roster Import
-                            </button>
-                            <button class="btn btn-outline" id="pattern-library-btn">
-                                <i data-lucide="library"></i> Pattern Library
-                            </button>
-                            <button class="btn btn-outline" id="roster-wizard-btn"
-                                style="border-color: var(--accent-purple); color: var(--accent-purple);">
-                                <i data-lucide="wand-2"></i> Roster Wizard
-                            </button>
-                            <button class="btn btn-outline" id="smart-fill-btn"
-                                style="border-color: var(--accent-blue);">
-                                <i data-lucide="sparkles"></i> Smart Fill
-                            </button>
-                            <button class="btn btn-outline" id="vacancy-panel-btn"
-                                style="border-color: var(--accent-rose); color: var(--accent-rose);">
-                                <i data-lucide="alert-circle"></i> Vacancies
-                            </button>
-                            <div class="dropdown" id="export-dropdown"
-                                style="position: relative; display: inline-block;">
-                                <button class="btn btn-outline" id="export-menu-btn"
-                                    style="border-color: var(--accent-emerald); color: var(--accent-emerald);">
-                                    <i data-lucide="download"></i> Export Roster <i data-lucide="chevron-down"
-                                        style="width: 14px; height: 14px; margin-left: 0.25rem;"></i>
-                                </button>
-                                <div class="dropdown-content" id="export-menu"
-                                    style="display: none; position: absolute; background: var(--glass-bg); min-width: 180px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); z-index: 1000; border: 1px solid var(--glass-border); border-radius: 0.5rem; top: 100%; right: 0; margin-top: 0.25rem; backdrop-filter: blur(12px);">
-                                    <a href="#" id="export-pdf-option"
-                                        style="color: var(--text-normal); padding: 0.75rem 1rem; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s;">
-                                        <i data-lucide="file-image" style="width: 16px; height: 16px;"></i> PDF Document
-                                    </a>
-                                    <a href="#" id="export-excel-option"
-                                        style="color: var(--text-normal); padding: 0.75rem 1rem; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s; border-top: 1px solid var(--glass-border);">
-                                        <i data-lucide="sheet" style="width: 16px; height: 16px;"></i> Excel Spreadsheet
-                                    </a>
-                                    <a href="#" id="export-csv-option"
-                                        style="color: var(--text-normal); padding: 0.75rem 1rem; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s; border-top: 1px solid var(--glass-border);">
-                                        <i data-lucide="file-text" style="width: 16px; height: 16px;"></i> CSV (Simple)
-                                    </a>
+                    <header class="toolbar toolbar--roster" data-weekly-header>
+                        <!-- Left: Title & Meta -->
+                        <div class="toolbar__section toolbar__section--left">
+                            <div class="toolbar__title">
+                                <h1 class="toolbar__h1" id="main-roster-title">Weekly Roster</h1>
+                                <div class="toolbar__meta">
+                                    <span id="header-week-label" aria-live="polite">Jan 5 - Jan 11, 2026</span>
+                                    <span class="meta-divider">|</span>
+                                    <a href="#" class="toolbar__link" id="link-new-roster">New Roster</a>
                                 </div>
                             </div>
-                            <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-                            <div style="border-right: 1px solid var(--glass-border); height: 24px; margin: 0 0.5rem;">
+                        </div>
+
+                        <!-- Center: View Toggle -->
+                        <div class="toolbar__section toolbar__section--center">
+                            <div class="segmented" role="tablist" aria-label="View switch">
+                                <button class="segmented__btn is-active" role="tab" aria-selected="true"
+                                    id="view-weekly">Weekly</button>
+                                <button class="segmented__btn" role="tab" aria-selected="false"
+                                    id="view-monthly">Monthly</button>
+                            </div>
+                        </div>
+
+                        <!-- Right: Actions -->
+                        <div class="toolbar__section toolbar__section--right">
+                            <!-- Primary Actions Group -->
+                            <div class="toolbar__group">
+                                <button class="btn btn-outline btn-sm" id="ai-import-btn" title="AI Import">
+                                    <i data-lucide="zap"></i>
+                                </button>
+                                <button class="btn btn-outline btn-sm" id="pattern-library-btn" title="Patterns">
+                                    <i data-lucide="library"></i>
+                                </button>
+                                <button class="btn btn-outline btn-sm" id="roster-wizard-btn" title="Wizard">
+                                    <i data-lucide="wand-2"></i>
+                                </button>
+                                <button class="btn btn-outline btn-sm" id="smart-fill-btn" title="Smart Fill">
+                                    <i data-lucide="sparkles"></i>
+                                </button>
                             </div>
 
-                            <div style="display: flex; gap: 0.5rem;">
-                                <button class="btn btn-outline" id="clear-roster-btn" title="Clear Roster"
-                                    style="border-color: var(--accent-rose); color: var(--accent-rose);">
+                            <!-- Secondary Actions Group -->
+                            <div class="toolbar__group">
+                                <button class="btn btn-outline btn-sm" id="vacancy-panel-btn" title="Vacancies"
+                                    style="color: var(--accent-rose); border-color: var(--accent-rose);">
+                                    <i data-lucide="alert-circle"></i>
+                                </button>
+
+                                <div class="dropdown" id="export-dropdown" style="position: relative;">
+                                    <button class="btn btn-outline btn-sm" id="export-menu-btn" title="Export">
+                                        <i data-lucide="download"></i>
+                                    </button>
+                                    <div class="dropdown-content" id="export-menu"
+                                        style="display: none; position: absolute; background: var(--glass-bg); min-width: 180px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); z-index: 1000; border: 1px solid var(--glass-border); border-radius: 0.5rem; top: 100%; right: 0; margin-top: 0.25rem;">
+                                        <a href="#" id="export-pdf-option"
+                                            style="padding: 0.75rem 1rem; color: inherit; text-decoration: none; display: flex; gap: 0.5rem;"><i
+                                                data-lucide="file-image" style="width:16px;"></i> PDF</a>
+                                        <a href="#" id="export-excel-option"
+                                            style="padding: 0.75rem 1rem; color: inherit; text-decoration: none; display: flex; gap: 0.5rem;"><i
+                                                data-lucide="sheet" style="width:16px;"></i> Excel</a>
+                                        <a href="#" id="export-csv-option"
+                                            style="padding: 0.75rem 1rem; color: inherit; text-decoration: none; display: flex; gap: 0.5rem;"><i
+                                                data-lucide="file-text" style="width:16px;"></i> CSV</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Management Group -->
+                            <div class="toolbar__group">
+                                <button class="btn btn-outline btn-sm" id="clear-roster-btn" title="Clear">
                                     <i data-lucide="trash-2"></i>
                                 </button>
-                                <button class="btn btn-outline" id="save-snapshot-btn" title="Save Snapshot"
-                                    style="border-color: var(--accent-blue); color: var(--accent-blue);">
+                                <button class="btn btn-outline btn-sm" id="save-snapshot-btn" title="Save">
                                     <i data-lucide="save"></i>
                                 </button>
                             </div>
 
-                            <div style="border-right: 1px solid var(--glass-border); height: 24px; margin: 0 0.5rem;">
+                            <!-- Primary Call to Action -->
+                            <div class="toolbar__group toolbar__group--primary">
+                                <button class="btn btn-outline btn-sm theme-amber" id="record-absence-btn">
+                                    <i data-lucide="calendar-off"></i>
+                                </button>
+                                <button class="btn btn-primary btn-sm" id="add-shift-btn">
+                                    <i data-lucide="plus"></i> New Shift
+                                </button>
                             </div>
-
-                            <button class="btn btn-outline" id="record-absence-btn"
-                                style="border-color: var(--accent-amber); color: var(--accent-amber); margin-right: 0.5rem;">
-                                <i data-lucide="calendar-off"></i> Record Absence
-                            </button>
-                            <button class="btn btn-primary" id="add-shift-btn">
-                                <i data-lucide="plus"></i> New Shift
-                            </button>
                         </div>
                     </header>
 
@@ -396,20 +393,24 @@
 
                 <!-- Staff View -->
                 <section id="view-staff" class="app-view" style="display: none;">
-                    <header>
-                        <div class="header-title">
-                            <h1>Staff Directory</h1>
-                            <p>Manage employee rates and WTR status</p>
+                    <header class="toolbar toolbar--staff">
+                        <div class="toolbar__section toolbar__section--left">
+                            <div class="toolbar__title">
+                                <h1 class="toolbar__h1">Staff Directory</h1>
+                                <div class="toolbar__meta">
+                                    <span>Manage employee rates and WTR status</span>
+                                </div>
+                            </div>
                         </div>
-                        <div style="display: flex; gap: 0.75rem;">
-                            <button class="btn btn-outline" id="deduplicate-staff-btn"
-                                style="border-color: var(--accent-amber); color: var(--accent-amber);">
-                                <i data-lucide="user-minus"></i> Deduplicate Staff
+                        <div class="toolbar__section toolbar__section--right">
+                            <button class="btn btn-outline btn-sm" id="deduplicate-staff-btn"
+                                style="color: var(--accent-amber); border-color: var(--accent-amber);">
+                                <i data-lucide="user-minus"></i> Deduplicate
                             </button>
-                            <button class="btn btn-outline" id="open-monthly-roster-btn">
+                            <button class="btn btn-outline btn-sm" id="open-monthly-roster-btn">
                                 <i data-lucide="calendar-days"></i> Monthly View
                             </button>
-                            <button class="btn btn-primary" id="add-staff-modal-btn">
+                            <button class="btn btn-primary btn-sm" id="add-staff-modal-btn">
                                 <i data-lucide="user-plus"></i> Add Employee
                             </button>
                         </div>
@@ -448,67 +449,30 @@
                                     <th style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="staff-list-tbody" style="display:block;"></tbody>
+                            <tbody id="staff-list-tbody"></tbody>
                         </table>
                     </div>
-                    <style>
-                        /* Staff Table alignment fix */
-                        #view-staff .roster-table thead,
-                        #view-staff .roster-table tbody tr {
-                            display: grid;
-                            grid-template-columns: 50px 0.8fr 1.5fr 1fr 0.8fr 0.8fr 0.8fr 1fr;
-                            align-items: center;
-                            gap: 1rem;
-                        }
 
-                        #view-staff .roster-table tbody {
-                            display: block;
-                        }
-
-                        #view-staff .roster-table td,
-                        #view-staff .roster-table th {
-                            display: flex;
-                            align-items: center;
-                            border: none;
-                            /* Remove default borders as grid handles spacing */
-                            padding: 0.75rem 0.5rem;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                            white-space: nowrap;
-                        }
-
-                        #view-staff .roster-table th {
-                            font-size: 0.75rem;
-                            font-weight: 700;
-                            color: var(--text-muted);
-                            text-transform: uppercase;
-                            letter-spacing: 0.05em;
-                            border-bottom: 1px solid var(--glass-border) !important;
-                        }
-
-                        #view-staff .roster-table tbody tr {
-                            border-bottom: 1px solid var(--glass-border);
-                            transition: background 0.2s;
-                        }
-
-                        #view-staff .roster-table tbody tr:hover {
-                            background: rgba(255, 255, 255, 0.02);
-                        }
-                    </style>
                 </section>
 
 
 
                 <!-- Payroll Export View -->
                 <section id="view-payroll" class="app-view" style="display: none;">
-                    <header>
-                        <div class="header-title">
-                            <h1>Payroll Export</h1>
-                            <p>Generate statutory export files</p>
+                    <header class="toolbar toolbar--payroll">
+                        <div class="toolbar__section toolbar__section--left">
+                            <div class="toolbar__title">
+                                <h1 class="toolbar__h1">Payroll Export</h1>
+                                <div class="toolbar__meta">
+                                    <span>Generate statutory export files</span>
+                                </div>
+                            </div>
                         </div>
-                        <button class="btn btn-primary" id="final-export-btn">
-                            <i data-lucide="download"></i> Download CSV
-                        </button>
+                        <div class="toolbar__section toolbar__section--right">
+                            <button class="btn btn-primary btn-sm" id="final-export-btn">
+                                <i data-lucide="download"></i> Download CSV
+                            </button>
+                        </div>
                     </header>
                     <div class="roster-builder" style="padding: 1.5rem;">
                         <table class="roster-table">
@@ -1818,10 +1782,21 @@
     <script src="src/js/allocation/AllocationEngine.js"></script>
     <script src="src/js/views/MonthlyRosterView.js?v=3"></script>
     <script src="src/js/roster/RosterLogic.js?v=3"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="src/js/roster/RosterExport.js"></script>
     <script src="src/js/roster/wizard/WizardStep2.js?v=3"></script>
     <script src="src/js/roster/RosterWizard.js?v=3"></script>
     <script src="src/js/app.js?v=3"></script>
+    <script type="module">
+        import { initWeeklyHeader } from './src/js/roster/weeklyHeader.js';
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (window.app) {
+                    initWeeklyHeader(window.app);
+                }
+            }, 50);
+        });
+    </script>
 </body>
 
 </html>

@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npx playwright test",
-    "test:unit": "node tests/unit/roster_logic.test.mjs",
+    "test:unit": "node --test tests/unit/roster_logic.test.mjs tests/unit/rosterEngine.test.js && node tests/unit/AbsenceService.test.js",
     "start": "http-server -p 8080 -c-1"
   },
   "keywords": [],

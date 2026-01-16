@@ -188,7 +188,7 @@ header {
     border-collapse: collapse;
 }
 
-.rota-table th {
+.roster-table th {
     text-align: left;
     padding: 1rem 1.5rem;
     font-size: 0.75rem;
@@ -198,7 +198,7 @@ header {
     border-bottom: 1px solid var(--glass-border);
 }
 
-.rota-table td {
+.roster-table td {
     padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--glass-border);
     vertical-align: top;
@@ -212,12 +212,12 @@ header {
 }
 
 /* Weekend Highlighting */
-.rota-table th.weekend {
+.roster-table th.weekend {
     background: color-mix(in srgb, var(--glass-bg), var(--primary) 5%);
     border-bottom-color: var(--primary);
 }
 
-.rota-table td.weekend {
+.roster-table td.weekend {
     background: color-mix(in srgb, var(--glass-bg), var(--primary) 3%);
 }
 

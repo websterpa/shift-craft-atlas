@@ -1,0 +1,77 @@
+<header class="toolbar toolbar--roster" data-weekly-header>
+    <!-- Left: Title & Meta -->
+    <div class="toolbar__section toolbar__section--left">
+        <div class="toolbar__title">
+            <h1 class="toolbar__h1">Weekly Roster</h1>
+            <div class="toolbar__meta">
+                <span id="week-range" aria-live="polite">Jan 5 - Jan 11, 2026</span>
+                <span class="meta-divider">|</span>
+                <a href="#" class="toolbar__link" id="link-new-roster">New Roster</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Center: View Toggle -->
+    <div class="toolbar__section toolbar__section--center">
+        <div class="segmented" role="tablist" aria-label="View switch">
+            <button class="segmented__btn is-active" role="tab" aria-selected="true" id="view-weekly">Weekly</button>
+            <button class="segmented__btn" role="tab" aria-selected="false" id="view-monthly">Monthly</button>
+        </div>
+    </div>
+
+    <!-- Right: Actions -->
+    <div class="toolbar__section toolbar__section--right">
+        <!-- Primary Actions Group -->
+        <div class="toolbar__group">
+            <button class="btn btn-outline btn-sm" id="ai-import-btn" title="AI Import">
+                <i data-lucide="zap"></i>
+            </button>
+            <button class="btn btn-outline btn-sm" id="pattern-library-btn" title="Patterns">
+                <i data-lucide="library"></i>
+            </button>
+            <button class="btn btn-outline btn-sm" id="roster-wizard-btn" title="Wizard">
+                <i data-lucide="wand-2"></i>
+            </button>
+            <button class="btn btn-outline btn-sm" id="smart-fill-btn" title="Smart Fill">
+                <i data-lucide="sparkles"></i>
+            </button>
+        </div>
+
+        <!-- Secondary Actions Group -->
+        <div class="toolbar__group">
+            <button class="btn btn-outline btn-sm" id="vacancy-panel-btn" title="Vacancies">
+                <i data-lucide="alert-circle"></i>
+            </button>
+
+            <div class="dropdown" id="export-dropdown">
+                <button class="btn btn-outline btn-sm" id="export-menu-btn" title="Export">
+                    <i data-lucide="download"></i>
+                </button>
+                <!-- Dropdown content remains same as original via JS or existing structure, assuming app handles it via ID -->
+                <div class="dropdown-content" id="export-menu">
+                    <!-- ... items ... -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Management Group -->
+        <div class="toolbar__group">
+            <button class="btn btn-outline btn-sm" id="clear-roster-btn" title="Clear">
+                <i data-lucide="trash-2"></i>
+            </button>
+            <button class="btn btn-outline btn-sm" id="save-snapshot-btn" title="Save">
+                <i data-lucide="save"></i>
+            </button>
+        </div>
+
+        <!-- Primary Call to Action -->
+        <div class="toolbar__group toolbar__group--primary">
+            <button class="btn btn-outline btn-sm theme-amber" id="record-absence-btn">
+                <i data-lucide="calendar-off"></i> Absence
+            </button>
+            <button class="btn btn-primary btn-sm" id="add-shift-btn">
+                <i data-lucide="plus"></i> Shift
+            </button>
+        </div>
+    </div>
+</header>
