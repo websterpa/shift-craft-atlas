@@ -1571,6 +1571,22 @@ class ShiftCraftApp {
         }
 
         this.updateHeader(hol);
+        this.updateAbsenceButtonState();
+    }
+
+    async updateAbsenceButtonState() {
+        if (!this.absenceStore) return;
+        const absences = await this.absenceStore.getAllAbsences();
+        const btn = document.getElementById('record-absence-btn');
+        if (btn) {
+            if (absences && absences.length > 0) {
+                btn.style.color = 'var(--accent-amber)';
+                btn.style.borderColor = 'var(--accent-amber)';
+            } else {
+                btn.style.color = '';
+                btn.style.borderColor = '';
+            }
+        }
     }
 
     updateHeader(holidayTotal = 0) {
