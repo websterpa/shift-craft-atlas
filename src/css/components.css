@@ -821,3 +821,22 @@
     box-shadow: 0 2px 4px rgba(244, 63, 94, 0.3);
     text-transform: uppercase;
 }
+/* Help Grid for Documentation Cards */
+.help-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+@media (max-width: 1200px) {
+    .help-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .help-grid {
+        grid-template-columns: 1fr;
+    }
+}
