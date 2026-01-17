@@ -997,11 +997,10 @@ class ShiftCraftApp {
 
         const warnings = this.checkCompliance(shift, person);
         if (warnings.length > 0) {
-            const warnEl = document.createElement('div');
-            warnEl.className = 'compliance-warning';
-            warnEl.innerHTML = `<i data-lucide="alert-triangle" style="width:10px;height:10px"></i> ${warnings[0]}`;
-            pill.appendChild(warnEl);
-            if (window.lucide) setTimeout(() => window.lucide.createIcons(), 0);
+            const flag = document.createElement('div');
+            flag.className = 'shift-error-flag';
+            flag.setAttribute('data-tooltip', warnings[0]);
+            pill.appendChild(flag);
         }
 
         pill.onclick = async () => {

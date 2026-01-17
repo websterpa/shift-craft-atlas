@@ -141,30 +141,42 @@
                         <div class="toolbar__section toolbar__section--right">
                             <!-- Primary Actions Group -->
                             <div class="toolbar__group">
-                                <button class="btn btn-outline btn-sm" id="ai-import-btn" title="AI Import">
+                                <button class="btn btn-outline btn-sm btn-stacked" id="ai-import-btn"
+                                    data-tooltip="Import via AI">
                                     <i data-lucide="zap"></i>
+                                    <span>AI Import</span>
                                 </button>
-                                <button class="btn btn-outline btn-sm" id="pattern-library-btn" title="Patterns">
+                                <button class="btn btn-outline btn-sm btn-stacked" id="pattern-library-btn"
+                                    data-tooltip="Pattern Library">
                                     <i data-lucide="library"></i>
+                                    <span>Patterns</span>
                                 </button>
-                                <button class="btn btn-outline btn-sm" id="roster-wizard-btn" title="Wizard">
+                                <button class="btn btn-outline btn-sm btn-stacked" id="roster-wizard-btn"
+                                    data-tooltip="Roster Wizard">
                                     <i data-lucide="wand-2"></i>
+                                    <span>Wizard</span>
                                 </button>
-                                <button class="btn btn-outline btn-sm" id="smart-fill-btn" title="Smart Fill">
+                                <button class="btn btn-outline btn-sm btn-stacked" id="smart-fill-btn"
+                                    data-tooltip="Smart Fill">
                                     <i data-lucide="sparkles"></i>
+                                    <span>Smart Fill</span>
                                 </button>
                             </div>
 
                             <!-- Secondary Actions Group -->
                             <div class="toolbar__group">
-                                <button class="btn btn-outline btn-sm" id="vacancy-panel-btn" title="Vacancies"
+                                <button class="btn btn-outline btn-sm btn-stacked" id="vacancy-panel-btn"
+                                    data-tooltip="Vacancy Panel"
                                     style="color: var(--accent-rose); border-color: var(--accent-rose);">
                                     <i data-lucide="alert-circle"></i>
+                                    <span>Vacancies</span>
                                 </button>
 
                                 <div class="dropdown" id="export-dropdown" style="position: relative;">
-                                    <button class="btn btn-outline btn-sm" id="export-menu-btn" title="Export">
+                                    <button class="btn btn-outline btn-sm btn-stacked" id="export-menu-btn"
+                                        data-tooltip="Export Options">
                                         <i data-lucide="download"></i>
+                                        <span>Export</span>
                                     </button>
                                     <div class="dropdown-content" id="export-menu"
                                         style="display: none; position: absolute; background: var(--glass-bg); min-width: 180px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); z-index: 1000; border: 1px solid var(--glass-border); border-radius: 0.5rem; top: 100%; right: 0; margin-top: 0.25rem;">
@@ -183,18 +195,24 @@
 
                             <!-- Management Group -->
                             <div class="toolbar__group">
-                                <button class="btn btn-outline btn-sm" id="clear-roster-btn" title="Clear">
+                                <button class="btn btn-outline btn-sm btn-stacked" id="clear-roster-btn"
+                                    data-tooltip="Clear All Shifts">
                                     <i data-lucide="trash-2"></i>
+                                    <span>Clear</span>
                                 </button>
-                                <button class="btn btn-outline btn-sm" id="save-snapshot-btn" title="Save">
+                                <button class="btn btn-outline btn-sm btn-stacked" id="save-snapshot-btn"
+                                    data-tooltip="Save Snapshot">
                                     <i data-lucide="save"></i>
+                                    <span>Save</span>
                                 </button>
                             </div>
 
                             <!-- Primary Call to Action -->
                             <div class="toolbar__group toolbar__group--primary">
-                                <button class="btn btn-outline btn-sm theme-amber" id="record-absence-btn">
+                                <button class="btn btn-outline btn-sm theme-amber btn-stacked" id="record-absence-btn"
+                                    data-tooltip="Record Absence">
                                     <i data-lucide="calendar-off"></i>
+                                    <span>Absence</span>
                                 </button>
                                 <button class="btn btn-primary btn-sm" id="add-shift-btn">
                                     <i data-lucide="plus"></i> New Shift
@@ -979,6 +997,9 @@
                                     ensure reliable data consistency and prevent "ghost shifts".</li>
                                 <li style="margin-bottom:0.5rem"><strong>Conflict Detection:</strong> The system
                                     automatically flags overlapping shifts or double-bookings.</li>
+                                <li style="margin-bottom:0.5rem"><strong>Vacancy Panel:</strong> Identify unassigned
+                                    shifts and use smart suggestions to find available, compliant staff replacements.
+                                </li>
                             </ul>
                         </div>
 

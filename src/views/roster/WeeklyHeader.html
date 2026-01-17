@@ -23,29 +23,35 @@
     <div class="toolbar__section toolbar__section--right">
         <!-- Primary Actions Group -->
         <div class="toolbar__group">
-            <button class="btn btn-outline btn-sm" id="ai-import-btn" title="AI Import">
+            <button class="btn btn-outline btn-sm btn-stacked" id="ai-import-btn" data-tooltip="Import via AI">
                 <i data-lucide="zap"></i>
+                <span>AI Import</span>
             </button>
-            <button class="btn btn-outline btn-sm" id="pattern-library-btn" title="Patterns">
+            <button class="btn btn-outline btn-sm btn-stacked" id="pattern-library-btn" data-tooltip="Pattern Library">
                 <i data-lucide="library"></i>
+                <span>Patterns</span>
             </button>
-            <button class="btn btn-outline btn-sm" id="roster-wizard-btn" title="Wizard">
+            <button class="btn btn-outline btn-sm btn-stacked" id="roster-wizard-btn" data-tooltip="Roster Wizard">
                 <i data-lucide="wand-2"></i>
+                <span>Wizard</span>
             </button>
-            <button class="btn btn-outline btn-sm" id="smart-fill-btn" title="Smart Fill">
+            <button class="btn btn-outline btn-sm btn-stacked" id="smart-fill-btn" data-tooltip="Smart Fill">
                 <i data-lucide="sparkles"></i>
+                <span>Smart Fill</span>
             </button>
         </div>
 
         <!-- Secondary Actions Group -->
         <div class="toolbar__group">
-            <button class="btn btn-outline btn-sm" id="vacancy-panel-btn" title="Vacancies">
+            <button class="btn btn-outline btn-sm btn-stacked" id="vacancy-panel-btn" data-tooltip="Vacancy Panel">
                 <i data-lucide="alert-circle"></i>
+                <span>Vacancies</span>
             </button>
 
             <div class="dropdown" id="export-dropdown">
-                <button class="btn btn-outline btn-sm" id="export-menu-btn" title="Export">
+                <button class="btn btn-outline btn-sm btn-stacked" id="export-menu-btn" data-tooltip="Export Options">
                     <i data-lucide="download"></i>
+                    <span>Export</span>
                 </button>
                 <!-- Dropdown content remains same as original via JS or existing structure, assuming app handles it via ID -->
                 <div class="dropdown-content" id="export-menu">
@@ -56,11 +62,13 @@
 
         <!-- Management Group -->
         <div class="toolbar__group">
-            <button class="btn btn-outline btn-sm" id="clear-roster-btn" title="Clear">
+            <button class="btn btn-outline btn-sm btn-stacked" id="clear-roster-btn" data-tooltip="Clear All Shifts">
                 <i data-lucide="trash-2"></i>
+                <span>Clear</span>
             </button>
-            <button class="btn btn-outline btn-sm" id="save-snapshot-btn" title="Save">
+            <button class="btn btn-outline btn-sm btn-stacked" id="save-snapshot-btn" data-tooltip="Save Snapshot">
                 <i data-lucide="save"></i>
+                <span>Save</span>
             </button>
         </div>
 
