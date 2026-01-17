@@ -1556,6 +1556,20 @@ class ShiftCraftApp {
         const alertsEl = document.getElementById('stat-alerts');
         if (alertsEl) alertsEl.textContent = alerts;
 
+        // Update Vacancy Button State based on existence of vacancies
+        const vacBtn = document.getElementById('vacancy-panel-btn');
+        if (vacBtn) {
+            const hasVacancies = this.shifts.some(s => s.vacant === true);
+            if (hasVacancies) {
+                vacBtn.style.color = 'var(--accent-rose)';
+                vacBtn.style.borderColor = 'var(--accent-rose)';
+            } else {
+                // Reset to default
+                vacBtn.style.color = '';
+                vacBtn.style.borderColor = '';
+            }
+        }
+
         this.updateHeader(hol);
     }
 
