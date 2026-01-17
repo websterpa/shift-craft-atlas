@@ -821,22 +821,98 @@
     box-shadow: 0 2px 4px rgba(244, 63, 94, 0.3);
     text-transform: uppercase;
 }
+
 /* Help Grid for Documentation Cards */
 .help-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin-bottom: 4rem;
 }
 
-@media (max-width: 1200px) {
-    .help-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .help-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Premium Help Card Styling */
+.help-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    /* Ensures uniform height in grid row */
+}
+
+.help-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.15);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+}
+
+.help-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    z-index: 2;
+    position: relative;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 1rem;
+}
+
+.help-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+
+.help-card h3 {
+    margin: 0 !important;
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: var(--text-main) !important;
+    letter-spacing: -0.01em;
+}
+
+.help-card ul {
+    position: relative;
+    z-index: 2;
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.help-watermark {
+    position: absolute;
+    bottom: -20px;
+    right: -20px;
+    opacity: 0.04;
+    transform: rotate(-15deg);
+    z-index: 0;
+    pointer-events: none;
+    transition: transform 0.5s ease;
+}
+
+.help-card:hover .help-watermark {
+    transform: rotate(0deg) scale(1.1);
+    opacity: 0.06;
+}
+
+.help-watermark svg {
+    width: 200px;
+    height: 200px;
 }
