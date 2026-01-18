@@ -13,8 +13,8 @@ const loadScript = (relativePath) => {
     eval(code);
 };
 
-loadScript('src/features/roster/shiftMapping.js');
-loadScript('src/features/time/timeRange.js');
+loadScript('public/app/src/features/roster/shiftMapping.js');
+loadScript('public/app/src/features/time/timeRange.js');
 
 const ShiftMapping = global.window.ShiftMapping;
 const TimeRange = global.window.TimeRange;
@@ -49,7 +49,7 @@ assert.strictEqual(fullRange.end.getDate(), 2, 'Equal times should rollover (ass
 
 // 3. Integration Check (Mocking ShiftDataNormalizer usage)
 // We need to load ShiftDataNormalizer class now
-const normalizerPath = path.resolve(__dirname, '../../src/js/ai/ShiftDataNormalizer.js');
+const normalizerPath = path.resolve(__dirname, '../../public/app/src/js/ai/ShiftDataNormalizer.js');
 const normalizerCode = fs.readFileSync(normalizerPath, 'utf8');
 // Evaluate in context where window.ShiftMapping exists
 eval(normalizerCode);

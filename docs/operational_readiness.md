@@ -1,45 +1,53 @@
 # Operational Readiness Checklist
 
 ## 1. Environment Configuration
-The application requires the following environment variables (in `.env` or Vercel/Supabase config):
+Ensure the following environment variables are set in `.env` (local) or your deployment platform:
 
-- `SUPABASE_URL`: The API URL of your Supabase project.
-- `SUPABASE_KEY`: The 'Anon' (Public) Key. used for client-side and unprivileged server-side operations.
-- `SUPABASE_SERVICE_KEY`: The 'Service Role' (Secret) Key. REQUIRED for admin operations (creating invites, managing users).
-- `ADMIN_SECRET`: (Optional) Legacy secret for local admin bypass, superseded by Supabase Auth mechanism.
+### Core
+- `PORT`: 8080 (Default for API Server)
+- `NEXT_PUBLIC_API_URL`: URL of the API server (if separated)
 
-## 2. Database Schema & Migration
-The database is managed via SQL migrations located in `supabase/migrations/`.
-For a fresh deployment, run the **Master Consolidated Migration**: `supabase/migrations/99_final_consolidated.sql`.
+### Security & Auth
+- `SUPABASE_URL`: Your Supabase Project URL.
+- `SUPABASE_KEY`: Your Supabase Anon/Public Key.
+- `ADMIN_SECRET`: Secret token for admin-only API routes.
 
-This script sets up:
-- Extensions (`pgcrypto`, `citext`)
-- Tables:
-  - `flags` (Feature Toggles)
-  - `audit_log` (Security Audit)
-  - `waitlist` (Early Access Signups)
-  - `waitlist_ip_throttle` (Rate Limiting)
-  - `invites` (Access Codes)
-  - `app_admins` (Admin Role Mapping)
-- RLS Policies (Strict default deny, Admin allow)
-- RPC Functions (`join_waitlist`, `validate_invite`, etc.)
+## 2. Deployment Architecture
+This is a **Hybrid Application**:
+1. **Marketing & Routing**: Next.js (Port 3000)
+   - Handles `/`, `/pricing`, `/features`, etc.
+   - Proxies `/api/*` to Backend.
+   - Serves `/app/*` statically or acts as ingress.
+   
+2. **Legacy App**: Vanilla JS (Served at `/app`)
+   - Located in `public/app`.
+   - Served conceptually as static files by Next.js (via `rewrites`) or Express.
 
-## 3. Deployment Checklist
-- [ ] **Run Migration**: Execute `99_final_consolidated.sql` in Supabase SQL Editor.
-- [ ] **Seed Admin User**:
-    1. Sign up a user in your App.
-    2. Go to Supabase Table Editor -> `app_admins`.
-    3. Insert a row with the `uid` of your admin user.
-- [ ] **Verify Security**:
-    - Run `node tests/supabase_verification.js` locally.
-    - Ensure all tests pass.
-    - **Note**: If `set_flag` warning appears ("SUCCEEDED for Anon"), verify your Supabase RLS settings manually. Ensure "Enable Row Level Security" is checked for the `flags` table.
+3. **Backend**: Express API (Port 8080)
+   - Handles `/api/flags`, `/api/waitlist`, logic.
+   - Serves static `/app` files as fallback.
 
-## 4. Monitoring & Observability
-- **Audit Logs**: All critical actions (Waitlist Join, Invite Validation, Flag Changes) are logged to the `audit_log` table.
-- **Throttling**: Check `waitlist_ip_throttle` to see request volume/blocking.
-- **Supabase Logs**: Use Supabase Dashboard for API error rates.
+### Running in Production
+You need to run BOTH processes. Recommended approaches:
+- **Docker**: Container running `concurrently` (easiest migration).
+- **Separate Services**: Deploy Next.js to Vercel, Express to Render/Heroku. *Note: Requires updating Next.js `rewrites` to point to full URL.*
 
-## 5. Known Issues / Limitations
-- **Security Check Warning**: In some environments, `set_flag` (Admin RPC) might appear accessible to Anonymous users during automated testing. This is likely a configuration artifact. Strict `security invoker` logic requires Table RLS to be active.
-- **Legacy Columns**: The `audit_log` schema was unified. Ensure you run the fix script if upgrading from an older version.
+**Startup Command:**
+```bash
+npm start
+```
+*Note: This runs `next start` only. For the hybrid monolith approach locally, verify `npm run dev` behaviour matches prod needs or use a Process Manager (PM2).*
+
+## 3. Observability & Logging
+- **Logs**: Structured logs are emitted to `stdout`. 
+- **Health Check**: `GET /api/health` returns status JSON.
+- **Audit**: Database-level audit logging is enabled (Supabase `whoami` and `audit_log` table).
+
+## 4. Known Limitations
+- The Vanilla JS app relies on `window` globals.
+- `tests/unit` pathing is sensitive to directory structure (fixed for `public/app`).
+- Authentication is handled client-side via Supabase; API is protected via RLS and simple Secrets.
+
+## 5. Rollback Plan
+1. Revert to previous Git Commit.
+2. If Database Migration failed, run `down` scripts (if available) or restore backup.

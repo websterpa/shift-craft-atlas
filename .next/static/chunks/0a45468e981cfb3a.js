@@ -1,0 +1,7 @@
+__turbopack_load_page_chunks__("/case-studies", [
+  "static/chunks/82f4981b7de47bc0.js",
+  "static/chunks/6dc07565875bfe86.js",
+  "static/chunks/6c107fda8e0827ab.js",
+  "static/chunks/ba45f7a4caf13996.js",
+  "static/chunks/turbopack-b5f124fa9dd526d2.js"
+])

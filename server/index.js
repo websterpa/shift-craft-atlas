@@ -10,8 +10,9 @@ const PORT = process.env.PORT || 8080;
 
 app.use(express.json());
 
-// Serve Static Assets (SPA) from root
-app.use(express.static(path.join(__dirname, '../')));
+// Serve Static Assets (SPA) from public/app
+app.use(express.static(path.join(__dirname, '../public/app')));
+app.use('/pattern-library', express.static(path.join(__dirname, '../public/pattern-library')));
 
 // Mount Logic Routes
 app.use('/api/flags', flagsRouter);
@@ -33,7 +34,7 @@ app.use((err, req, res, next) => {
 
 // Fallback to index.html for SPA client-side routing
 app.get(/(.*)/, (req, res) => {
-    const indexPath = path.resolve(__dirname, '../index.html');
+    const indexPath = path.resolve(__dirname, '../public/app/index.html');
     res.sendFile(indexPath, (err) => {
         if (err) {
             console.error('SendFile Error:', err);

@@ -1,0 +1,38 @@
+{
+    "security": {
+        "title": "Shift Craft for Security",
+        "description": "Ensure 24/7 site coverage and manage rigorous SIA compliance.",
+        "features": [
+            "SIA License Check",
+            "Patrol Logging",
+            "Incident Reporting Integration"
+        ]
+    },
+    "healthcare": {
+        "title": "Shift Craft for Healthcare",
+        "description": "Optimize ward staffing and ensure patient safety with compliance-first rostering.",
+        "features": [
+            "Band 5/6 filtering",
+            "WTR Compliance",
+            "Agency Management"
+        ]
+    },
+    "hospitality": {
+        "title": "Shift Craft for Hospitality",
+        "description": "Manage dynamic shifts for bars, restaurants, and hotels.",
+        "features": [
+            "Tip Distribution",
+            "Split Shifts",
+            "Event Staffing"
+        ]
+    },
+    "logistics": {
+        "title": "Shift Craft for Logistics",
+        "description": "Keep your fleet moving with precise driver scheduling.",
+        "features": [
+            "Certification Tracking",
+            "Route Assignment",
+            "Overtime Management"
+        ]
+    }
+}

@@ -6,13 +6,13 @@ import path from 'node:path';
 import vm from 'node:vm';
 
 // Load Dependencies
-const shiftMappingPath = path.join(process.cwd(), 'src/features/roster/ShiftMapping.js');
+const shiftMappingPath = path.join(process.cwd(), 'public/app/src/features/roster/ShiftMapping.js');
 const shiftMappingCode = fs.readFileSync(shiftMappingPath, 'utf8');
 
-const timeRangePath = path.join(process.cwd(), 'src/features/time/TimeRange.js');
+const timeRangePath = path.join(process.cwd(), 'public/app/src/features/time/TimeRange.js');
 const timeRangeCode = fs.readFileSync(timeRangePath, 'utf8');
 
-const wizardStep2Path = path.join(process.cwd(), 'src/js/roster/wizard/WizardStep2.js');
+const wizardStep2Path = path.join(process.cwd(), 'public/app/src/js/roster/wizard/WizardStep2.js');
 const wizardStep2Code = fs.readFileSync(wizardStep2Path, 'utf8');
 
 // Mock DOM

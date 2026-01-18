@@ -1,0 +1,44 @@
+{
+    "plans": [
+        {
+            "id": "starter",
+            "name": "Starter",
+            "price": 0,
+            "interval": "month",
+            "description": "Perfect for small teams getting started.",
+            "features": [
+                "Up to 5 staff",
+                "Basic Rostering",
+                "7-day history",
+                "Standard Support"
+            ]
+        },
+        {
+            "id": "pro",
+            "name": "Pro",
+            "price": 29,
+            "interval": "month",
+            "description": "Power and compliance for growing businesses.",
+            "features": [
+                "Unlimited staff",
+                "AI Auto-Fill",
+                "Audit Logs",
+                "Compliance Engine",
+                "Priority Support"
+            ]
+        },
+        {
+            "id": "enterprise",
+            "name": "Enterprise",
+            "price": null,
+            "interval": "month",
+            "description": "Custom solutions for large organizations.",
+            "features": [
+                "SSO & SAML",
+                "Custom Integrations",
+                "Dedicated Account Manager",
+                "SLA"
+            ]
+        }
+    ]
+}

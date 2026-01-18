@@ -16,10 +16,10 @@ const loadScript = (relativePath) => {
 
 // Load types (Store & Service)
 // Load types (Store & Service)
-loadScript('src/js/absence/AbsenceStore.js');
-loadScript('src/features/time/timeRange.js'); // Updated Path
-loadScript('src/features/roster/shiftMapping.js'); // Added Dependency
-loadScript('src/features/absence/AbsenceService.js');
+loadScript('public/app/src/js/absence/AbsenceStore.js');
+loadScript('public/app/src/features/time/timeRange.js'); // Updated Path
+loadScript('public/app/src/features/roster/shiftMapping.js'); // Added Dependency
+loadScript('public/app/src/features/absence/AbsenceService.js');
 
 const AbsenceService = global.window.AbsenceService;
 const AbsenceStore = global.window.AbsenceStore; // Store helper

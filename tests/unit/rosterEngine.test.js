@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { RosterEngine } = require('../../src/engine/rosterEngine.js');
+const { RosterEngine } = require('../../public/app/src/engine/rosterEngine.js');
 
 // Mock Helpers
 const mockTimeRange = {

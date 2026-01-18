@@ -1,0 +1,7 @@
+__turbopack_load_page_chunks__("/cookies", [
+  "static/chunks/92abb2bb14196331.js",
+  "static/chunks/6dc07565875bfe86.js",
+  "static/chunks/6c107fda8e0827ab.js",
+  "static/chunks/ba45f7a4caf13996.js",
+  "static/chunks/turbopack-c7e0eb909547c91c.js"
+])

@@ -1,0 +1,7 @@
+__turbopack_load_page_chunks__("/industries", [
+  "static/chunks/0f8f0a2bd26e6e1c.js",
+  "static/chunks/6dc07565875bfe86.js",
+  "static/chunks/ba45f7a4caf13996.js",
+  "static/chunks/6c107fda8e0827ab.js",
+  "static/chunks/turbopack-a3a8548c412b97cb.js"
+])

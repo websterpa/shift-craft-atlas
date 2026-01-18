@@ -1,0 +1,12 @@
+__turbopack_load_page_chunks__("/privacy", [
+  "static/chunks/c425e_next_dist_compiled_52d72cba._.js",
+  "static/chunks/c425e_next_dist_shared_lib_bc5a37ee._.js",
+  "static/chunks/c425e_next_dist_client_6e4444cc._.js",
+  "static/chunks/c425e_next_dist_f9528396._.js",
+  "static/chunks/c425e_next_link_b9946062.js",
+  "static/chunks/c425e_react-dom_11148a82._.js",
+  "static/chunks/c425e_2c0007ae._.js",
+  "static/chunks/[root-of-the-server]__c520834b._.js",
+  "static/chunks/_gemini_antigravity_scratch_uk-roster-mvp_pages_privacy_2da965e7._.js",
+  "static/chunks/turbopack-_gemini_antigravity_scratch_uk-roster-mvp_pages_privacy_c1156b9a._.js"
+])

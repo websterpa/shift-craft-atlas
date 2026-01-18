@@ -10,19 +10,19 @@ const fixturesPath = path.join(process.cwd(), 'tests/fixtures/roster_wizard/scen
 const fixtures = JSON.parse(fs.readFileSync(fixturesPath, 'utf8'));
 
 // Load TimeRange
-const timePath = path.join(process.cwd(), 'src/features/time/timeRange.js');
+const timePath = path.join(process.cwd(), 'public/app/src/features/time/timeRange.js');
 const timeCode = fs.readFileSync(timePath, 'utf8');
 
 // Load ShiftMapping
-const mappingPath = path.join(process.cwd(), 'src/features/roster/shiftMapping.js');
+const mappingPath = path.join(process.cwd(), 'public/app/src/features/roster/shiftMapping.js');
 const mappingCode = fs.readFileSync(mappingPath, 'utf8');
 
 // Load RosterEngine
-const enginePath = path.join(process.cwd(), 'src/engine/rosterEngine.js');
+const enginePath = path.join(process.cwd(), 'public/app/src/engine/rosterEngine.js');
 const engineCode = fs.readFileSync(enginePath, 'utf8');
 
 // Load RosterLogic
-const logicPath = path.join(process.cwd(), 'src/js/roster/RosterLogic.js');
+const logicPath = path.join(process.cwd(), 'public/app/src/js/roster/RosterLogic.js');
 const logicCode = fs.readFileSync(logicPath, 'utf8');
 
 // Shim Window environment

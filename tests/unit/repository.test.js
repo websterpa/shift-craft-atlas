@@ -16,7 +16,7 @@ global.crypto = {
 // Load Repository (we need to mock window or just require if it was node-compatible)
 // Since it's a browser script with 'window.', we'll mock 'window'
 global.window = {};
-require('../../src/repository/index.js');
+require('../../public/app/src/repository/index.js');
 
 const Repository = global.window.Repository;
 
